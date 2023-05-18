@@ -5,8 +5,8 @@ import { L2TokenFactory } from '../typechain-types/contracts/L2/factory/L2TokenF
 import { L2ProjectManager } from '../typechain-types/contracts/L2/L2ProjectManager'
 
 const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-    console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
-    console.log('deployL2 hre.network.name', hre.network.name)
+    console.log('2 deployL2 hre.network.config.chainId', hre.network.config.chainId)
+    console.log('2 deployL2 hre.network.name', hre.network.name)
 
     if (hre.network.config.chainId != 5050 ) return;
 
@@ -39,6 +39,15 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2ProjectManagerDeployment.abi,
         l2ProjectManagerDeployment.address
     )) as L2ProjectManager;
+
+
+    //==== initialize L2TokenFactory =================================
+    await l2TokenFactory.connect(deployer).setL2ProjectManager(l2ProjectManager.address)
+
+    //==== initialize L2ProjectManager =================================
+    await l2ProjectManager.connect(deployer).setL2TokenFactory(l2TokenFactory.address)
+
+
 };
 
 export default deployL2;

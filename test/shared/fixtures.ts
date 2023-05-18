@@ -10,7 +10,7 @@ import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factor
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'
 import { L1ERC20D_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20D_TokenFactory'
-import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager'
+import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager.sol'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../../typechain-types/contracts/L2/L2ProjectManager'
@@ -81,33 +81,6 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 
     await addressManager.connect(deployer).setAddress("OVM_L1CrossDomainMessenger", l1Messenger.address);
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1StandardBridge", l1Bridge.address);
-
-    /*
-    //==== Initialize L1  =================================
-    await (await l1ProjectManager.connect(deployer).setL1TokenFactory(
-        [0,1,2,3],
-        [ l1ERC20A_TokenFactory.address,
-          l1ERC20B_TokenFactory.address,
-          l1ERC20C_TokenFactory.address,
-          l1ERC20D_TokenFactory.address,
-        ]
-    )).wait()
-
-    await (await l1ProjectManager.connect(deployer).setL2TokenFactory(
-      0, l2TokenFactory.address
-    )).wait()
-
-    //==== Initialize L2  =================================
-
-    await (await l2TokenFactory.connect(deployer).setL2ProjectManager(
-      l2ProjectManager.address
-    )).wait()
-
-    await (await l2ProjectManager.connect(deployer).setL1ProjectManager(
-      l1ProjectManager.address
-    )).wait()
-
-    */
 
     return  {
       libProject: libProject,

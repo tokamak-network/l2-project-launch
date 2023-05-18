@@ -13,7 +13,7 @@ import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factor
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'
 import { L1ERC20D_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20D_TokenFactory'
-import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager'
+import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager.sol'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../../typechain-types/contracts/L2//L2ProjectManager'

@@ -1,0 +1,80 @@
+{
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addressManager",
+          "type": "address"
+        }
+      ],
+      "name": "getL1Bridge",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "addressManager",
+          "type": "address"
+        }
+      ],
+      "name": "getL1CommunicationMessenger",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x33fde0d99b17dec0ba5e936632e0658a4dcf2f52a9b7a50acec10322cf003ca1",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "transactionIndex": 0,
+    "gasUsed": "179764",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x25c2fff3f104114de50f5f703ac5a360c918200c831d720d5c5c1736e080fb50",
+    "transactionHash": "0x33fde0d99b17dec0ba5e936632e0658a4dcf2f52a9b7a50acec10322cf003ca1",
+    "logs": [],
+    "blockNumber": 3501,
+    "cumulativeGasUsed": "179764",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "49d4d6fa1f28c6687a57dc146405b07c",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.18+commit.87f61d96\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1CommunicationMessenger\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"LibProject\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/constants/LibProject.sol\":\"LibProject\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":625},\"remappings\":[]},\"sources\":{\"contracts/libraries/constants/LibProject.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.4;\\n\\ninterface AddressManagerI {\\n    function getAddress(string memory _name) external view returns (address);\\n}\\n\\n/**\\n * @title LibProject\\n */\\nlibrary LibProject {\\n\\n    enum TOKEN_TYPE {\\n        ERC20_A,\\n        ERC20_B,\\n        ERC20_C,\\n        ERC20_D,\\n        NONE\\n    }\\n\\n    enum L2_TYPE {\\n        TOKAMAL_OPTIMISM,\\n        TOKAMAL_ZKEVM,\\n        NONE\\n    }\\n\\n    function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('OVM_L1CrossDomainMessenger') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n\\n    function getL1Bridge(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('Proxy__OVM_L1StandardBridge') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x51ff87e7cf409d11c6c6ef30b88c84bad2fcb70a72bcb8b7b41d08d85af8b85c\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x61024961003a600b82828239805160001a60731461002d57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100405760003560e01c8063507c8bd1146100455780639da3176114610074575b600080fd5b6100586100533660046101fb565b610087565b6040516001600160a01b03909116815260200160405180910390f35b6100586100823660046101fb565b610171565b60006001600160a01b03821661009f57506000919050565b60405163bf40fac160e01b815260206004820152601a60248201527f4f564d5f4c3143726f7373446f6d61696e4d657373656e67657200000000000060448201526001600160a01b0383169063bf40fac1906064015b602060405180830381865afa92505050801561012e575060408051601f3d908101601f1916820190925261012b9181019061021f565b60015b61016b573d80801561015c576040519150601f19603f3d011682016040523d82523d6000602084013e610161565b606091505b5060009392505050565b92915050565b60006001600160a01b03821661018957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac1906064016100f5565b6001600160a01b03811681146101f857600080fd5b50565b60006020828403121561020d57600080fd5b8135610218816101e3565b9392505050565b60006020828403121561023157600080fd5b8151610218816101e356fea164736f6c6343000812000a",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600436106100405760003560e01c8063507c8bd1146100455780639da3176114610074575b600080fd5b6100586100533660046101fb565b610087565b6040516001600160a01b03909116815260200160405180910390f35b6100586100823660046101fb565b610171565b60006001600160a01b03821661009f57506000919050565b60405163bf40fac160e01b815260206004820152601a60248201527f4f564d5f4c3143726f7373446f6d61696e4d657373656e67657200000000000060448201526001600160a01b0383169063bf40fac1906064015b602060405180830381865afa92505050801561012e575060408051601f3d908101601f1916820190925261012b9181019061021f565b60015b61016b573d80801561015c576040519150601f19603f3d011682016040523d82523d6000602084013e610161565b606091505b5060009392505050565b92915050565b60006001600160a01b03821661018957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac1906064016100f5565b6001600160a01b03811681146101f857600080fd5b50565b60006020828403121561020d57600080fd5b8135610218816101e3565b9392505050565b60006020828403121561023157600080fd5b8151610218816101e356fea164736f6c6343000812000a",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "title": "LibProject",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
