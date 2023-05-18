@@ -7,6 +7,7 @@ import {  Wallet, Signer } from 'ethers'
 // import { ERC20B } from '../../typechain-types/contracts/L1/factory/ERC20B'
 // import { ERC20C } from '../../typechain-types/contracts/L1/factory/ERC20C'
 // import { ERC20D } from '../../typechain-types/contracts/L1/factory/ERC20D'
+import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
 
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
@@ -24,6 +25,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 
 interface L2ProjectLaunchFixture  {
+    libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
     l1ERC20B_TokenFactory: L1ERC20B_TokenFactory,
     l1ERC20C_TokenFactory: L1ERC20C_TokenFactory,
@@ -41,4 +43,15 @@ interface L2ProjectLaunchFixture  {
     l2Bridge: MockL2Bridge
 }
 
-export { L2ProjectLaunchFixture }
+interface ProjectInfo {
+    projectOwner: string,
+    tokenOwner: string,
+    l1Token: string,
+    l2Token: string,
+    addressManager: string,
+    initialTotalSupply: BigNumber,
+    tokenType: number,
+    l2Type: number,
+    projectName: string,
+}
+export { L2ProjectLaunchFixture, ProjectInfo }

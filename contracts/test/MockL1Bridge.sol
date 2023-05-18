@@ -76,6 +76,15 @@ contract MockL1Bridge is Ownable {
         _;
     }
 
+    event ERC20DepositInitiated(
+        address indexed _l1Token,
+        address indexed _l2Token,
+        address indexed _from,
+        address _to,
+        uint256 _amount,
+        bytes _data
+    );
+
     constructor() {
     }
 
@@ -120,6 +129,7 @@ contract MockL1Bridge is Ownable {
 
         deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token] + _amount;
 
+        emit ERC20DepositInitiated(_l1Token, _l2Token, _from, _to, _amount, _data);
     }
 
 

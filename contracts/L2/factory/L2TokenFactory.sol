@@ -27,7 +27,7 @@ contract L2TokenFactory is AccessibleCommon {
 
     address public l2ProjectManager;
 
-    event StandardL2TokenCreated(address indexed _l1Token, address indexed _l2Token);
+    event StandardL2TokenCreated(address indexed l1Token, address indexed l2Token);
 
     modifier nonZeroAddress(address account) {
         require(account != address(0), "Z2");
@@ -36,13 +36,16 @@ contract L2TokenFactory is AccessibleCommon {
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
-
+     constructor() {
+        _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
+        _setupRole(ADMIN_ROLE, msg.sender);
+    }
 
     /* ========== onlyOwner ========== */
     function setL2ProjectManager(address _l2ProjectManager)
         external nonZeroAddress(_l2ProjectManager) onlyOwner
     {
-        require(l2ProjectManager != _l2ProjectManager, "same address");
+        require(l2ProjectManager != _l2ProjectManager, "same");
         l2ProjectManager = _l2ProjectManager;
     }
 

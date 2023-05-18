@@ -5,6 +5,7 @@ import Web3EthAbi from 'web3-eth-abi';
 import { L2ProjectLaunchFixture } from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
+import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'
@@ -25,6 +26,10 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 
     const [deployer, addr1, addr2, sequencer1 ] = await ethers.getSigners();
 
+    //==== LibProject =================================
+    const LibProject_ = await ethers.getContractFactory('LibProject');
+    const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
+
     //==== L1TokenFactory =================================
 
     const l1ERC20A_TokenFactoryDeployment = await ethers.getContractFactory("L1ERC20A_TokenFactory");
@@ -41,7 +46,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 
     //==== L1ProjectManager =================================
 
-    const l1ProjectManagerDeployment = await ethers.getContractFactory("L1ProjectManager")
+    const l1ProjectManagerDeployment = await ethers.getContractFactory("L1ProjectManager", {
+        signer: deployer, libraries: { LibProject: libProject.address }
+    })
     const l1ProjectManager = (await l1ProjectManagerDeployment.connect(deployer).deploy()) as L1ProjectManager;
 
     //==== L2TokenFactory =================================
@@ -103,6 +110,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     */
 
     return  {
+      libProject: libProject,
       l1ERC20A_TokenFactory: l1ERC20A_TokenFactory,
       l1ERC20B_TokenFactory: l1ERC20B_TokenFactory,
       l1ERC20C_TokenFactory: l1ERC20C_TokenFactory,
