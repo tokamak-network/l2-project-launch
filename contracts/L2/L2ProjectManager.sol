@@ -27,6 +27,11 @@ contract L2ProjectManager is AccessibleCommon {
     // l2token - ProjectInfo
     mapping(address => ProjectInfo) public projects;
 
+    // l1token - l2token
+    mapping(address => address) public tokenMaps;
+
+    string public helloMessage;
+
     modifier onlyL2TokenFactory() {
         require(l2TokenFactory != address(0) && msg.sender == l2TokenFactory, "caller is not l2TokenFactory");
         _;
@@ -97,17 +102,20 @@ contract L2ProjectManager is AccessibleCommon {
             l2Token : l2Token,
             projectName : projectName
         });
-
+        tokenMaps[l1Token] = l2Token;
         emit AddedProject(l1Token, l2Token, projectOwner, projectName);
     }
 
     /* ========== Anyone can execute ========== */
     function hello(string memory _msg) external {
+        helloMessage = _msg;
         emit Hello(_msg);
     }
 
     function balanceOf(address l2Token) external {
         uint256 balance = IERC20(l2Token).balanceOf(address(this));
+        helloMessage = string(abi.encode(balance));
+
         emit BalacneOf(l2Token, balance);
     }
     /* ========== VIEW ========== */

@@ -145,7 +145,6 @@ contract L1ProjectManager is AccessibleCommon {
 
     /* ========== Only ProjectOwner ========== */
 
-    /// @dev 프로젝트 생성
     function setL2Token(uint256 projectId, uint8 l2Type, address addressManager, address l2Token)
         external nonZeroAddress(addressManager) nonZeroAddress(l2Token) onlyProjectOwner(projectId)
     {
