@@ -54,13 +54,13 @@ async function main() {
         addressManager: addressManager
     }
     console.log('ourAddr', ourAddr)
-    projectInfo.projectId = ethers.BigNumber.from("3");
+    projectInfo.projectId = ethers.BigNumber.from("4");
 
     let projects = await deployedL1.L1ProjectManager.projects(projectInfo.projectId)
     let l2Token = await deployedL2.L2ProjectManager.tokenMaps(projectInfo.l1Token)
     console.log(projects)
     projectInfo.l1Token = projects.l1Token;
-    console.log('l2Token', l2Token)
+
 
     if (projects.l2Token == '0x0000000000000000000000000000000000000000' &&
         l2Token == '0x0000000000000000000000000000000000000000') {
@@ -74,12 +74,12 @@ async function main() {
             projectInfo.tokenSymbol,
             projectInfo.projectName
         )).wait();
-        console.log(receipt.logs)
+
         const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
         const deployedEvent = deployedL2.L2TokenFactory.interface.parseLog(log);
 
         l2Token = deployedEvent.args.l2Token;
-        console.log("L2Token", l2Token)
+        console.log("StandardL2TokenCreated  L2Token", l2Token)
 
         projectInfo.l2Token = l2Token
 
@@ -95,7 +95,7 @@ async function main() {
         const log1 = receipt1.logs.find(x => x.topics.indexOf(topic1) >= 0);
         const deployedEvent1 = deployedL1.L1ProjectManager.interface.parseLog(log1);
 
-        console.log("L2Token", deployedEvent1.args.l2Token)
+        console.log("SetL2Token L2Token", deployedEvent1.args.l2Token)
         console.log("addressManager", deployedEvent1.args.addressManager)
 
     } else {

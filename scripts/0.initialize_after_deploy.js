@@ -88,17 +88,17 @@ async function main() {
 
   /// initialize : L1ProjectManager setL2ProjectManager
   let l2ProjectManagerOfL1ProjectManager = await deployedL1.L1ProjectManager.l2ProjectManager(0);
-  if (l2ProjectManagerOfL1ProjectManager == "0x0000000000000000000000000000000000000000") {
+  // if (l2ProjectManagerOfL1ProjectManager == "0x0000000000000000000000000000000000000000") {
     await (await deployedL1.L1ProjectManager.setL2ProjectManager(0, deployedL2.L2ProjectManager.address)).wait()
-  }
+  // }
   l2ProjectManagerOfL1ProjectManager = await deployedL1.L1ProjectManager.l2ProjectManager(0);
   console.log("l2ProjectManagerOfL1ProjectManager", l2ProjectManagerOfL1ProjectManager)
 
   /// initialize : L2TokenFactory setL2ProjectManager
   let l2ProjectManagerOfL2TokenFactory = await deployedL2.L2TokenFactory.l2ProjectManager();
-  if (l2ProjectManagerOfL2TokenFactory == "0x0000000000000000000000000000000000000000") {
+  // if (l2ProjectManagerOfL2TokenFactory == "0x0000000000000000000000000000000000000000") {
     await (await deployedL2.L2TokenFactory.setL2ProjectManager(deployedL2.L2ProjectManager.address)).wait()
-  }
+  // }
   l2ProjectManagerOfL2TokenFactory = await deployedL2.L2TokenFactory.l2ProjectManager();
   console.log("l2ProjectManagerOfL2TokenFactory", l2ProjectManagerOfL2TokenFactory)
 

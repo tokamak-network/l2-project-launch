@@ -113,9 +113,9 @@ async function main() {
     }
     console.log('ourAddr', ourAddr)
 
-
     // change with the project id of you want to know
-    projectInfo.projectId = ethers.constants.Two;
+    projectInfo.projectId = ethers.BigNumber.from("4");
+
     let projects = await deployedL1.L1ProjectManager.projects(projectInfo.projectId)
     console.log(projects)
     projectInfo.l1Token = projects.l1Token
@@ -139,7 +139,7 @@ async function main() {
     // depositL1TokenToL2(uint256 projectId, uint256 amount, uint32 _minGasLimit)
     const topic = L1Brige.interface.getEventTopic('ERC20DepositInitiated');
     const topic1 = L1Messenger.interface.getEventTopic('SentMessage');
-    const amount = ethers.utils.parseEther("100");
+    const amount = ethers.utils.parseEther("50");
 
     let totalSupply = await l1ERC20.totalSupply()
     let balanceOf = await l1ERC20.balanceOf(deployedL1.L1ProjectManager.address);
@@ -178,10 +178,18 @@ async function main() {
 
     console.log(`deployedL2.L2ProjectManager.addres`, deployedL2.L2ProjectManager.address)
     let balanceOfL2ProjectManager = await l2ERC20.balanceOf(deployedL2.L2ProjectManager.address);
-    let helloMessage = await deployedL2.L2ProjectManager.helloMessage()
+    let tmp = await deployedL2.L2ProjectManager.tmp()
 
     console.log('L2ProjectManager ',l2ERC20.address,', balanceOf', balanceOfL2ProjectManager)
-    console.log(`L2ProjectManager helloMessage`, helloMessage)
+    console.log(`L2ProjectManager tmp`, tmp)
+
+    // let res = await deployedL2.L2ProjectManager.balanceOf(projectInfo.l2Token);
+    // console.log(`res `, res)
+    // await res.wait();
+
+    // let tmp = await deployedL2.L2ProjectManager.tmp()
+    // console.log(`L2ProjectManager tmp`, tmp)
+
 
 }
 

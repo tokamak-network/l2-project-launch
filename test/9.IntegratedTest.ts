@@ -163,7 +163,7 @@ describe('IntegratedTest', () => {
 
         it('setL2Token can be executed by only projectOwner ', async () => {
             projectInfo.addressManager = deployed.addressManager.address;
-
+            
             await deployed.l1ProjectManager.connect(addr2).setL2Token(
                 projectInfo.projectId,
                 projectInfo.l2Type,

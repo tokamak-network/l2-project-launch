@@ -8,13 +8,26 @@ import "../../libraries/SafeERC20.sol";
 import "hardhat/console.sol";
 
 /**
- * @title L2CustomVaultA
- * @dev 어드민이 원할때 클래임하는 볼트
+ * @title L2CustomVaultB
+ * @dev 볼트 어드민이 스케쥴에 따라 클래임하는 볼트
  */
-contract L2CustomVaultA is AccessibleCommon {
+contract L2CustomVaultB is AccessibleCommon {
     using SafeERC20 for IERC20;
     bool internal free = true;
     address public l2ProjectManager;
+
+    struct VaultInfo {
+        uint256 totalAllocatedAmount;
+        uint256 totalClaimCount;
+        uint256 totalClaimAmount;
+        uint256 firstClaimAmount;
+        uint32 firstClaimTime;
+        uint32 claimIntervalSeconds;
+        uint32 nowClaimRound;
+    }
+
+    // l2token - VaultInfo
+    mapping(address => VaultInfo) public vaultInfo;
 
     // l2token - tokenOwner
     mapping(address => address) public vaultAdmin;
@@ -78,7 +91,7 @@ contract L2CustomVaultA is AccessibleCommon {
     function claim(address l2Token, address to, uint256 amount)
         external nonZeroAddress(msg.sender) nonZeroAddress(l2Token) nonZeroAddress(to) nonZero(amount)
     {
-        require(vaultAdmin[l2Token] == msg.sender, 'caller is not project admin.');
+        require(vaultAdmin[l2Token] == msg.sender);
         require(amount <= IERC20(l2Token).balanceOf(address(this)), "balance is insufficient.");
 
         IERC20(l2Token).safeTransfer(to, amount);

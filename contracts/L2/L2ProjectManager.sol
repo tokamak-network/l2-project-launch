@@ -30,7 +30,7 @@ contract L2ProjectManager is AccessibleCommon {
     // l1token - l2token
     mapping(address => address) public tokenMaps;
 
-    string public helloMessage;
+    uint256 public tmp;
 
     modifier onlyL2TokenFactory() {
         require(l2TokenFactory != address(0) && msg.sender == l2TokenFactory, "caller is not l2TokenFactory");
@@ -55,7 +55,7 @@ contract L2ProjectManager is AccessibleCommon {
     }
 
     event AddedProject(address indexed l1Token, address indexed l2Token, address projectOwner, string projectName);
-    event Hello(string);
+
     event BalacneOf(address l2Token, uint256 amount);
 
     /* ========== DEPENDENCIES ========== */
@@ -107,14 +107,9 @@ contract L2ProjectManager is AccessibleCommon {
     }
 
     /* ========== Anyone can execute ========== */
-    function hello(string memory _msg) external {
-        helloMessage = _msg;
-        emit Hello(_msg);
-    }
-
     function balanceOf(address l2Token) external {
         uint256 balance = IERC20(l2Token).balanceOf(address(this));
-        helloMessage = string(abi.encode(balance));
+        tmp = balance;
 
         emit BalacneOf(l2Token, balance);
     }
