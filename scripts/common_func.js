@@ -31,6 +31,11 @@ const messenger  = {
     l2Messenger: "0x4200000000000000000000000000000000000007",
 }
 
+const lockTos  = {
+  l1LockTOS: "0x63689448AbEaaDb57342D9e0E9B5535894C35433",
+  l2LockTOS: "",
+}
+
 // Global variable because we need them almost everywhere
 let crossChainMessenger
 let l1ERC20, l2ERC20    // OUTb contracts to show ERC-20 transfers

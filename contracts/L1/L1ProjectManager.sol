@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "../proxy/ProxyStorage.sol";
 import { AccessibleCommon } from "../common/AccessibleCommon.sol";
+import "./L1ProjectManagerStorage.sol";
 
 import { IERC20Factory } from "./interfaces/IERC20Factory.sol";
-import { LibProject } from "../libraries/constants/LibProject.sol";
+// import { LibProject } from "../libraries/LibProject.sol";
 // import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
@@ -38,61 +40,7 @@ interface L1BridgeI {
  * @title L1ProjectManager
  * @dev
  */
-contract L1ProjectManager is AccessibleCommon {
-    // using SafeERC20 for IERC20;
-    struct ProjectInfo {
-        address projectOwner;
-        address tokenOwner;
-        address l1Token;
-        address l2Token;
-        address addressManager;
-        uint256 initialTotalSupply;
-        uint8 tokenType;
-        uint8 l2Type;
-        string projectName;
-    }
-
-    bool internal free = true;
-
-    uint256 public projectCount;
-
-    // projectIndex - ProjectInfo
-    mapping(uint256 => ProjectInfo) public projects;
-
-    // projectIndex - ProjectInfo
-    mapping(address => uint256) public projectTokens;
-
-    // l2type - l2TokenFactory
-    mapping(uint8 => address) public l2TokenFactory;
-
-    // l2type - l2ProjectManager
-    mapping(uint8 => address) public l2ProjectManager;
-
-    // TOKEN_TYPE - l1TokenFactory
-    mapping(uint8 => address) public l1TokenFactory;
-
-    modifier onlyProjectOwner(uint256 projectid) {
-        require(projects[projectid].projectOwner != address(0) &&
-            msg.sender == projects[projectid].projectOwner, "caller is not projectOwner.");
-        _;
-    }
-
-    modifier nonZero(uint256 value) {
-        require(value != 0, "Z1");
-        _;
-    }
-
-    modifier nonZeroAddress(address account) {
-        require(account != address(0), "Z2");
-        _;
-    }
-
-    modifier ifFree {
-        require(free, "lock");
-        free = false;
-        _;
-        free = true;
-    }
+contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerStorage {
 
     event CreatedProject(uint256 projectId, address l1Token, string projectName, address projectOwner, string tokenName, string tokenSymbol, uint256 initialTotalSupply);
     event SetL2Token(uint256 projectId, uint8 l2Type, address addressManager, address l2Token);
@@ -103,8 +51,6 @@ contract L1ProjectManager is AccessibleCommon {
     /* ========== CONSTRUCTOR ========== */
 
     constructor() {
-        _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
-        _setupRole(ADMIN_ROLE, msg.sender);
     }
 
     /* ========== onlyOwner ========== */
@@ -150,7 +96,7 @@ contract L1ProjectManager is AccessibleCommon {
     {
         require(l2Type < uint8(LibProject.L2_TYPE.NONE), "unsupported l2Type");
 
-        ProjectInfo storage info = projects[projectId];
+        LibProject.ProjectInfo storage info = projects[projectId];
         require(info.addressManager != addressManager || info.l2Token != l2Token, "same L2");
         info.addressManager = addressManager;
         info.l2Token = l2Token;
@@ -231,7 +177,7 @@ contract L1ProjectManager is AccessibleCommon {
         require(projectToken != address(0), "zero projectToken");
         uint256 projectId = ++projectCount;
 
-        projects[projectId] = ProjectInfo({
+        projects[projectId] = LibProject.ProjectInfo({
             projectOwner: projectOwner,
             tokenOwner : tokenOwner,
             l1Token : projectToken,

@@ -2,7 +2,7 @@ import { ethers } from 'hardhat'
 import {  Wallet, Signer } from 'ethers'
 
 import Web3EthAbi from 'web3-eth-abi';
-import { L2ProjectLaunchFixture } from './fixtureInterfaces'
+import { L2ProjectLaunchFixture, L1Fixture} from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
 import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
@@ -20,6 +20,48 @@ import { MockL1Messenger } from '../../typechain-types/contracts/test/MockL1Mess
 import { MockL2Messenger } from '../../typechain-types/contracts/test/MockL2Messenger'
 import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.sol'
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
+import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
+import { TOS } from '../../typechain-types/contracts/test/TOS'
+
+const tosInfo = {
+  name: "TONStarter",
+  symbol: "TOS",
+  version: "1.0"
+}
+
+const lockTosInitializeIfo = {
+  epochUnit: ethers.BigNumber.from("604800"),
+  maxTime: ethers.BigNumber.from("94348800")
+}
+
+export const l1Fixtures = async function (): Promise<L1Fixture> {
+  const [deployer, addr1, addr2, sequencer1 ] = await ethers.getSigners();
+
+  const LockTOS_ = await ethers.getContractFactory('LockTOS');
+  const lockTOS = (await LockTOS_.connect(deployer).deploy()) as LockTOS
+
+  const TOS_ = await ethers.getContractFactory('TOS');
+  const tos = (await TOS_.connect(deployer).deploy(
+    tosInfo.name, tosInfo.symbol, tosInfo.version
+  )) as TOS
+
+  await (await lockTOS.connect(deployer).initialize(
+    tos.address,
+    lockTosInitializeIfo.epochUnit,
+    lockTosInitializeIfo.maxTime
+  )).wait()
+
+  await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
+  await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
+  return  {
+    deployer: deployer,
+    addr1: addr1,
+    addr2: addr2,
+    tos: tos,
+    lockTOS: lockTOS
+  }
+}
 
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {

@@ -23,6 +23,8 @@ import { MockL1Messenger } from '../../typechain-types/contracts/test/MockL1Mess
 import { MockL2Messenger } from '../../typechain-types/contracts/test/MockL2Messenger'
 import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.sol'
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
+import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
+import { TOS } from '../../typechain-types/contracts/test/TOS'
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -54,4 +56,33 @@ interface ProjectInfo {
     l2Type: number,
     projectName: string,
 }
-export { L2ProjectLaunchFixture, ProjectInfo }
+
+interface L1Fixture {
+    deployer: Signer,
+    addr1: Signer,
+    addr2: Signer,
+    tos: TOS,
+    lockTOS: LockTOS
+}
+
+interface Point {
+    bias: BigNumber,
+    slope: BigNumber,
+    timestamp: BigNumber
+}
+
+interface LockedBalance {
+    start: BigNumber,
+    end: BigNumber,
+    amount: BigNumber,
+    withdrawn: boolean
+}
+
+interface LockedBalanceInfo {
+    id: BigNumber,
+    start: BigNumber,
+    end: BigNumber,
+    amount: BigNumber,
+    balance: BigNumber
+}
+export { L2ProjectLaunchFixture, ProjectInfo, L1Fixture, Point, LockedBalance, LockedBalanceInfo}

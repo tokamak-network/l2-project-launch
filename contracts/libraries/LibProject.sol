@@ -24,6 +24,19 @@ library LibProject {
         NONE
     }
 
+    struct ProjectInfo {
+        address projectOwner;
+        address tokenOwner;
+        address l1Token;
+        address l2Token;
+        address addressManager;
+        uint256 initialTotalSupply;
+        uint8 tokenType;
+        uint8 l2Type;
+        string projectName;
+    }
+
+
     function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {
         if (addressManager == address(0)) return address(0);
         try
