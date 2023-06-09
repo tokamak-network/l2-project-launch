@@ -1,3 +1,4 @@
+import hre from 'hardhat'
 import { ethers } from 'hardhat'
 import {  Wallet, Signer } from 'ethers'
 
@@ -22,6 +23,8 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
+
 
 const tosInfo = {
   name: "TONStarter",
@@ -35,7 +38,7 @@ const lockTosInitializeIfo = {
 }
 
 export const l1Fixtures = async function (): Promise<L1Fixture> {
-  const [deployer, addr1, addr2, sequencer1 ] = await ethers.getSigners();
+  const [deployer, addr1, addr2, sequencer1, create2Deployer] = await ethers.getSigners();
 
   const LockTOS_ = await ethers.getContractFactory('LockTOS');
   const lockTOS = (await LockTOS_.connect(deployer).deploy()) as LockTOS
@@ -66,7 +69,15 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1 ] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
+    const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
+    const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
+
+    //
+    const Create2Deployer_ = await ethers.getContractFactory('Create2Deployer');
+    const factory = (await Create2Deployer_.connect(create2Signer).deploy()) as Create2Deployer
+    console.log("factory", factory.address);
+
 
     //==== LibProject =================================
     const LibProject_ = await ethers.getContractFactory('LibProject');
@@ -136,11 +147,13 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       deployer: deployer,
       addr1: addr1,
       addr2: addr2,
+      factoryDeployer: create2Signer,
       addressManager: addressManager,
       l1Messenger: l1Messenger,
       l2Messenger: l2Messenger,
       l1Bridge: l1Bridge,
-      l2Bridge: l2Bridge
+      l2Bridge: l2Bridge,
+      factory: factory
   }
 }
 

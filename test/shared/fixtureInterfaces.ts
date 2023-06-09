@@ -25,6 +25,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -38,11 +39,13 @@ interface L2ProjectLaunchFixture  {
     deployer: Signer,
     addr1: Signer,
     addr2: Signer,
+    factoryDeployer: Signer,
     addressManager: Lib_AddressManager,
     l1Messenger: MockL1Messenger,
     l2Messenger: MockL2Messenger,
     l1Bridge: MockL1Bridge,
-    l2Bridge: MockL2Bridge
+    l2Bridge: MockL2Bridge,
+    factory: Create2Deployer
 }
 
 interface ProjectInfo {
