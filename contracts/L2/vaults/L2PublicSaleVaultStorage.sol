@@ -25,25 +25,40 @@ contract L2PublicSaleVaultStorage {
     uint256 public stanTier3;     //최소 기준 Tier3
     uint256 public stanTier4;     //최소 기준 Tier4 기준이 제일 큼
 
+    //관리자가 설정하는 contract를 deploy 후 snapshot을 지정할 수 있는 최소 시간 간격
+    uint256 public delayTime;
+
     //관리자가 설정하는 changeTick
     int24 public changeTick;    //TON -> TOS로 변경할때 허용되는 Tick 범위
 
-    //관리자가 설정하는 contract를 deploy 후 snapshot을 지정할 수 있는 최소 시간 간격
-    uint256 public delayTime;
 
     //L2PublicSale을 manage하는 manager
     address public l2ProjectManager;
     
     bool internal free = true;
-    
+
     //l2token이 기준이 된다. (l2token - tokenOwner)
     mapping(address => address) public vaultAdminOfToken;
 
-    // l2token - timeInfo
-    mapping(address => LibPublicSaleVault.TokenTimeManage) public timeInfo;
 
-    // l2token - manageInfo
-    mapping(address => LibPublicSaleVault.TokenSaleManage) public manageInfo;
+    mapping(address => address[]) public depositors;            // l2token - depositors
+    mapping(address => address[]) public whitelists;            // l2token - whitelists
+
+    mapping(address => uint256[]) public claimTimes;            // l2token - claimTimes
+    mapping(address => uint256[]) public claimPercents;         // l2token - claimPercents
+    
+
+    // l2token - struct
+    mapping(address => LibPublicSaleVault.TokenTimeManage) public timeInfo;     // l2token - timeInfo
+    mapping(address => LibPublicSaleVault.TokenSaleManage) public manageInfo;       // l2token - manageInfo
+    mapping(address => LibPublicSaleVault.TokenSaleInfo) public saleInfo;       // l2token - saleInfo
+
+
+    // l2token - tierInfo
+    mapping(address => mapping(uint8 => uint256)) public tiers;                 // l2token - tierNumber - tier sTOS value
+    mapping(address => mapping(uint8 => uint256)) public tiersPercents;         // l2token - tierNumber - tier SalePercent (tierPercents sum is 10000)
+    mapping(address => mapping(uint8 => uint256)) public tiersWhiteList;        // l2token - tierNumber - Number of whitelist participants by tier
+    mapping(address => mapping(uint8 => uint256)) public tiers1stAccount;       // l2token - tierNumber - Number of 1round participants by tier
 
     modifier onlyL2ProjectManager() {
         require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
