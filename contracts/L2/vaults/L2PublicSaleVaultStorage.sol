@@ -51,7 +51,13 @@ contract L2PublicSaleVaultStorage {
     // l2token - struct
     mapping(address => LibPublicSaleVault.TokenTimeManage) public timeInfo;     // l2token - timeInfo
     mapping(address => LibPublicSaleVault.TokenSaleManage) public manageInfo;       // l2token - manageInfo
+    mapping(address => LibPublicSaleVault.TokenSaleClaim) public claimInfo;       // l2token - manageInfo
     mapping(address => LibPublicSaleVault.TokenSaleInfo) public saleInfo;       // l2token - saleInfo
+
+    // l2token - account - struct
+    mapping(address => mapping(address => LibPublicSaleVault.UserInfo1rd)) public user1rd;      //l2token - userAccount - userInfo1rd
+    mapping(address => mapping(address => LibPublicSaleVault.UserInfo2rd)) public user2rd;      //l2token - userAccount - userInfo2rd
+    mapping(address => mapping(address => LibPublicSaleVault.UserClaim)) public userClaim;      //l2token - userAccount - userClaim    
 
 
     // l2token - tierInfo
