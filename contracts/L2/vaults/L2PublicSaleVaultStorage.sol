@@ -31,8 +31,7 @@ contract L2PublicSaleVaultStorage {
     //관리자가 설정하는 changeTick
     int24 public changeTick;    //TON -> TOS로 변경할때 허용되는 Tick 범위
 
-
-    //L2PublicSale을 manage하는 manager
+    //L2PublicSaleContract을 manage하는 manager
     address public l2ProjectManager;
     
     bool internal free = true;
@@ -75,7 +74,7 @@ contract L2PublicSaleVaultStorage {
     }
 
     modifier onlyVaultAdminOfToken(address l2token) {
-        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token], "caller is not a vaultAdmin Of l2Token");
+        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token] || msg.sender == l2ProjectManager, "caller is not a vaultAdmin Of l2Token");
         _;
     }
 
@@ -86,6 +85,16 @@ contract L2PublicSaleVaultStorage {
 
     modifier nonZeroAddress(address account) {
         require(account != address(0), "Z2");
+        _;
+    }
+
+    modifier beforeStartAddWhiteTime(address l2token) {
+        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[l2token];
+        require(
+            timeInfos.whiteListStartTime == 0 ||
+                (timeInfos.whiteListStartTime > 0 && block.timestamp < timeInfos.whiteListStartTime),
+            "not beforewhiteListStartTime"
+        );
         _;
     }
 

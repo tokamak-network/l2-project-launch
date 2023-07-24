@@ -6,8 +6,8 @@ import "./L2PublicSaleVaultStorage.sol";
 
 contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 {
-    /* ========== onlyOwner ========== */
-    //proxyContractOwner
+    /* ========== onlyOwner(proxyContractOwner) ========== */
+
     function setL2ProjectManager(address _l2ProjectManager)
         external nonZeroAddress(_l2ProjectManager) onlyOwner
     {
@@ -15,12 +15,44 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         l2ProjectManager = _l2ProjectManager;
     }
 
+    /* ========== only L2ProjectManager ========== */
+
+    function setVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external nonZeroAddress(l2Token) nonZeroAddress(_newAdmin) onlyL2ProjectManager
+    {
+        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
+        vaultAdminOfToken[l2Token] = _newAdmin;
+        emit SetVaultAdmin(l2Token, _newAdmin);
+    }
+
     //_setAddress = quoter, vestingFund, liquidityVault, uniswapRouter, lockTOS, tos, ton
     function initialize(
-        address[7] calldata _setAddress
+        address[7] calldata _setAddress,
+        uint8 _min,
+        uint8 _max,
+        uint256 _tier1,
+        uint256 _tier2,
+        uint256 _tier3,
+        uint256 _tier4,
+        uint256 _delayTime
     )
         external 
-        onlyOwner
+        onlyL2ProjectManager
+    {
+        setAddress(_setAddress);
+        setMaxMinPercent(_min,_max);
+        setSTOSstandard(_tier1,_tier2,_tier3,_tier4);
+        setDelayTime(_delayTime);
+    }
+
+    function setAddress(
+        address[7] calldata _setAddress
+    )
+        public
+        onlyL2ProjectManager
     {
         quoter = _setAddress[0];
         vestingFund = _setAddress[1];
@@ -35,13 +67,12 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint8 _min,
         uint8 _max
     )
-        external
-        onlyOwner
+        public
+        onlyL2ProjectManager
     {
         require(_min < _max, "need min < max");
         minPer = _min;
         maxPer = _max;
-    
     }
 
     function setSTOSstandard(
@@ -50,8 +81,8 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint256 _tier3,
         uint256 _tier4
     )   
-        external
-        onlyOwner 
+        public
+        onlyL2ProjectManager 
     {
         require(
             (_tier1 < _tier2) &&
@@ -68,9 +99,10 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     function setDelayTime(
         uint256 _delay
     )
-        external 
-        onlyOwner 
+        public 
+        onlyL2ProjectManager 
     {
+        require(delayTime != _delay, "same delayTime");
         delayTime = _delay;
     }
 

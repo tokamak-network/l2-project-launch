@@ -15,19 +15,16 @@ library LibPublicSaleVault {
         uint256 round1EndTime;
         uint256 round2StartTime;
         uint256 round2EndTime;
-        uint256 claimTime;
     }
 
     struct TokenSaleManage {
-        uint256 total1rdSaleAmount;      //Token을 판매한 양
-        uint256 total1rdTONAmount;       //Token판매로 받은 TON양
-        uint256 total2rdDepositAmount;
-        uint256 set1rdTokenAmount;
-        uint256 set2rdTokenAmount;
+        uint256 set1rdTokenAmount;      //1round에 token을 판매할 양
+        uint256 set2rdTokenAmount;      //2round에 token을 판매할 양
         uint256 saleTokenPrice;
         uint256 tonPrice;
         uint256 hardCap;                //softcap 수량 (판매 최저 하한선)
         uint256 changeTOS;              //TON -> TOS로 변경하는 %
+        uint256 changeTick;             //TON -> TOS로 변경할때 허용되는 Tick 범위
         bool exchangeTOS;               //TON -> TOS로 변경하였는지 체크
         bool adminWithdraw;             //withdraw함수를 실행하였는지 체크
     }
@@ -40,6 +37,9 @@ library LibPublicSaleVault {
     }
 
     struct TokenSaleInfo {
+        uint256 total1rdSaleAmount;      //Token을 판매한 양
+        uint256 total1rdTONAmount;       //Token판매로 받은 TON양
+        uint256 total2rdDepositAmount;  
         uint256 totalUsers;             //전체 세일 참여자 (라운드1,라운드2 포함, 유니크)
         uint256 total1rdUsers;       //라운드 1 참여자
         uint256 total2rdUsers;       //라운드 2 참여자
