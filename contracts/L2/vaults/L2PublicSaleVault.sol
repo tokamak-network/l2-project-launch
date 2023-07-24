@@ -5,22 +5,14 @@ import "../../libraries/SafeERC20.sol";
 
 import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
 import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
-import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
+import { L2PublicSaleVaultStorage } from "./L2PublicSaleVaultStorage.sol";
 
 contract L2PublicSaleVault is 
     ProxyStorage,
     AccessibleCommon, 
-    L2CustomVaultBaseStorage 
+    L2PublicSaleVaultStorage 
 {
     using SafeERC20 for IERC20;
-
-     /* ========== onlyOwner ========== */
-    function setL2ProjectManager(address _l2ProjectManager)
-        external nonZeroAddress(_l2ProjectManager) onlyOwner
-    {
-        require(l2ProjectManager != _l2ProjectManager, "same");
-        l2ProjectManager = _l2ProjectManager;
-    }
 
     /* ========== only L2ProjectManager ========== */
 
@@ -34,6 +26,10 @@ contract L2PublicSaleVault is
         vaultAdminOfToken[l2Token] = _newAdmin;
         emit SetVaultAdmin(l2Token, _newAdmin);
     }
+
+    // function initialize(
+
+    // )
 
     /* ========== VIEW ========== */
 
