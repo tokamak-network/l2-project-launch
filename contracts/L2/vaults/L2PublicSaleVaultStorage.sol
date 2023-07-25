@@ -36,6 +36,9 @@ contract L2PublicSaleVaultStorage {
     
     bool internal free = true;
 
+    //l2token의 모든 user의 totalDepositAmount
+    mapping(address => uint256) public totalDepositAmount;
+
     //l2token이 기준이 된다. (l2token - tokenOwner)
     mapping(address => address) public vaultAdminOfToken;
 

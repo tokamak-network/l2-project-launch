@@ -272,7 +272,14 @@ contract L2PublicSaleVault is
         require(y == 10000, "claimPercents err");
     }
 
-    function calculSaleToken(uint256 _amount, address _l2token)
+    /* ========== USING BUYER ========== */
+
+    /* ========== VIEW ========== */
+
+    function calculSaleToken(
+        address _l2token,
+        uint256 _amount
+    )
         public
         view
         returns (uint256)
@@ -283,7 +290,10 @@ contract L2PublicSaleVault is
         return tokenSaleAmount;
     }
 
-    function calculPayToken(uint256 _amount, address _l2token)
+    function calculPayToken(
+        address _l2token,
+        uint256 _amount
+    )
         public
         view
         returns (uint256)
@@ -293,7 +303,10 @@ contract L2PublicSaleVault is
         return tokenPayAmount;
     }
 
-    function calculTier(address _account, address _l2token)
+    function calculTier(
+        address _l2token,
+        address _account 
+    )
         public
         view
         nonZeroAddress(address(lockTOS))
@@ -301,11 +314,11 @@ contract L2PublicSaleVault is
         nonZero(tiers[_l2token][2])
         nonZero(tiers[_l2token][3])
         nonZero(tiers[_l2token][4])
-        returns (uint256)
+        returns (uint8)
     {
         LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
         uint256 sTOSBalance = IILockTOS(lockTOS).balanceOfAt(_account, timeInfos.snapshot);      //IILockTOS interface 추가 필요
-        uint256 tier;
+        uint8 tier;
         if (sTOSBalance >= tiers[_l2token][1] && sTOSBalance < tiers[_l2token][2]) {
             tier = 1;
         } else if (sTOSBalance >= tiers[_l2token][2] && sTOSBalance < tiers[_l2token][3]) {
@@ -320,35 +333,114 @@ contract L2PublicSaleVault is
         return tier;
     }
 
-    // function calculTierAmount(address _account, address _l2token)
-    //     public
-    //     view
-    //     returns (uint256)
-    // {
-    //     LibPublicSale.UserInfoEx memory userEx = usersEx[_address];
-    //     uint256 tier = calculTier(_address);
-    //     if (userEx.join == true && tier > 0) {
-    //         uint256 salePossible =
-    //             totalExpectSaleAmount
-    //                 .mul(tiersPercents[tier])
-    //                 .div(tiersAccount[tier])
-    //                 .div(10000);
-    //         return salePossible;
-    //     } else if (tier > 0) {
-    //         uint256 tierAccount = tiersAccount[tier].add(1);
-    //         uint256 salePossible =
-    //             totalExpectSaleAmount
-    //                 .mul(tiersPercents[tier])
-    //                 .div(tierAccount)
-    //                 .div(10000);
-    //         return salePossible;
-    //     } else {
-    //         return 0;
-    //     }
-    // }
+    function calculTierAmount(
+        address _l2token,
+        address _account 
+    )
+        public
+        view
+        returns (uint256)
+    {
+        LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
+        LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+        uint8 tier = calculTier(_account,_l2token);
+        if (user1rds.join == true && tier > 0) {
+            uint256 salePossible =
+                manageInfos.set1rdTokenAmount
+                    *(tiersPercents[_l2token][tier])
+                    /(tiers1stAccount[_l2token][tier])
+                    /(10000);
+            return salePossible;
+        } else if (tier > 0) {
+            uint256 tierAccount = tiers1stAccount[_l2token][tier]+(1);
+            uint256 salePossible =
+                manageInfos.set1rdTokenAmount
+                    *(tiersPercents[_l2token][tier])
+                    /(tierAccount)
+                    /(10000);
+            return salePossible;
+        } else {
+            return 0;
+        }
+    }
 
+    function calculOpenSaleAmount(
+        address _l2token,
+        address _account, 
+        uint256 _amount
+    )
+        public
+        view
+        returns (uint256)
+    {
+        LibPublicSaleVault.UserInfo2rd memory user2rds = user2rd[_l2token][_account];
+        uint256 depositAmount = user2rds.depositAmount+(_amount);
+        uint256 openSalePossible =
+            totalExpectOpenSaleAmountView(_l2token)
+                *(depositAmount)
+                /(totalDepositAmount[_l2token]+_amount);
+        return openSalePossible;
+    }
 
-    /* ========== VIEW ========== */
+    function currentRound(
+        address _l2token
+    ) 
+        public 
+        view 
+        returns (uint256 round) 
+    {
+        LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
+        if (block.timestamp >= claimTimes[_l2token][claimInfos.totalClaimCounts-1]) {
+            return claimInfos.totalClaimCounts;
+        }
+        for (uint256 i = 0; i < claimInfos.totalClaimCounts; i++) {
+            if (block.timestamp < claimTimes[_l2token][i]) {
+                return i;
+            }
+        }
+    }
+
+    function calculClaimAmount(
+        address _l2token,
+        address _account, 
+        uint256 _round
+    )
+        public
+        view
+        returns (uint256 _reward, uint256 _totalClaim, uint256 _refundAmount)
+    {
+        // LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+        LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
+        if (block.timestamp < claimTimes[_l2token][0]) return (0, 0, 0);
+        if (_round > claimInfos.totalClaimCounts) return (0, 0, 0);
+
+        LibPublicSaleVault.UserClaim memory userClaims = userClaim[_l2token][_account];
+        (, uint256 realSaleAmount, uint256 refundAmount) = totalSaleUserAmount(_account);  
+
+        if (realSaleAmount == 0 ) return (0, 0, 0);
+        if (userClaim.claimAmount >= realSaleAmount) return (0, 0, 0);   
+
+        uint256 round = currentRound();
+
+        uint256 amount;
+        if (claimInfos.totalClaimCounts == round && _round == 0) {
+            amount = realSaleAmount.sub(userClaim.claimAmount);
+            return (amount, realSaleAmount, refundAmount);
+        }
+
+        if(_round == 0) {
+            amount = realSaleAmount.mul(claimPercents[_l2token][round.sub(1)]).div(10000);
+            amount = amount.sub(userClaim.claimAmount);
+            return (amount, realSaleAmount, refundAmount);
+        } else if(_round == 1) {
+            amount = realSaleAmount.mul(claimPercents[0]).div(10000);
+            return (amount, realSaleAmount, refundAmount);
+        } else {
+            uint256 roundPercent = claimPercents[_round.sub(1)].sub(claimPercents[_round.sub(2)]);
+            amount = realSaleAmount.mul(roundPercent).div(10000);
+            return (amount, realSaleAmount, refundAmount);
+        }
+    }
 
     function totalExpectOpenSaleAmountView(address _l2token)
         public
