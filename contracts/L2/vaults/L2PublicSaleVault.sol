@@ -415,34 +415,122 @@ contract L2PublicSaleVault is
         if (_round > claimInfos.totalClaimCounts) return (0, 0, 0);
 
         LibPublicSaleVault.UserClaim memory userClaims = userClaim[_l2token][_account];
-        (, uint256 realSaleAmount, uint256 refundAmount) = totalSaleUserAmount(_account);  
+        (, uint256 realSaleAmount, uint256 refundAmount) = totalSaleUserAmount(_l2token,_account);  
 
         if (realSaleAmount == 0 ) return (0, 0, 0);
-        if (userClaim.claimAmount >= realSaleAmount) return (0, 0, 0);   
+        if (userClaims.claimAmount >= realSaleAmount) return (0, 0, 0);   
 
-        uint256 round = currentRound();
+        uint256 round = currentRound(_l2token);
 
         uint256 amount;
         if (claimInfos.totalClaimCounts == round && _round == 0) {
-            amount = realSaleAmount.sub(userClaim.claimAmount);
+            amount = realSaleAmount-userClaims.claimAmount;
             return (amount, realSaleAmount, refundAmount);
         }
 
         if(_round == 0) {
-            amount = realSaleAmount.mul(claimPercents[_l2token][round.sub(1)]).div(10000);
-            amount = amount.sub(userClaim.claimAmount);
+            amount = realSaleAmount*(claimPercents[_l2token][(round-1)])/(10000);
+            amount = amount-(userClaims.claimAmount);
             return (amount, realSaleAmount, refundAmount);
         } else if(_round == 1) {
-            amount = realSaleAmount.mul(claimPercents[0]).div(10000);
+            amount = realSaleAmount*(claimPercents[_l2token][0])/(10000);
             return (amount, realSaleAmount, refundAmount);
         } else {
-            uint256 roundPercent = claimPercents[_round.sub(1)].sub(claimPercents[_round.sub(2)]);
-            amount = realSaleAmount.mul(roundPercent).div(10000);
+            uint256 roundPercent = claimPercents[_l2token][_round-(1)]-(claimPercents[_l2token][_round-(2)]);
+            amount = realSaleAmount*(roundPercent)/(10000);
             return (amount, realSaleAmount, refundAmount);
         }
     }
 
-    function totalExpectOpenSaleAmountView(address _l2token)
+    function totalSaleUserAmount(
+        address _l2token,
+        address user
+    ) 
+        public 
+        view 
+        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
+    {
+        // LibPublicSale.UserInfoEx memory userEx = usersEx[user];
+        LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][user];
+
+        if (user1rds.join) {
+            (uint256 realPayAmount, uint256 realSaleAmount, uint256 refundAmount) = openSaleUserAmount(_l2token,user);
+            return ( realPayAmount+(user1rds.payAmount), realSaleAmount+(user1rds.saleAmount), refundAmount);
+        } else {
+            return openSaleUserAmount(_l2token,user);
+        }
+    }
+
+    function openSaleUserAmount(
+        address _l2token,
+        address user
+    ) 
+        public
+        view 
+        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
+    {
+        LibPublicSaleVault.UserInfo2rd memory user2rds = user2rd[_l2token][user];
+        // LibPublicSale.UserInfoOpen memory userOpen = usersOpen[user];
+
+        if (!user2rds.join || user2rds.depositAmount == 0) return (0, 0, 0);
+
+        uint256 openSalePossible = calculOpenSaleAmount(_l2token, user, 0);
+        uint256 realPayAmount = calculPayToken(_l2token,openSalePossible);
+        uint256 depositAmount = user2rds.depositAmount;
+        uint256 realSaleAmount = 0;
+        uint256 returnAmount = 0;
+
+        if (realPayAmount < depositAmount) {
+            returnAmount = depositAmount-(realPayAmount);
+            realSaleAmount = calculSaleToken(_l2token,realPayAmount);
+        } else {
+            realPayAmount = user2rds.depositAmount;
+            realSaleAmount = calculSaleToken(_l2token,depositAmount);
+        }
+
+        return (realPayAmount, realSaleAmount, returnAmount);
+    }
+
+    function totalOpenSaleAmount(
+        address _l2token
+    ) 
+        public
+        view 
+        returns (uint256)
+    {
+        uint256 _calculSaleToken = calculSaleToken(_l2token,totalDepositAmount[_l2token]);
+        uint256 _totalAmount = totalExpectOpenSaleAmountView(_l2token);
+
+        if (_calculSaleToken < _totalAmount) return _calculSaleToken;
+        else return _totalAmount;
+    }
+
+    function totalOpenPurchasedAmount(
+        address _l2token
+    ) 
+        public 
+        view 
+        returns (uint256)
+    {
+        uint256 _calculSaleToken = calculSaleToken(_l2token,totalDepositAmount[_l2token]);
+        uint256 _totalAmount = totalExpectOpenSaleAmountView(_l2token);
+        if (_calculSaleToken < _totalAmount) return totalDepositAmount[_l2token];
+        else return  calculPayToken(_l2token,_totalAmount);
+    }
+
+    function totalWhitelists(
+        address _l2token
+    ) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return whitelists[_l2token].length;
+    }
+
+    function totalExpectOpenSaleAmountView(
+        address _l2token
+    )
         public
         view
         returns(uint256)
@@ -453,7 +541,9 @@ contract L2PublicSaleVault is
         else return manageInfos.set2rdTokenAmount+(totalRound1NonSaleAmount(_l2token));
     }
 
-    function totalRound1NonSaleAmount(address _l2token)
+    function totalRound1NonSaleAmount(
+        address _l2token
+    )
         public
         view
         returns(uint256)
