@@ -323,6 +323,19 @@ contract L2PublicSaleVault is
         );
     }
 
+    function deposit(
+        address _l2token,
+        uint256 _amount
+    )   
+        public
+    {
+        _deposit(
+            _l2token,
+            msg.sender,
+            _amount
+        );
+    }
+
     /* ========== INTERNAL ========== */
 
     function _exclusiveSale(
@@ -376,6 +389,50 @@ contract L2PublicSaleVault is
             _l2token,
             _sender,
             _amount
+        );
+    }
+
+    function _deposit(
+        address _l2token,
+        address _sender,
+        uint256 _amount
+    )
+        internal
+        nonZeroAddress(_l2token)
+        nonZeroAddress(_sender)
+        nonZero(_amount)
+    {
+        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+        require(
+            block.timestamp >= timeInfos.round2StartTime,
+            "not depositTime"
+        );
+        require(
+            block.timestamp < timeInfos.round2EndTime,
+            "end depositTime"
+        );
+
+        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[_sender];
+        LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][_sender];
+        LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
+
+        if (!user2rds.join) {
+            depositors[_l2token].push(_sender);
+            user2rds.join = true;
+
+            saleInfos.total2rdUsers = saleInfos.total2rdUsers+(1);
+            // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
+            LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_sender];
+            if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
+        }
+
+        user2rds.depositAmount = user2rds.depositAmount+(_amount);
+        saleInfos.total2rdDepositAmount = saleInfos.total2rdDepositAmount+(_amount);
+
+        _calculTONTransferAmount(
+            _l2token,
+            _amount, 
+            _sender
         );
     }
 
