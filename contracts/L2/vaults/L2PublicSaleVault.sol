@@ -336,6 +336,60 @@ contract L2PublicSaleVault is
         );
     }
 
+    function claim() external {
+        require(
+            block.timestamp >= claimTimes[0],
+            "not claimTime"
+        );
+        LibPublicSale.UserInfoOpen storage userOpen = usersOpen[msg.sender];
+        LibPublicSale.UserClaim storage userClaim = usersClaim[msg.sender];
+        uint256 hardcapcut = hardcapCalcul();
+        if (hardcapcut == 0) {
+            require(userClaim.exec != true, "already getRefund");
+            LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
+            uint256 refundTON = userEx.payAmount.add(userOpen.depositAmount);
+            userClaim.exec = true;
+            userClaim.refundAmount = refundTON;
+            IERC20(getToken).safeTransfer(msg.sender, refundTON);
+
+            emit Refunded(msg.sender, refundTON);
+        } else {
+            (uint256 reward, uint256 realSaleAmount, uint256 refundAmount) = calculClaimAmount(msg.sender, 0);
+            require(
+                realSaleAmount > 0,
+                "no purchase amount"
+            );
+            require(reward > 0, "no reward");
+            require(
+                realSaleAmount.sub(userClaim.claimAmount) >= reward,
+                "already getAllreward"
+            );
+            require(
+                saleToken.balanceOf(address(this)) >= reward,
+                "dont have saleToken"
+            );
+
+            userClaim.claimAmount = userClaim.claimAmount.add(reward);
+
+            saleToken.safeTransfer(msg.sender, reward);
+
+            if (!userClaim.exec && userOpen.join) {
+                totalRound2UsersClaim = totalRound2UsersClaim.add(1);
+                userClaim.exec = true;
+            }
+
+            if (refundAmount > 0 && userClaim.refundAmount == 0){
+                require(refundAmount <= IERC20(getToken).balanceOf(address(this)), "dont have refund ton");
+                userClaim.refundAmount = refundAmount;
+                IERC20(getToken).safeTransfer(msg.sender, refundAmount);
+
+                emit Refunded(msg.sender, refundAmount);
+            }
+
+            emit Claimed(msg.sender, reward);
+        }
+    }
+
     /* ========== INTERNAL ========== */
 
     function _exclusiveSale(
@@ -431,8 +485,8 @@ contract L2PublicSaleVault is
 
         _calculTONTransferAmount(
             _l2token,
-            _amount, 
-            _sender
+            _sender, 
+            _amount
         );
     }
 
