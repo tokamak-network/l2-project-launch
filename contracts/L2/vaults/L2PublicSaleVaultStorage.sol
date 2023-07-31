@@ -71,6 +71,10 @@ contract L2PublicSaleVaultStorage {
     event SetVaultAdmin(address l2Token, address newAdmin);
     event SetInitializer(address newInitializer);
 
+    event AddedWhiteList(address l2Token, address indexed from, uint256 tier);
+    event ExclusiveSaled(address l2Token, address indexed from, uint256 amount);
+    event Deposited(address l2Token, address indexed from, uint256 amount);
+
     modifier onlyL2ProjectManager() {
         require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
         _;
