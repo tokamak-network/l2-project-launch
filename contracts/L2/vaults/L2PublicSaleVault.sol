@@ -336,57 +336,68 @@ contract L2PublicSaleVault is
         );
     }
 
-    function claim() external {
+    function claim(
+        address _l2token
+    ) 
+        external 
+    {
+        
         require(
-            block.timestamp >= claimTimes[0],
+            block.timestamp >= claimTimes[_l2token][0],
             "not claimTime"
         );
-        LibPublicSale.UserInfoOpen storage userOpen = usersOpen[msg.sender];
-        LibPublicSale.UserClaim storage userClaim = usersClaim[msg.sender];
-        uint256 hardcapcut = hardcapCalcul();
+        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[msg.sender];
+        LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][msg.sender];
+        // LibPublicSale.UserClaim storage userClaim = usersClaim[msg.sender];
+        LibPublicSaleVault.UserClaim storage userClaims = userClaim[_l2token][msg.sender];
+        uint256 hardcapcut = hardcapCalcul(_l2token);
         if (hardcapcut == 0) {
-            require(userClaim.exec != true, "already getRefund");
-            LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
-            uint256 refundTON = userEx.payAmount.add(userOpen.depositAmount);
-            userClaim.exec = true;
-            userClaim.refundAmount = refundTON;
-            IERC20(getToken).safeTransfer(msg.sender, refundTON);
+            //hardcap을 넘지 못하였을 때
+            require(userClaims.refund != true, "already getRefund");
+            // LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
+            LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
+            uint256 refundTON = user1rds.payAmount+(user2rds.depositAmount);
+            userClaims.refund = true;
+            userClaims.refundAmount = refundTON;
+            IERC20(ton).safeTransfer(msg.sender, refundTON);
 
-            emit Refunded(msg.sender, refundTON);
+            emit Refunded(_l2token, msg.sender, refundTON);
         } else {
-            (uint256 reward, uint256 realSaleAmount, uint256 refundAmount) = calculClaimAmount(msg.sender, 0);
+            //hardcap을 넘었을때
+            (uint256 reward, uint256 realSaleAmount, uint256 refundAmount) = calculClaimAmount(_l2token, msg.sender, 0);
             require(
                 realSaleAmount > 0,
                 "no purchase amount"
             );
             require(reward > 0, "no reward");
             require(
-                realSaleAmount.sub(userClaim.claimAmount) >= reward,
+                (realSaleAmount-userClaims.claimAmount) >= reward,
                 "already getAllreward"
             );
             require(
-                saleToken.balanceOf(address(this)) >= reward,
+                IERC20(_l2token).balanceOf(address(this)) >= reward,
                 "dont have saleToken"
             );
 
-            userClaim.claimAmount = userClaim.claimAmount.add(reward);
+            userClaims.claimAmount = userClaims.claimAmount+reward;
 
-            saleToken.safeTransfer(msg.sender, reward);
+            IERC20(_l2token).safeTransfer(msg.sender, reward);
+            LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
 
-            if (!userClaim.exec && userOpen.join) {
-                totalRound2UsersClaim = totalRound2UsersClaim.add(1);
-                userClaim.exec = true;
+            if (!userClaims.refund && user2rds.join) {
+                saleInfos.total2rdUsersClaim = saleInfos.total2rdUsersClaim+(1);
+                userClaims.refund = true;
             }
 
-            if (refundAmount > 0 && userClaim.refundAmount == 0){
-                require(refundAmount <= IERC20(getToken).balanceOf(address(this)), "dont have refund ton");
-                userClaim.refundAmount = refundAmount;
-                IERC20(getToken).safeTransfer(msg.sender, refundAmount);
+            if (refundAmount > 0 && userClaims.refundAmount == 0){
+                require(refundAmount <= IERC20(ton).balanceOf(address(this)), "dont have refund ton");
+                userClaims.refundAmount = refundAmount;
+                IERC20(ton).safeTransfer(msg.sender, refundAmount);
 
-                emit Refunded(msg.sender, refundAmount);
+                emit Refunded(_l2token, msg.sender, refundAmount);
             }
 
-            emit Claimed(msg.sender, reward);
+            emit Claimed(_l2token, msg.sender, reward);
         }
     }
 
@@ -515,6 +526,24 @@ contract L2PublicSaleVault is
     }
 
     /* ========== VIEW ========== */
+
+    function hardcapCalcul(
+        address _l2token
+    ) 
+        public 
+        view 
+        returns (uint256)
+    {
+        LibPublicSaleVault.TokenSaleInfo memory saleInfos = saleInfo[_l2token];
+        LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+        uint256 totalPurchaseTONamount = saleInfos.total1rdTONAmount+(totalOpenPurchasedAmount(_l2token));
+        uint256 calculAmount;
+        if (totalPurchaseTONamount >= manageInfos.hardCap) {
+            return calculAmount = totalPurchaseTONamount*(manageInfos.changeTOS)/(100);
+        } else {
+            return 0;
+        }
+    }
 
     function calculSaleToken(
         address _l2token,
