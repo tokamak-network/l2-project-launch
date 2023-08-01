@@ -17,6 +17,11 @@ interface IILockTOS {
         returns (uint256 balance);
 }
 
+interface IIERC20Burnable {
+    function burn(uint256 amount) external ;
+}
+
+
 contract L2PublicSaleVault is 
     ProxyStorage,
     AccessibleCommon, 
@@ -400,6 +405,34 @@ contract L2PublicSaleVault is
             emit Claimed(_l2token, msg.sender, reward);
         }
     }
+
+    function depositWithdraw(
+        address _l2token
+    ) 
+        external
+    {
+        LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
+        require(manageInfos.adminWithdraw != true && manageInfos.exchangeTOS == true,"need the exchangeWTONtoTOS");
+
+        LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
+        uint256 liquidityTON = hardcapCalcul(_l2token);
+        uint256 getAmount = saleInfos.total1rdTONAmount+(totalOpenPurchasedAmount(_l2token))-(liquidityTON);
+        
+        require(getAmount <= IERC20(ton).balanceOf(address(this)), "haven't token");        
+
+        manageInfos.adminWithdraw = true;
+
+        uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
+        if(burnAmount != 0) {
+            IIERC20Burnable(_l2token).burn(burnAmount);
+        }
+        
+        IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
+        // IIVestingPublicFundAction(vestingFund).funding(getAmount);
+
+        emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
+    }
+
 
     /* ========== INTERNAL ========== */
 
