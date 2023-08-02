@@ -40,6 +40,12 @@ const config: HardhatUserConfig = {
       goerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       hardhat: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
     },
+    // tonAddress : {
+    //   default: 7,
+    //   titan: '0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2',
+    //   titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+    //   goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00'
+    // },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -53,7 +59,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `${process.env.ETH_NODE_URI_GOERLI}`,
-        blockNumber: 9147066
+        blockNumber: 9448400
       },
       allowUnlimitedContractSize: false,
       deploy: ['deploy_l1', 'deploy_l2'],

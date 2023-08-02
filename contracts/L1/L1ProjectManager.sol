@@ -195,6 +195,51 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         return projectId;
     }
 
+
+    // for test
+    function createProjectTest(
+        address tokenOwner,
+        address projectOwner,
+        uint256 initialTotalSupply,
+        uint8 tokenType,
+        string memory projectName,
+        string memory tokenName,
+        string memory tokenSymbol
+    )
+        external returns (uint256)
+    {
+        require(bytes(projectName).length != 0, "projectName is null");
+        require(bytes(tokenName).length != 0, "tokenName is null");
+        require(bytes(tokenSymbol).length != 0, "tokenSymbol is null");
+        require(tokenType < uint8(LibProject.TOKEN_TYPE.NONE)
+            && address(l1TokenFactory[tokenType]) != address(0), "wrong tokenType or zero l1TokenFactory");
+
+        address projectToken = IERC20Factory(l1TokenFactory[tokenType]).create(
+            tokenName, tokenSymbol, initialTotalSupply, tokenOwner
+        );
+
+        require(projectToken != address(0), "zero projectToken");
+        uint256 projectId = ++projectCount;
+
+        projects[projectId] = LibProject.ProjectInfo({
+            projectOwner: projectOwner,
+            tokenOwner : tokenOwner,
+            l1Token : projectToken,
+            l2Token : address(0),
+            addressManager : address(0),
+            initialTotalSupply : initialTotalSupply,
+            tokenType : tokenType,
+            l2Type : uint8(0),
+            projectName : projectName
+        });
+
+        projectTokens[projectToken] = projectId;
+
+        emit CreatedProject(projectId, projectToken, projectName, projectOwner, tokenName, tokenSymbol, initialTotalSupply);
+        return projectId;
+    }
+
+
     /* ========== VIEW ========== */
 
     /* === ======= internal ========== */

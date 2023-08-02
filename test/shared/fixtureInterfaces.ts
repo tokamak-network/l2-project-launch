@@ -17,6 +17,7 @@ import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectMa
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../../typechain-types/contracts/L2//L2ProjectManager'
+import { L1ProjectManagerProxy } from '../../typechain-types/contracts/L1/L1ProjectManagerProxy'
 
 import { Lib_AddressManager } from '../../typechain-types/contracts/test/Lib_AddressManager'
 import { MockL1Messenger } from '../../typechain-types/contracts/test/MockL1Messenger'
@@ -26,7 +27,7 @@ import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
-
+import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -34,18 +35,20 @@ interface L2ProjectLaunchFixture  {
     l1ERC20C_TokenFactory: L1ERC20C_TokenFactory,
     l1ERC20D_TokenFactory: L1ERC20D_TokenFactory,
     l1ProjectManager: L1ProjectManager,
+    l1ProjectManagerProxy: L1ProjectManagerProxy,
     l2TokenFactory: L2TokenFactory,
     l2ProjectManager: L2ProjectManager,
     deployer: Signer,
     addr1: Signer,
     addr2: Signer,
-    factoryDeployer: Signer,
+    // factoryDeployer: Signer,
     addressManager: Lib_AddressManager,
     l1Messenger: MockL1Messenger,
     l2Messenger: MockL2Messenger,
     l1Bridge: MockL1Bridge,
     l2Bridge: MockL2Bridge,
-    factory: Create2Deployer
+    // factory: Create2Deployer,
+    l1toL2MessageTest: L1toL2MessageTest
 }
 
 interface ProjectInfo {

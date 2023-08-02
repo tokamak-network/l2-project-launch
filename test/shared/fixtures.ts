@@ -12,6 +12,7 @@ import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factor
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'
 import { L1ERC20D_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20D_TokenFactory'
 import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager.sol'
+import { L1ProjectManagerProxy } from '../../typechain-types/contracts/L1/L1ProjectManagerProxy'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../../typechain-types/contracts/L2/L2ProjectManager'
@@ -25,6 +26,9 @@ import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 
+import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
+
+import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
 const tosInfo = {
   name: "TONStarter",
@@ -71,17 +75,22 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 
     const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
     const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
-    const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
+    // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
     //
-    const Create2Deployer_ = await ethers.getContractFactory('Create2Deployer');
-    const factory = (await Create2Deployer_.connect(create2Signer).deploy()) as Create2Deployer
-    console.log("factory", factory.address);
-
+    // const Create2Deployer_ = await ethers.getContractFactory('Create2Deployer');
+    // const factory = (await Create2Deployer_.connect(create2Signer).deploy()) as Create2Deployer
+    // console.log("factory", factory.address);
 
     //==== LibProject =================================
     const LibProject_ = await ethers.getContractFactory('LibProject');
     const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
+
+    //==== L1toL2MessageTest =================================
+    const L1toL2MessageTestDeployment = await ethers.getContractFactory("L1toL2MessageTest", {
+        libraries: { LibProject: libProject.address }
+    });
+    const l1toL2MessageTest = (await L1toL2MessageTestDeployment.connect(deployer).deploy()) as L1toL2MessageTest;
 
     //==== L1TokenFactory =================================
 
@@ -102,7 +111,18 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l1ProjectManagerDeployment = await ethers.getContractFactory("L1ProjectManager", {
         signer: deployer, libraries: { LibProject: libProject.address }
     })
-    const l1ProjectManager = (await l1ProjectManagerDeployment.connect(deployer).deploy()) as L1ProjectManager;
+    const l1ProjectManagerImpl = (await l1ProjectManagerDeployment.connect(deployer).deploy()) as L1ProjectManager;
+
+    //==== L1ProjectManagerProxy =================================
+
+    const L1ProjectManagerProxyDeployment = await ethers.getContractFactory("L1ProjectManagerProxy")
+    const l1ProjectManagerProxy = (await L1ProjectManagerProxyDeployment.connect(deployer).deploy()) as L1ProjectManagerProxy;
+
+    let impl = await l1ProjectManagerProxy.implementation()
+    if (impl != l1ProjectManagerImpl.address) {
+      await (await l1ProjectManagerProxy.connect(deployer).upgradeTo(l1ProjectManagerImpl.address)).wait()
+    }
+    const l1ProjectManager = await ethers.getContractAt(l1ProjectManagerJson.abi, l1ProjectManagerProxy.address, deployer) as L1ProjectManager;
 
     //==== L2TokenFactory =================================
 
@@ -142,18 +162,20 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l1ERC20C_TokenFactory: l1ERC20C_TokenFactory,
       l1ERC20D_TokenFactory: l1ERC20D_TokenFactory,
       l1ProjectManager: l1ProjectManager,
+      l1ProjectManagerProxy: l1ProjectManagerProxy,
       l2TokenFactory: l2TokenFactory,
       l2ProjectManager: l2ProjectManager,
       deployer: deployer,
       addr1: addr1,
       addr2: addr2,
-      factoryDeployer: create2Signer,
+      // factoryDeployer: create2Signer,
       addressManager: addressManager,
       l1Messenger: l1Messenger,
       l2Messenger: l2Messenger,
       l1Bridge: l1Bridge,
       l2Bridge: l2Bridge,
-      factory: factory
+      // factory: factory,
+      l1toL2MessageTest : l1toL2MessageTest
   }
 }
 

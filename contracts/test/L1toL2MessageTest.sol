@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import { LibProject } from "../libraries/LibProject.sol";
-// import "../libraries/SafeERC20.sol";
+import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
 // import "hardhat/console.sol";
@@ -36,7 +36,7 @@ interface L1BridgeI {
  * @dev
  */
 contract L1toL2MessageTest {
-
+    using SafeERC20 for IERC20;
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
@@ -90,7 +90,17 @@ contract L1toL2MessageTest {
     {
         address l1Bridge = LibProject.getL1Bridge(addressManager);
         require(l1Bridge != address(0), "l1Bridge is ZeroAddress");
-        IERC20(l1Token).approve(l1Bridge, type(uint256).max);
+
+        require(IERC20(l1Token).balanceOf(msg.sender) >= amount, "l1Token balance is insufficient");
+        require(IERC20(l1Token).allowance(msg.sender, address(this)) >= amount, "l1Token allowance is insufficient");
+
+        uint256 allowance = IERC20(l1Token).allowance(address(this), l1Bridge);
+
+        if (allowance < amount) {
+            IERC20(l1Token).approve(l1Bridge, type(uint256).max);
+        }
+
+        IERC20(l1Token).safeTransferFrom(msg.sender, address(this), amount);
 
         L1BridgeI(l1Bridge).depositERC20To(
             l1Token,
