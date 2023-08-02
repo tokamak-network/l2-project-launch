@@ -150,7 +150,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         );
     }
 
-    /* ========== Anyone can execute ========== */
+    /* ========== Only ProjectOwner ========== */
 
     /// @dev 프로젝트 생성
     function createProject(

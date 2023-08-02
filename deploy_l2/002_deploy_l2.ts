@@ -13,10 +13,11 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
     console.log('deployL2 hre.network.name', hre.network.name)
 
-    const { deployer } = await hre.getNamedAccounts();
+    const { deployer, create2Deployer } = await hre.getNamedAccounts();
     const { deploy } = hre.deployments;
 
     const deploySigner = await hre.ethers.getSigner(deployer);
+    const create2Signer = await hre.ethers.getSigner(create2Deployer);
 
     //==== L2TokenFactory =================================
     const l2TokenFactoryDeployment = await deploy("L2TokenFactory", {

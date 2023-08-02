@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Create2Deployer } from '../typechain-types/contracts/L2/factory/Create2Deployer'
 
 /**
  *
@@ -12,17 +11,18 @@ const deployCreate2Deployer: DeployFunction = async function (hre: HardhatRuntim
     console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
     console.log('deployL2 hre.network.name', hre.network.name)
 
-    const { accountForCreate2Deployer, accountForProxyDeployer } = await hre.getNamedAccounts();
-    const { deploy } = hre.deployments;
+    const { deployer } = await hre.getNamedAccounts();
+    const { deploy, deterministic } = hre.deployments;
 
-    //==== Create2Deployer =================================
-    const create2Deployer = await deploy("Create2Deployer", {
-        from: accountForCreate2Deployer,
+    //==== L2TokenFactory =================================
+    const l2TokenFactoryDeployment = await deploy("L2TokenFactory", {
+        from: deployer,
         args: [],
         log: true,
+        deterministicDeployment: true,
     });
-    console.log('create2Deployer', create2Deployer.address)
 
+    console.log('l2TokenFactoryDeployment', l2TokenFactoryDeployment.address)
     //==== verify =================================
 
     // if (hre.network.name != "hardhat") {
