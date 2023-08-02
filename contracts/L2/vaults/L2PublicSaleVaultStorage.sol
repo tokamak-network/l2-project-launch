@@ -79,6 +79,7 @@ contract L2PublicSaleVaultStorage {
     event Refunded(address l2Token, address indexed from, uint256 amount);
 
     event DepositWithdrawal(address l2Token, address indexed from, uint256 amount, uint256 liquidityAmount);
+    event ExchangeSwap(address l2Token, address indexed from, uint256 amountIn, uint256 amountOut);
 
     modifier onlyL2ProjectManager() {
         require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");

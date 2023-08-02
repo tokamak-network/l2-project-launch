@@ -8,6 +8,9 @@ import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
 import { L2PublicSaleVaultStorage } from "./L2PublicSaleVaultStorage.sol";
 import { LibPublicSaleVault } from "../../libraries/LibPublicSaleVault.sol";
 
+import "../libraries/LibPublicSale.sol";
+import "../interfaces/ISwapRouter.sol";
+
 import "hardhat/console.sol";
 
 interface IILockTOS {
@@ -433,6 +436,76 @@ contract L2PublicSaleVault is
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
 
+    //amountIn은 TON단위
+    function exchangeWTONtoTOS(
+        address _l2token,
+        uint256 amountIn
+    ) 
+        external
+        returns (uint256 amountOut)
+    {
+        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+        LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+        require(amountIn > 0, "zero input amount");
+        require(block.timestamp > timeInfos.round2EndTime, "need to end the depositTime");
+
+        uint256 liquidityTON = hardcapCalcul(_l2token);
+        require(liquidityTON > 0, "don't pass the hardCap");
+
+        address poolAddress = LibPublicSale.getPoolAddress(ton,address(tos));
+
+        (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
+        require(sqrtPriceX96 > 0, "pool not initial");
+
+        int24 timeWeightedAverageTick = OracleLibrary.consult(poolAddress, 120);
+        require(
+            tick < LibPublicSale.acceptMaxTick(timeWeightedAverageTick, 60, 2),
+            "over changed tick range."
+        );
+
+        (uint256 amountOutMinimum, , uint160 sqrtPriceLimitX96)
+            = LibPublicSale.limitPrameters(amountIn, poolAddress, ton, address(tos), changeTick);
+
+        (,bytes memory result) = address(quoter).call(
+            abi.encodeWithSignature(
+                "quoteExactInputSingle(address,address,uint24,uint256,uint160)", 
+                ton,address(tos),poolFee,amountIn,0
+            )
+        );
+        
+        uint256 amountOutMinimum2 = parseRevertReason(result);
+        amountOutMinimum2 = amountOutMinimum2 * 995 / 1000; //slippage 0.5% apply
+        
+        //quoter 값이 더 크다면 quoter값이 minimum값으로 사용됨
+        //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
+        require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
+                
+        if(manageInfos.exchangeTOS == false) {
+            // IIWTON(wton).swapFromTON(liquidityTON);
+            manageInfos.remainTON = liquidityTON;
+            manageInfos.exchangeTOS = true;
+        } else {
+            require(manageInfos.remainTON >= amountIn, "amountIn over");
+        }
+        
+        manageInfos.remainTON -= manageInfos.remainTON;
+
+        ISwapRouter.ExactInputSingleParams memory params =
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: ton,
+                tokenOut: address(tos),
+                fee: poolFee,
+                recipient: liquidityVault,
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: amountOutMinimum2,
+                sqrtPriceLimitX96: sqrtPriceLimitX96
+            });
+        amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
+        
+        emit ExchangeSwap(_l2token, msg.sender, amountIn ,amountOut);
+    }
+
 
     /* ========== INTERNAL ========== */
 
@@ -556,6 +629,19 @@ contract L2PublicSaleVault is
         } else {
             emit Deposited(_l2token, _sender, _amount);
         }
+    }
+
+    /* ========== PRIVATE ========== */
+
+   function parseRevertReason(bytes memory reason) private pure returns (uint256) {
+        if (reason.length != 32) {
+            if (reason.length < 68) revert('Unexpected error');
+            assembly {
+                reason := add(reason, 0x04)
+            }
+            revert(abi.decode(reason, (string)));
+        }
+        return abi.decode(reason, (uint256));
     }
 
     /* ========== VIEW ========== */

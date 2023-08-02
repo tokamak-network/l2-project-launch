@@ -25,6 +25,7 @@ library LibPublicSaleVault {
         uint256 hardCap;                //softcap 수량 (판매 최저 하한선)
         uint256 changeTOS;              //TON -> TOS로 변경하는 %
         uint256 changeTick;             //TON -> TOS로 변경할때 허용되는 Tick 범위
+        uint256 remainTON;              //TON -> TOS로 변경할 남은 TON
         bool exchangeTOS;               //TON -> TOS로 변경하였는지 체크
         bool adminWithdraw;             //withdraw함수를 실행하였는지 체크
     }
