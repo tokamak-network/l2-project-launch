@@ -40,7 +40,7 @@ library LibProject {
     function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {
         if (addressManager == address(0)) return address(0);
         try
-            AddressManagerI(addressManager).getAddress('OVM_L1CrossDomainMessenger') returns (address a) {
+            AddressManagerI(addressManager).getAddress('Proxy__OVM_L1CrossDomainMessenger') returns (address a) {
                 _address = a;
         } catch (bytes memory ) {
             _address = address(0);

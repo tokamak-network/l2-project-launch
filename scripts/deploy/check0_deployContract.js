@@ -17,7 +17,7 @@ async function main() {
   // console.log(tx)
 
   console.log('L1toL2MessageTest' , l1toL2MessageTest.address)
-  //L1toL2MessageTest 0x48f60aAf60D5E162b2DebFD4F70c88fE01b7c331
+  // L1toL2MessageTest 0xCB75860cFBe1c4668A1D90d8d6c80c1f2c9C93A4
 }
 
 // We recommend this pattern to be able to use async/await everywhere
