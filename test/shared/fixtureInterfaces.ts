@@ -28,7 +28,10 @@ import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
-import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
+// import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2SendMessage.sol'
+import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
+
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -49,7 +52,9 @@ interface L2ProjectLaunchFixture  {
     l1Bridge: MockL1Bridge,
     l2Bridge: MockL2Bridge,
     // factory: Create2Deployer,
-    l1toL2MessageTest: L1toL2MessageTest
+    // l1toL2MessageTest: L1toL2MessageTest
+    l2PublicProxy: L2PublicSaleVaultProxy,
+    l2PublicSale: L2PublicSaleVault
 }
 
 interface ProjectInfo {
@@ -92,4 +97,5 @@ interface LockedBalanceInfo {
     amount: BigNumber,
     balance: BigNumber
 }
+
 export { L2ProjectLaunchFixture, ProjectInfo, L1Fixture, Point, LockedBalance, LockedBalanceInfo}

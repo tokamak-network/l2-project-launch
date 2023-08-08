@@ -27,9 +27,13 @@ import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 
-import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
+// import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2SendMessage.sol'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
+import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
+
+import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
 
 const tosInfo = {
   name: "TONStarter",
@@ -88,10 +92,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
     //==== L1toL2MessageTest =================================
-    const L1toL2MessageTestDeployment = await ethers.getContractFactory("L1toL2MessageTest", {
-        libraries: { LibProject: libProject.address }
-    });
-    const l1toL2MessageTest = (await L1toL2MessageTestDeployment.connect(deployer).deploy()) as L1toL2MessageTest;
+
+    // const L1toL2MessageTestDeployment = await ethers.getContractFactory("L1toL2SendMessage", {
+    //     libraries: { LibProject: libProject.address }
+    // });
+    // const l1toL2MessageTest = (await L1toL2MessageTestDeployment.connect(deployer).deploy()) as L1toL2MessageTest;
 
     //==== L1TokenFactory =================================
 
@@ -156,6 +161,16 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     await addressManager.connect(deployer).setAddress("OVM_L1CrossDomainMessenger", l1Messenger.address);
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1StandardBridge", l1Bridge.address);
 
+    //==== L2PublicSaleVault =================================
+    const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
+    const l2PublicProxy = (await l2PublicSaleProxy.connect(deployer).deploy()) as L2PublicSaleVaultProxy
+
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault')
+    const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+
+    await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
+    const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
+
     return  {
       libProject: libProject,
       l1ERC20A_TokenFactory: l1ERC20A_TokenFactory,
@@ -176,7 +191,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l1Bridge: l1Bridge,
       l2Bridge: l2Bridge,
       // factory: factory,
-      l1toL2MessageTest : l1toL2MessageTest
+      // l1toL2MessageTest : l1toL2MessageTest
+      l2PublicProxy: l2PublicProxy,
+      l2PublicSaleLogic: l2PublicProxyLogic,
   }
 }
 
