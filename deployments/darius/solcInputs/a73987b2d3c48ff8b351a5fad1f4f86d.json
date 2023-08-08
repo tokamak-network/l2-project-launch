@@ -1,0 +1,36 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/L2/factory/Create2Deployer.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.4;\n\ncontract Create2Deployer {\n  event Deployed(address addr, uint256 salt);\n\n  function deploy(bytes memory code, uint256 salt) external {\n    address addr;\n    assembly {\n      addr := create2(0, add(code, 0x20), mload(code), salt)\n      if iszero(extcodesize(addr)) {\n        revert(0, 0)\n      }\n    }\n    emit Deployed(addr, salt);\n  }\n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 625
+    },
+    "metadata": {
+      "bytecodeHash": "none",
+      "useLiteralContent": true
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    }
+  }
+}

@@ -40,14 +40,26 @@ const config: HardhatUserConfig = {
       goerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       hardhat: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
     },
+    // tonAddress : {
+    //   default: 7,
+    //   titan: '0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2',
+    //   titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+    //   goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00'
+    // },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
+    accountForCreate2Deployer:
+      `privatekey://${process.env.Create2DEPLOYER}`,
+    myDeployer: `privatekey://${process.env.DEPLOYER}`,
+    accountForProxyDeployer:
+    `privatekey://${process.env.ProxyDEPLOYER}`,
+
   },
   networks: {
     hardhat: {
       forking: {
         url: `${process.env.ETH_NODE_URI_GOERLI}`,
-        blockNumber: 9019577
+        blockNumber: 9448400
       },
       allowUnlimitedContractSize: false,
       deploy: ['deploy_l1', 'deploy_l2'],
@@ -62,6 +74,9 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       url: `${process.env.ETH_NODE_URI_MAINNET}`,
+      accounts: [`${process.env.PRIVATE_KEY}`],
+      gasMultiplier: 1.25,
+      gasPrice: 25000000000,
     },
     goerli: {
       url: `${process.env.ETH_NODE_URI_GOERLI}`,
@@ -69,12 +84,53 @@ const config: HardhatUserConfig = {
       // chainId: 5,
       deploy: ['deploy_l1']
     },
-    darius: {
+    titangoerli: {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
       accounts: [`${process.env.DEPLOYER}`],
       chainId: 5050,
-      deploy: ['deploy_l2']
+      gasPrice: 250000,
+      deploy: ['deploy_l2_proxy']
     },
+  },
+  deterministicDeployment: (network: string) => {
+    // Skip on hardhat's local network.
+    if (network === "31337") {
+      return undefined;
+    } else {
+      return {
+        factory: "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+        deployer: "0x3fab184622dc19b6109349b94811493bf2a45362",
+        funding: "10000000000000000",
+        signedTx: "0x00",
+      }
+    }
+    /*
+    if (network === "31337") {
+        return undefined;
+    } else if(network === "5") {
+      return {
+        factory: "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+        deployer: "0x3fab184622dc19b6109349b94811493bf2a45362",
+        funding: "10000000000000000",
+        signedTx: "0x00",
+      }
+    } else if(network === "5050"){
+      return {
+        factory: "0x1431517b50f69bf710cc63beef9f83af03fa1be6",
+        deployer: "0x21d88d1cee7424f53b2dfe1547229608cc859f50",
+        funding: "10000000000000000",
+        signedTx: "0x00",
+      }
+    }
+    return {
+        factory: "0x2222229fb3318a6375fa78fd299a9a42ac6a8fbf",
+        deployer: "0x90899d3cc800c0a9196aec83da43e46582cb7435",
+        // Must be deployed manually. Required funding may be more on
+        // certain chains (e.g. Ethereum mainnet).
+        funding: "10000000000000000",
+        signedTx: "0x00",
+    };
+    */
   },
   etherscan: {
     // Your API key for Etherscan
@@ -82,11 +138,11 @@ const config: HardhatUserConfig = {
     // apiKey: `${process.env.ETHERSCAN_API_KEY}`
     apiKey: {
       goerli: `${process.env.ETHERSCAN_API_KEY}`,
-      darius: "abc"
+      titangoerli: "abc"
     } ,
     customChains: [
       {
-        network: "darius",
+        network: "titangoerli",
         chainId: 5050,
         urls: {
           apiURL: "https://goerli.explorer.tokamak.network/api",
