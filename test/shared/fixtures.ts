@@ -5,7 +5,8 @@ import Web3EthAbi from 'web3-eth-abi';
 import { L2ProjectLaunchFixture, L1Fixture} from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
-import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
+// import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
+import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'

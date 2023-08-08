@@ -7,7 +7,8 @@ import {  Wallet, Signer } from 'ethers'
 // import { ERC20B } from '../../typechain-types/contracts/L1/factory/ERC20B'
 // import { ERC20C } from '../../typechain-types/contracts/L1/factory/ERC20C'
 // import { ERC20D } from '../../typechain-types/contracts/L1/factory/ERC20D'
-import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
+import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
+
 
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
