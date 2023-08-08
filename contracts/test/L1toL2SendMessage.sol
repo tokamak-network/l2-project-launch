@@ -32,7 +32,7 @@ interface L1BridgeI {
 }
 
 /**
- * @title L1toL2MessageTest
+ * @title L1toL2SendMessage
  * @dev
  */
 contract L1toL2SendMessage {
