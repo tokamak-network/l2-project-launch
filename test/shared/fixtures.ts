@@ -36,6 +36,9 @@ import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibP
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
 import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
 
+import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
+import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
+
 const tosInfo = {
   name: "TONStarter",
   symbol: "TOS",
@@ -79,7 +82,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin] = await ethers.getSigners();
     // const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
     // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
@@ -177,6 +180,14 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
     const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
 
+    //==== L2InitialLiquidityVault =================================
+    
+    const L2InitialLiquidityVaultProxy = await ethers.getContractFactory('L2InitialLiquidityVaultProxy')
+    const l2liquidityProxy = (await L2InitialLiquidityVaultProxy.connect(deployer).deploy()) as L2InitialLiquidityVaultProxy
+
+    const L2InitialLiquidityVault = await ethers.getContractFactory('L2InitialLiquidityVault')
+    const l2liquidity = (await L2InitialLiquidityVault.connect(deployer).deploy()) as L2InitialLiquidityVault
+
     return  {
       libProject: libProject,
       l1ERC20A_TokenFactory: l1ERC20A_TokenFactory,
@@ -201,6 +212,10 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l2PublicProxy: l2PublicProxy,
       libL2Public: libL2Public,
       l2PublicSaleLogic: l2PublicProxyLogic,
+      l2ProjectManagerAddr: L2projectManagerAddr,
+      l2VaultAdminAddr: L2vaultAdmin,
+      l2LiquidityProxy: l2liquidityProxy,
+      l2Liquidity: l2liquidity
   }
 }
 

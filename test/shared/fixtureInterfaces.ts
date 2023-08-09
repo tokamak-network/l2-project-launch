@@ -34,6 +34,9 @@ import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibP
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
 import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
 
+import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
+import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
+
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -57,7 +60,10 @@ interface L2ProjectLaunchFixture  {
     // l1toL2MessageTest: L1toL2MessageTest
     l2PublicProxy: L2PublicSaleVaultProxy,
     libL2Public: LibPublicSale,
-    l2PublicSaleLogic: L2PublicSaleVault
+    l2PublicSaleLogic: L2PublicSaleVault,
+    l2ProjectManagerAddr: Signer,
+    l2VaultAdminAddr: Signer,
+    l2liquidityProxy: L2InitialLiquidityVaultProxy
 }
 
 interface ProjectInfo {

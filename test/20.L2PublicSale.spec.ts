@@ -19,9 +19,7 @@ describe('L2TokenFactory', () => {
     let projectInfo: any;
 
     before('create fixture loader', async () => {
-        console.log("1")
         deployed = await l2ProjectLaunchFixtures()
-        console.log("2")
         deployer = deployed.deployer;
         addr1 = deployed.addr1;
         addr2 = deployed.addr2;
@@ -129,6 +127,29 @@ describe('L2TokenFactory', () => {
 
     });
 
+    describe("# setL2PublicSale", () => {
+        describe("# set L2ProjectManager", () => {
+            it('setL2ProjectManager can not be executed by not owner', async () => {
+                await expect(
+                    deployed.l2PublicProxy.connect(addr1).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
+                    ).to.be.revertedWith("Accessible: Caller is not an admin")
+            })
+    
+            it('setL2ProjectManager can be executed by only owner ', async () => {
+                await deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
+                expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(deployed.l2ProjectManagerAddr.address)
+            })
+    
+            it('cannot be changed to the same value', async () => {
+                await expect(
+                    deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
+                    ).to.be.revertedWith("same")
+            })
+        })
 
+        describe("# set PublicSale basic value", () => {
+
+        })
+    })
 });
 

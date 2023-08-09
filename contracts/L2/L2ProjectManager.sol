@@ -7,6 +7,14 @@ import {IERC20} from "../interfaces/IERC20.sol";
 import "../libraries/SafeERC20.sol";
 import "hardhat/console.sol";
 
+interface IVault {
+    function setVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external;
+} 
+
 /**
  * @title L2ProjectManager
  * @dev
@@ -83,6 +91,19 @@ contract L2ProjectManager is AccessibleCommon {
         require(l2TokenFactory != _l2TokenFactory, "same");
         l2TokenFactory = _l2TokenFactory;
     }
+
+    function setVaultAdmin(
+        address _vault,
+        address _l2Token,
+        address _newAdmin
+    )   
+        external
+        nonZeroAddress(_vault)
+        onlyOwner
+    {
+        IVault(_vault).setVaultAdmin(_l2Token,_newAdmin);
+    }
+
     /* ========== only L2TokenFactory ========== */
 
     /// @dev 프로젝트 추가
