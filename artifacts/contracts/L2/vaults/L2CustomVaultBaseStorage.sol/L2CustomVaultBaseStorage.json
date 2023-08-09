@@ -1,0 +1,113 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L2CustomVaultBaseStorage",
+  "sourceName": "contracts/L2/vaults/L2CustomVaultBaseStorage.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Claimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newInitializer",
+          "type": "address"
+        }
+      ],
+      "name": "SetInitializer",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAdmin",
+          "type": "address"
+        }
+      ],
+      "name": "SetVaultAdmin",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "initializer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2ProjectManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaultAdminOfToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040526000805460ff1916600117905534801561001d57600080fd5b5060e78061002c6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c806352351e851460415780637fc46ba81460745780639ce110d714609a575b600080fd5b60005460589061010090046001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b6058607f36600460ac565b6002602052600090815260409020546001600160a01b031681565b6001546058906001600160a01b031681565b60006020828403121560bd57600080fd5b81356001600160a01b038116811460d357600080fd5b939250505056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c806352351e851460415780637fc46ba81460745780639ce110d714609a575b600080fd5b60005460589061010090046001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b6058607f36600460ac565b6002602052600090815260409020546001600160a01b031681565b6001546058906001600160a01b031681565b60006020828403121560bd57600080fd5b81356001600160a01b038116811460d357600080fd5b939250505056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
