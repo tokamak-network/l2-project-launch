@@ -7,11 +7,6 @@ import {IERC20} from "../interfaces/IERC20.sol";
 
 // import "hardhat/console.sol";
 
-interface L2ProjectManagerI {
-    function hello(string memory _msg) external;
-    function balanceOf(address l2Token) external;
-}
-
 interface L1CrossDomainMessengerI {
     function sendMessage(
         address _target,
@@ -32,10 +27,10 @@ interface L1BridgeI {
 }
 
 /**
- * @title L1toL2SendMessage
+ * @title L1toL2Message
  * @dev
  */
-contract L1toL2SendMessage {
+contract L1toL2Message {
     using SafeERC20 for IERC20;
     /* ========== DEPENDENCIES ========== */
 
@@ -57,7 +52,6 @@ contract L1toL2SendMessage {
         uint32 minGasLimit;
     }
 
-    /* ========== CONSTRUCTOR ========== */
     modifier nonZero(uint256 value) {
         require(value != 0, "Z1");
         _;
@@ -68,17 +62,14 @@ contract L1toL2SendMessage {
         _;
     }
 
-    constructor() {
-    }
-
-    function depositAndMessage(
+    function depositsAndMessages(
         address addressManager,
-        DepositMessage[] memory depositMassage,
+        DepositMessage[] memory depositMassages,
         CallMessage[] memory callMessages
     )
         external
     {
-        deposits(addressManager, depositMassage);
+        deposits(addressManager, depositMassages);
         l2SendMessage(addressManager, callMessages);
     }
 
@@ -200,9 +191,5 @@ contract L1toL2SendMessage {
             );
         }
     }
-
-    /* ========== VIEW ========== */
-
-    /* === ======= internal ========== */
 
 }

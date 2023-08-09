@@ -7,7 +7,8 @@ import {  Wallet, Signer } from 'ethers'
 // import { ERC20B } from '../../typechain-types/contracts/L1/factory/ERC20B'
 // import { ERC20C } from '../../typechain-types/contracts/L1/factory/ERC20C'
 // import { ERC20D } from '../../typechain-types/contracts/L1/factory/ERC20D'
-import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
+import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
+import { L1toL2Message } from '../../typechain-types/contracts/L1/L1toL2Message.sol'
 
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
@@ -27,7 +28,8 @@ import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
-import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
+import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
+
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -48,7 +50,10 @@ interface L2ProjectLaunchFixture  {
     l1Bridge: MockL1Bridge,
     l2Bridge: MockL2Bridge,
     // factory: Create2Deployer,
-    l1toL2MessageTest: L1toL2MessageTest
+    // l1toL2MessageTest: L1toL2MessageTest
+    l1toL2Message: L1toL2Message,
+    paymasterAddress: string,
+    l2PaymasterDeposit: L2PaymasterDeposit
 }
 
 interface ProjectInfo {

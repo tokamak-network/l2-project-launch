@@ -6,7 +6,9 @@ import Web3EthAbi from 'web3-eth-abi';
 import { L2ProjectLaunchFixture, L1Fixture} from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
-import { LibProject } from '../../typechain-types/contracts/libraries/constants/LibProject.sol'
+import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
+import { L1toL2Message } from '../../typechain-types/contracts/L1/L1toL2Message.sol'
+
 import { L1ERC20A_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20A_TokenFactory'
 import { L1ERC20B_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20B_TokenFactory'
 import { L1ERC20C_TokenFactory } from '../../typechain-types/contracts/L1/factory/L1ERC20C_TokenFactory'
@@ -25,8 +27,7 @@ import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
-
-import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2MessageTest.sol'
+import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
@@ -74,7 +75,8 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
     const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-    const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
+    const { paymasterAddress, l1AddressManagerAddress } = await hre.getNamedAccounts();
+
     // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
     //
@@ -86,11 +88,20 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const LibProject_ = await ethers.getContractFactory('LibProject');
     const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
-    //==== L1toL2MessageTest =================================
-    const L1toL2MessageTestDeployment = await ethers.getContractFactory("L1toL2MessageTest", {
+    //==== L1toL2Message =================================
+    const L1toL2MessageTest_ = await ethers.getContractFactory("L1toL2Message", {
         libraries: { LibProject: libProject.address }
     });
-    const l1toL2MessageTest = (await L1toL2MessageTestDeployment.connect(deployer).deploy()) as L1toL2MessageTest;
+    const l1toL2Message = (await L1toL2MessageTest_.connect(deployer).deploy()) as L1toL2Message;
+
+
+    //==== L2PaymasterDeposit =================================
+    const L2PaymasterDeposit_ = await ethers.getContractFactory("L2PaymasterDeposit");
+    const l2PaymasterDeposit =  (await L2PaymasterDeposit_.connect(deployer).deploy(
+      paymasterAddress
+    )) as L2PaymasterDeposit;
+
+
 
     //==== L1TokenFactory =================================
 
@@ -137,8 +148,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     //---- L2
     const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
     const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
-
-    // await addressManager.connect(deployer).setAddress("OVM_Sequencer", sequencer1.address);
+    await addressManager.connect(deployer).setAddress("OVM_Sequencer", sequencer1.address);
 
     //---
     const MockL1Messenger = await ethers.getContractFactory('MockL1Messenger')
@@ -152,8 +162,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 
     await l1Bridge.connect(deployer).setAddress(l1Messenger.address, l2Bridge.address);
 
-    await addressManager.connect(deployer).setAddress("OVM_L1CrossDomainMessenger", l1Messenger.address);
+    // await addressManager.connect(deployer).setAddress("OVM_L1CrossDomainMessenger", l1Messenger.address);
+    await addressManager.connect(deployer).setAddress("Proxy__OVM_L1CrossDomainMessenger", l1Messenger.address);
+
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1StandardBridge", l1Bridge.address);
+
 
     return  {
       libProject: libProject,
@@ -175,7 +188,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l1Bridge: l1Bridge,
       l2Bridge: l2Bridge,
       // factory: factory,
-      l1toL2MessageTest : l1toL2MessageTest
+      l1toL2Message : l1toL2Message,
+      paymasterAddress: paymasterAddress,
+      l2PaymasterDeposit: l2PaymasterDeposit
   }
 }
 
