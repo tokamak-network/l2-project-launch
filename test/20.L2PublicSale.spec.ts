@@ -18,13 +18,48 @@ describe('L2TokenFactory', () => {
     let addr1Address: string, addr2Address: string;
     let projectInfo: any;
 
+    let l2ProjectManager: Signer
+    let l2ProjectManagerAddresss: string
+    
+    let vestingFund: Signer
+    let vestingFundAddress: string
+
+    let l2vaultAdmin: Signer
+    let l2vaultAdminAddress: string
+
+    let erc20Atoken: any;
+
+    //mainnet
+    let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
+    let uniswapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+    let tos = "0x409c4D8cd5d2924b9bc5509230d16a61289c8153"
+    let ton = "0x2be5e8c109e2197D077D13A82dAead6a9b3433C5"
+
+    let minPer = 5;
+    let maxPer = 10;
+
+    let standardTier1 = 100;
+    let standardTier2 = 300;
+    let standardTier3 = 1000;
+    let standardTier4 = 4000;
+    
+    let delayTime = 600;
+
+    let changeTOS = 10;
+
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
         deployer = deployed.deployer;
         addr1 = deployed.addr1;
         addr2 = deployed.addr2;
+        l2ProjectManager = deployed.l2ProjectManagerAddr;
+        vestingFund = deployed.vestingFundAddr;
+        l2vaultAdmin = deployed.l2VaultAdmin;
         addr1Address = await addr1.getAddress();
         addr2Address = await addr2.getAddress();
+        l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
+        vestingFundAddress = await vestingFund.getAddress();
+        l2vaultAdminAddress = await l2vaultAdmin.getAddress();
     })
 
     describe('# setL2ProjectManager', () => {
@@ -73,6 +108,10 @@ describe('L2TokenFactory', () => {
             const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
             const deployedEvent = deployed.l1ERC20A_TokenFactory.interface.parseLog(log);
             projectInfo.l1Token = deployedEvent.args.contractAddress;
+            
+            erc20Atoken = await ethers.getContractAt(ERC20A.abi, projectInfo.l1Token, addr1);
+            let tx = await erc20Atoken.balanceOf(addr1Address)
+            console.log(tx);
 
             expect(deployedEvent.args.contractAddress).to.not.eq(ethers.constants.AddressZero);
             expect(deployedEvent.args.name).to.eq(projectInfo.tokenName);
@@ -98,7 +137,7 @@ describe('L2TokenFactory', () => {
 
         it('Anyone can create L2Token', async () => {
             const topic = deployed.l2TokenFactory.interface.getEventTopic('StandardL2TokenCreated');
-            const receipt = await (await deployed.l2TokenFactory.connect(deployer).createL2Token(
+            const receipt = await (await deployed.l2TokenFactory.connect(addr1).createL2Token(
                 projectInfo.projectOwner,
                 projectInfo.l1Token,
                 projectInfo.tokenName,
@@ -127,29 +166,116 @@ describe('L2TokenFactory', () => {
 
     });
 
-    describe("# setL2PublicSale", () => {
+    describe("# setL2PublicSale L2ProjectManager", () => {
         describe("# set L2ProjectManager", () => {
             it('setL2ProjectManager can not be executed by not owner', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(addr1).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
+                    deployed.l2PublicProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("Accessible: Caller is not an admin")
             })
     
             it('setL2ProjectManager can be executed by only owner ', async () => {
-                await deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
-                expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(deployed.l2ProjectManagerAddr.address)
+                await deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
+                expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
             })
     
             it('cannot be changed to the same value', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(deployed.l2ProjectManagerAddr.address)
+                    deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("same")
             })
         })
 
         describe("# set PublicSale basic value", () => {
+            it("set initialize can not executed by not owner", async () => {
+                await expect(
+                    deployed.l2PublicProxy.connect(addr1).initialize(
+                        [
+                            quoter,
+                            vestingFundAddress,
+                            deployed.l2LiquidityProxy.address,
+                            uniswapRouter,
+                            uniswapRouter,
+                            tos,
+                            ton
+                        ],
+                        minPer,
+                        maxPer,
+                        standardTier1,
+                        standardTier2,
+                        standardTier3,
+                        standardTier4,
+                        delayTime
+                    )).to.be.revertedWith("caller is not l2ProjectManager")
+            })
 
+            it('set initialize can be executed by only ProjectManager ', async () => {
+                await deployed.l2PublicProxy.connect(l2ProjectManager).initialize(
+                    [
+                        quoter,
+                        vestingFundAddress,
+                        deployed.l2LiquidityProxy.address,
+                        uniswapRouter,
+                        uniswapRouter,
+                        tos,
+                        ton
+                    ],
+                    minPer,
+                    maxPer,
+                    standardTier1,
+                    standardTier2,
+                    standardTier3,
+                    standardTier4,
+                    delayTime
+                )
+                expect(await deployed.l2PublicProxy.quoter()).to.eq(quoter)
+                expect(await deployed.l2PublicProxy.vestingFund()).to.eq(vestingFundAddress)
+                expect(await deployed.l2PublicProxy.liquidityVault()).to.eq(deployed.l2LiquidityProxy.address)
+                expect(await deployed.l2PublicProxy.uniswapRouter()).to.eq(uniswapRouter)
+                expect(await deployed.l2PublicProxy.lockTOS()).to.eq(uniswapRouter)
+                expect(await deployed.l2PublicProxy.tos()).to.eq(tos)
+                expect(await deployed.l2PublicProxy.ton()).to.eq(ton)
+                expect(await deployed.l2PublicProxy.minPer()).to.eq(minPer)
+                expect(await deployed.l2PublicProxy.maxPer()).to.eq(maxPer)
+                expect(await deployed.l2PublicProxy.stanTier1()).to.eq(standardTier1)
+                expect(await deployed.l2PublicProxy.stanTier2()).to.eq(standardTier2)
+                expect(await deployed.l2PublicProxy.stanTier3()).to.eq(standardTier3)
+                expect(await deployed.l2PublicProxy.stanTier4()).to.eq(standardTier4)
+                expect(await deployed.l2PublicProxy.delayTime()).to.eq(delayTime)
+            })
         })
+
+        describe("# setVaultAdmin", () => {
+            it('setVaultAdmin can not be executed by not owner', async () => {
+                await expect(
+                    deployed.l2PublicProxy.connect(addr1).setVaultAdmin(
+                        erc20Atoken.address,
+                        l2vaultAdminAddress
+                        )
+                    ).to.be.revertedWith("caller is not l2ProjectManager")
+            })
+    
+            it('setVaultAdmin can be executed by only owner ', async () => {
+                await deployed.l2PublicProxy.connect(l2ProjectManager).setVaultAdmin(
+                    erc20Atoken.address,
+                    l2vaultAdminAddress
+                )
+                expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
+            })
+    
+            it('cannot be changed to the same value', async () => {
+                await expect(
+                    deployed.l2PublicProxy.connect(l2ProjectManager).setVaultAdmin(
+                        erc20Atoken.address,
+                        l2vaultAdminAddress
+                    )
+                    ).to.be.revertedWith("same")
+            })
+        })
+    })
+
+    describe("# setL2PublicSaleVault L2VaultAdmin", () => {
+        
     })
 });
 

@@ -62,8 +62,10 @@ interface L2ProjectLaunchFixture  {
     libL2Public: LibPublicSale,
     l2PublicSaleLogic: L2PublicSaleVault,
     l2ProjectManagerAddr: Signer,
-    l2VaultAdminAddr: Signer,
-    l2liquidityProxy: L2InitialLiquidityVaultProxy
+    l2VaultAdmin: Signer,
+    l2LiquidityProxy: L2InitialLiquidityVaultProxy
+    l2Liquidity: L2InitialLiquidityVault,
+    vestingFundAddr: Signer
 }
 
 interface ProjectInfo {

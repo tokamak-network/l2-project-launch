@@ -82,7 +82,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin, vestingFundAddr] = await ethers.getSigners();
     // const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
     // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
@@ -213,9 +213,10 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       libL2Public: libL2Public,
       l2PublicSaleLogic: l2PublicProxyLogic,
       l2ProjectManagerAddr: L2projectManagerAddr,
-      l2VaultAdminAddr: L2vaultAdmin,
+      l2VaultAdmin: L2vaultAdmin,
       l2LiquidityProxy: l2liquidityProxy,
-      l2Liquidity: l2liquidity
+      l2Liquidity: l2liquidity,
+      vestingFundAddr: vestingFundAddr
   }
 }
 
