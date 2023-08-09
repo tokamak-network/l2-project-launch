@@ -32,6 +32,7 @@ import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Crea
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
 
+import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibPublicSale.sol'
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
 import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
 
@@ -79,7 +80,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
     const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-    const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
+    // const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
     // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
     //
@@ -165,7 +166,12 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
     const l2PublicProxy = (await l2PublicSaleProxy.connect(deployer).deploy()) as L2PublicSaleVaultProxy
 
-    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault')
+    const libL2PublicSale = await ethers.getContractFactory('LibPublicSale')
+    const libL2Public = (await libL2PublicSale.connect(deployer).deploy()) as LibPublicSale
+
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+      signer: deployer, libraries: { LibPublicSale: libL2Public.address }
+    })
     const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
 
     await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
@@ -193,6 +199,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       // factory: factory,
       // l1toL2MessageTest : l1toL2MessageTest
       l2PublicProxy: l2PublicProxy,
+      libL2Public: libL2Public,
       l2PublicSaleLogic: l2PublicProxyLogic,
   }
 }
