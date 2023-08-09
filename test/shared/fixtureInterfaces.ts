@@ -56,7 +56,7 @@ interface L2ProjectLaunchFixture  {
     // factory: Create2Deployer,
     // l1toL2MessageTest: L1toL2MessageTest
     l2PublicProxy: L2PublicSaleVaultProxy,
-    libL2Public: LibL2Public,
+    libL2Public: LibPublicSale,
     l2PublicSaleLogic: L2PublicSaleVault
 }
 
