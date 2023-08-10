@@ -96,4 +96,15 @@ interface LockedBalanceInfo {
     amount: BigNumber,
     balance: BigNumber
 }
-export { L2ProjectLaunchFixture, ProjectInfo, L1Fixture, Point, LockedBalance, LockedBalanceInfo}
+
+interface TONFixture {
+    tonAddress: string,
+    tonAdminAddress: string,
+    l2TonAddress: string,
+    tonAdmin: Signer
+}
+
+export { L2ProjectLaunchFixture, ProjectInfo,
+        L1Fixture, Point, LockedBalance,
+        LockedBalanceInfo,
+        TONFixture}

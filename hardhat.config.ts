@@ -40,6 +40,16 @@ const config: HardhatUserConfig = {
       goerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       hardhat: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
     },
+    tonAddress: {
+      default: 7,
+      goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+      hardhat: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+    },
+    tonAdminAddress: {
+      default: 8,
+      goerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+      hardhat: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+    },
     // tonAddress : {
     //   default: 7,
     //   titan: '0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2',
@@ -47,9 +57,14 @@ const config: HardhatUserConfig = {
     //   goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00'
     // },
     paymasterAddress: {
-      default: 7,
+      default: 9,
       goerli: '0xF33C5E2ABE4c052783AAed527390A77FAD5841FA',
       hardhat: '0xF33C5E2ABE4c052783AAed527390A77FAD5841FA',
+    },
+    l2TonAddress: {
+      default: 10,
+      goerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+      hardhat: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
     },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)

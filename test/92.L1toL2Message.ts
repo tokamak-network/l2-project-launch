@@ -2,8 +2,8 @@ import { expect } from './shared/expect'
 import { ethers, network } from 'hardhat'
 
 import { Signer, BigNumber} from 'ethers'
-import { l2ProjectLaunchFixtures } from './shared/fixtures'
-import { L2ProjectLaunchFixture, ProjectInfo } from './shared/fixtureInterfaces'
+import { l2ProjectLaunchFixtures, tonFixture} from './shared/fixtures'
+import { L2ProjectLaunchFixture, ProjectInfo, TONFixture } from './shared/fixtureInterfaces'
 
 import snapshotGasCost from './shared/snapshotGasCost'
 
@@ -11,6 +11,7 @@ import ERC20A from './abi/ERC20A.json'
 import ERC20B from './abi/ERC20B.json'
 import ERC20C from './abi/ERC20C.json'
 import ERC20D from './abi/ERC20D.json'
+import TON_JSON from './abi/TON.json'
 
 import L2StandardERC20 from './abi/L2StandardERC20.json'
 
@@ -163,7 +164,7 @@ describe('L1toL2Message', () => {
             expect(addProject[2]).to.be.eq(projectInfo.l2Token);
             expect(addProject[3]).to.be.eq(projectInfo.projectName);
 
-            console.log(projectInfo)
+            // console.log(projectInfo)
         })
     })
 
@@ -215,7 +216,54 @@ describe('L1toL2Message', () => {
                 callMessages
             )).wait();
 
-            console.log(receipt)
+            // console.log(receipt)
+
+        })
+
+
+        it('onApprove :  ', async () => {
+            let tonFixtureInfo = await tonFixture();
+            const tonContract = await ethers.getContractAt(TON_JSON.abi,  tonFixtureInfo.tonAddress, deployer)
+            let amount = ethers.utils.parseEther("1");
+
+            let allowance = await tonContract.allowance(addr2.address, deployed.l1toL2Message.address)
+            expect(allowance).to.be.eq(ethers.constants.Zero)
+
+            await (await tonContract.connect(tonFixtureInfo.tonAdmin).transfer(addr2.address, amount))
+
+            const spender = deployed.l1toL2Message.address;
+
+            let callData = await deployed.l2PaymasterDeposit.interface.encodeFunctionData(
+                "addDepositFor",
+                [   tonFixtureInfo.l2TonAddress,
+                    addr2.address,
+                    amount
+                ]
+            )
+
+            const data = ethers.utils.solidityPack(
+                ["address","address","address","address","uint32","uint32","bytes"],
+                [
+                    deployed.addressManager.address,
+                    tonFixtureInfo.tonAddress,
+                    tonFixtureInfo.l2TonAddress,
+                    deployed.l2PaymasterDeposit.address,
+                    2000000,
+                    2000000,
+                    callData
+                ]
+                );
+
+             // data :
+            // 20 bytes addressManager,
+            // 20 bytes l1Token,
+            // 20 bytes  l2Token,
+            // 20 bytes depositAndCallTarget,
+            // 4 bytes minGasLimitForDeposit
+            // 4 bytes minGasLimitForCall
+            // 나머지 bytes call
+
+            await tonContract.connect(addr2).approveAndCall(spender, amount, data);
 
         })
 

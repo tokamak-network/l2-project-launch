@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import {  Wallet, Signer } from 'ethers'
 
 import Web3EthAbi from 'web3-eth-abi';
-import { L2ProjectLaunchFixture, L1Fixture} from './fixtureInterfaces'
+import { L2ProjectLaunchFixture, L1Fixture, TONFixture} from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
 import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
@@ -194,3 +194,13 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
   }
 }
 
+export const tonFixture = async function (): Promise<TONFixture> {
+  const { tonAddress, tonAdminAddress, l2TonAddress } = await hre.getNamedAccounts();
+  const tonAdmin =  await hre.ethers.getSigner(tonAdminAddress);
+  return  {
+    tonAddress: tonAddress,
+    tonAdminAddress: tonAdminAddress,
+    l2TonAddress: l2TonAddress,
+    tonAdmin: tonAdmin
+  }
+}
