@@ -2,8 +2,8 @@ import { expect } from './shared/expect'
 import { ethers, network } from 'hardhat'
 
 import { Signer } from 'ethers'
-import { l2ProjectLaunchFixtures } from './shared/fixtures'
-import { L2ProjectLaunchFixture } from './shared/fixtureInterfaces'
+import { l2ProjectLaunchFixtures, l1Fixtures } from './shared/fixtures'
+import { L2ProjectLaunchFixture, L1Fixture } from './shared/fixtureInterfaces'
 
 import ERC20A from './abi/ERC20A.json'
 import ERC20B from './abi/ERC20B.json'
@@ -19,6 +19,11 @@ describe('L2TokenFactory', () => {
     let deployed: L2ProjectLaunchFixture
     let addr1Address: string, addr2Address: string;
     let projectInfo: any;
+
+    let l1deployed: L1Fixture
+    let lockTOS: any;
+    let tosContract: any;
+    let tonContract: any;
 
     let l2ProjectManager: Signer
     let l2ProjectManagerAddresss: string
@@ -90,6 +95,10 @@ describe('L2TokenFactory', () => {
         l2ProjectManager = deployed.l2ProjectManagerAddr;
         vestingFund = deployed.vestingFundAddr;
         l2vaultAdmin = deployed.l2VaultAdmin;
+
+        l1deployed = await l1Fixtures()
+        lockTOS = l1deployed.lockTOS;
+
         addr1Address = await addr1.getAddress();
         addr2Address = await addr2.getAddress();
         l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
@@ -310,6 +319,7 @@ describe('L2TokenFactory', () => {
         })
     })
 
+
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
         it("check the is L2Token", async () => {
             expect(await deployed.l2PublicProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
@@ -336,13 +346,6 @@ describe('L2TokenFactory', () => {
             claimTime3 = claimTime2 + (60 * 2);
             claimTime4 = claimTime3 + (60 * 3);
             claimTime5 = claimTime4 + (60 * 4);
-            // console.log("blockTime : ",blockTime)
-            // console.log("setSnapshot : ",setSnapshot)
-            // console.log("whitelistStartTime : ",whitelistStartTime)
-            // console.log("whitelistEndTime : ",whitelistEndTime)
-            // console.log("whitelistEndTime : ",whitelistEndTime)
-            // console.log("whitelistEndTime : ",whitelistEndTime)
-            // console.log("whitelistEndTime : ",whitelistEndTime)
 
             await expect(
                 deployed.l2PublicProxy.connect(addr1).vaultInitialize(
@@ -423,5 +426,7 @@ describe('L2TokenFactory', () => {
             )
         })
     })
+
+
 });
 

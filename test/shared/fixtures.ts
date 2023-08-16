@@ -25,6 +25,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { TON } from '../../typechain-types/contracts/test/TON.sol'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 
 // import { L1toL2MessageTest } from '../../typechain-types/contracts/test/L1toL2SendMessage.sol'
@@ -70,12 +71,16 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
 
+  const TON_ = await ethers.getContractFactory('TON');
+  const ton = (await TON_.connect(deployer).deploy()) as TON
+
   return  {
     deployer: deployer,
     addr1: addr1,
     addr2: addr2,
     tos: tos,
-    lockTOS: lockTOS
+    lockTOS: lockTOS,
+    ton: ton
   }
 }
 
