@@ -74,6 +74,9 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
   const TON_ = await ethers.getContractFactory('TON');
   const ton = (await TON_.connect(deployer).deploy()) as TON
 
+  await (await ton.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
+  await (await ton.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
   return  {
     deployer: deployer,
     addr1: addr1,
@@ -87,7 +90,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin, vestingFundAddr] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin, vestingFundAddr, addr3, addr4, addr5] = await ethers.getSigners();
     // const { accountForCreate2Deployer, myDeployer } = await hre.getNamedAccounts();
     // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
 
@@ -206,6 +209,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       deployer: deployer,
       addr1: addr1,
       addr2: addr2,
+      addr3: addr3,
+      addr4: addr4,
+      addr5: addr5,
       // factoryDeployer: create2Signer,
       addressManager: addressManager,
       l1Messenger: l1Messenger,

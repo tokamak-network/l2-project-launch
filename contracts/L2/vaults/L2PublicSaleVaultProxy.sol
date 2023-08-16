@@ -125,7 +125,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         external
         onlyVaultAdminOfToken(_l2token) 
     {   
-        console.log("1");
         setTier(
             _l2token, 
             _Tier[0], 
@@ -134,7 +133,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _Tier[3]
         );
         
-        console.log("2");
         setTierPercents(
             _l2token, 
             _Tier[4], 
@@ -143,7 +141,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _Tier[7]
         );
 
-        console.log("3");
         setAllAmount(
             _l2token,
             _amount[0],
@@ -155,7 +152,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _amount[6]
         );
 
-        console.log("4");
         set1RoundTime(
             _l2token,
             _time[1],
@@ -164,7 +160,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _time[4]
         );
 
-        console.log("5");
         set2RoundTime(
             _l2token,
             _time[0],
@@ -172,7 +167,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _time[6] 
         );
 
-        console.log("6");
         setClaimTime(
             _l2token,
             _time[7],

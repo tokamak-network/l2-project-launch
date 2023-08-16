@@ -15,9 +15,9 @@ import snapshotGasCost from './shared/snapshotGasCost'
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 describe('L2TokenFactory', () => {
-    let deployer: Signer, addr1: Signer, addr2:Signer;
+    let deployer: Signer, addr1: Signer, addr2:Signer, addr3: Signer, addr4: Signer, addr5: Signer;
     let deployed: L2ProjectLaunchFixture
-    let addr1Address: string, addr2Address: string;
+    let addr1Address: string, addr2Address: string, addr3Address: string, addr4Address: string, addr5Address: string;
     let projectInfo: any;
 
     let l1deployed: L1Fixture
@@ -87,20 +87,37 @@ describe('L2TokenFactory', () => {
 
     let blockTime: any;
 
+    let tosAmount = 100000000000;
+
+    let addr1lockTOSIds: any[] = [];
+    let addr2lockTOSIds: any[] = [];
+    let addr3lockTOSIds: any[] = [];
+    let addr4lockTOSIds: any[] = [];
+    let addr5lockTOSIds: any[] = [];
+
+
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
         deployer = deployed.deployer;
         addr1 = deployed.addr1;
         addr2 = deployed.addr2;
+        addr3 = deployed.addr3;
+        addr4 = deployed.addr4;
+        addr5 = deployed.addr5;
         l2ProjectManager = deployed.l2ProjectManagerAddr;
         vestingFund = deployed.vestingFundAddr;
         l2vaultAdmin = deployed.l2VaultAdmin;
 
         l1deployed = await l1Fixtures()
         lockTOS = l1deployed.lockTOS;
+        tosContract = l1deployed.tos;
+        tonContract = l1deployed.ton;
 
         addr1Address = await addr1.getAddress();
         addr2Address = await addr2.getAddress();
+        addr3Address = await addr3.getAddress();
+        addr4Address = await addr4.getAddress();
+        addr5Address = await addr5.getAddress();
         l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
         vestingFundAddress = await vestingFund.getAddress();
         l2vaultAdminAddress = await l2vaultAdmin.getAddress();
@@ -155,7 +172,7 @@ describe('L2TokenFactory', () => {
             
             erc20Atoken = await ethers.getContractAt(ERC20A.abi, projectInfo.l1Token, addr1);
             let tx = await erc20Atoken.balanceOf(addr1Address)
-            console.log(tx);
+            // console.log(tx);
             await erc20Atoken.connect(addr1).transfer(l2vaultAdminAddress,tx);
 
             expect(deployedEvent.args.contractAddress).to.not.eq(ethers.constants.AddressZero);
@@ -319,6 +336,105 @@ describe('L2TokenFactory', () => {
         })
     })
 
+    describe("# stake lockTOS for user", () => {
+        it("check tos balance", async () => {
+            let addr1balance = await tosContract.balanceOf(addr1Address);
+            let addr2balance = await tosContract.balanceOf(addr2Address);
+            let addr3balance = await tosContract.balanceOf(addr3Address);
+            let addr4balance = await tosContract.balanceOf(addr4Address);
+            let addr5balance = await tosContract.balanceOf(addr5Address);
+            expect(addr1balance).to.be.gte(0);
+            expect(addr2balance).to.be.gte(0);
+            expect(addr3balance).to.be.equal(0);
+            expect(addr4balance).to.be.equal(0);
+            expect(addr5balance).to.be.equal(0);
+            await tosContract.connect(addr1).transfer(addr3Address,tosAmount);
+            await tosContract.connect(addr1).transfer(addr4Address,tosAmount);
+            await tosContract.connect(addr1).transfer(addr5Address,tosAmount);
+            addr3balance = await tosContract.balanceOf(addr3Address);
+            addr4balance = await tosContract.balanceOf(addr4Address);
+            addr5balance = await tosContract.balanceOf(addr4Address);
+            expect(addr3balance).to.be.gte(0);
+            expect(addr4balance).to.be.gte(0);
+            expect(addr5balance).to.be.gte(0);
+        })
+
+        it("create locks for user", async () => {
+            await tosContract.connect(addr1).approve(lockTOS.address, 15500)
+            await lockTOS.connect(addr1).createLock(15500, 2);
+
+            let userLocks = await lockTOS.connect(addr1).locksOf(addr1Address);
+            let lockId = userLocks[userLocks.length - 1];
+            expect(lockId).to.be.equal(1);
+            addr1lockTOSIds.push(lockId);
+
+            await tosContract.connect(addr2).approve(lockTOS.address, 35000) 
+            await lockTOS.connect(addr2).createLock(35000, 2);
+
+            userLocks = await lockTOS.connect(addr2).locksOf(addr2Address);
+            lockId = userLocks[userLocks.length - 1];
+            expect(lockId).to.be.equal(2);
+            addr2lockTOSIds.push(lockId);
+
+            await tosContract.connect(addr3).approve(lockTOS.address, 170000) 
+            await lockTOS.connect(addr3).createLock(170000, 2);
+
+            userLocks = await lockTOS.connect(addr3).locksOf(addr3Address);
+            lockId = userLocks[userLocks.length - 1];
+            expect(lockId).to.be.equal(3);
+            addr3lockTOSIds.push(lockId);
+
+            await tosContract.connect(addr4).approve(lockTOS.address, 650000) 
+            await lockTOS.connect(addr4).createLock(650000, 2);
+
+            userLocks = await lockTOS.connect(addr4).locksOf(addr4Address);
+            lockId = userLocks[userLocks.length - 1];
+            expect(lockId).to.be.equal(4);
+            addr4lockTOSIds.push(lockId);
+
+            await tosContract.connect(addr5).approve(lockTOS.address, 650000) 
+            await lockTOS.connect(addr5).createLock(650000, 2);
+
+            userLocks = await lockTOS.connect(addr5).locksOf(addr5Address);
+            lockId = userLocks[userLocks.length - 1];
+            expect(lockId).to.be.equal(5);
+            addr5lockTOSIds.push(lockId);
+        })
+
+        it("check lockTOS balance", async () => {
+            const block = await ethers.provider.getBlock('latest')
+            if (!block) {
+                throw new Error('null block returned from provider')
+            }
+
+
+            setSnapshot = block.timestamp;
+            // console.log(Number(setSnapshot))
+
+            let addr1balanceOfAt = Number(await lockTOS.balanceOfAt(addr1Address, setSnapshot))
+            
+            let addr2balanceOfAt = Number(await lockTOS.balanceOfAt(addr2Address, setSnapshot))
+            
+            let addr3balanceOfAt = Number(await lockTOS.balanceOfAt(addr3Address, setSnapshot))
+            
+            let addr4balanceOfAt = Number(await lockTOS.balanceOfAt(addr4Address, setSnapshot))
+            
+            let addr5balanceOfAt = Number(await lockTOS.balanceOfAt(addr5Address, setSnapshot))
+
+            console.log(addr1balanceOfAt)
+            console.log(addr2balanceOfAt)
+            console.log(addr3balanceOfAt)
+            console.log(addr4balanceOfAt)
+            console.log(addr5balanceOfAt)
+            
+            expect(addr1balanceOfAt).to.be.above(0);
+            expect(addr2balanceOfAt).to.be.above(0);
+            expect(addr3balanceOfAt).to.be.above(0);
+            expect(addr4balanceOfAt).to.be.above(0);
+            expect(addr5balanceOfAt).to.be.above(0);
+        })
+    })
+
 
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
         it("check the is L2Token", async () => {
@@ -334,7 +450,6 @@ describe('L2TokenFactory', () => {
         
         it("vaultInitialize can not be executed by not vaultAdmin", async () => {
             blockTime = Number(await time.latest())
-            setSnapshot = blockTime - 100;
             whitelistStartTime = blockTime + 86400;
             whitelistEndTime = whitelistStartTime + (86400*7);
             round1StartTime = whitelistEndTime + 1;
@@ -426,7 +541,6 @@ describe('L2TokenFactory', () => {
             )
         })
     })
-
 
 });
 
