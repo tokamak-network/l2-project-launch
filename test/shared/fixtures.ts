@@ -35,7 +35,7 @@ import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVa
 
 import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibPublicSale.sol'
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
-import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
 
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
@@ -222,7 +222,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       // l1toL2MessageTest : l1toL2MessageTest
       l2PublicProxy: l2PublicProxy,
       libL2Public: libL2Public,
-      l2PublicSaleLogic: l2PublicProxyLogic,
+      l2PublicProxyLogic: l2PublicProxyLogic,
       l2ProjectManagerAddr: L2projectManagerAddr,
       l2VaultAdmin: L2vaultAdmin,
       l2LiquidityProxy: l2liquidityProxy,

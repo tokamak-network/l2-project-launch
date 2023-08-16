@@ -33,7 +33,7 @@ import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Crea
 
 import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibPublicSale.sol'
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
-import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
 
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
@@ -64,7 +64,7 @@ interface L2ProjectLaunchFixture  {
     // l1toL2MessageTest: L1toL2MessageTest
     l2PublicProxy: L2PublicSaleVaultProxy,
     libL2Public: LibPublicSale,
-    l2PublicSaleLogic: L2PublicSaleVault,
+    l2PublicProxyLogic: L2PublicSaleVault,
     l2ProjectManagerAddr: Signer,
     l2VaultAdmin: Signer,
     l2LiquidityProxy: L2InitialLiquidityVaultProxy

@@ -326,7 +326,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 
         timeInfos.snapshot = _snapshot;
         timeInfos.round2StartTime = _startDepositTime;
-        timeInfos.round2EndTime = _startDepositTime;    
+        timeInfos.round2EndTime = _endDepositTime;    
     }
 
     function setClaimTime(

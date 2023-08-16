@@ -1,7 +1,7 @@
 import { expect } from './shared/expect'
 import { ethers, network } from 'hardhat'
 
-import { Signer } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { l2ProjectLaunchFixtures, l1Fixtures } from './shared/fixtures'
 import { L2ProjectLaunchFixture, L1Fixture } from './shared/fixtureInterfaces'
 
@@ -13,6 +13,8 @@ import L2StandardERC20 from './abi/L2StandardERC20.json'
 import snapshotGasCost from './shared/snapshotGasCost'
 
 import { time } from "@nomicfoundation/hardhat-network-helpers";
+
+const TON_ABI = require("../abis/TON.json");
 
 describe('L2TokenFactory', () => {
     let deployer: Signer, addr1: Signer, addr2:Signer, addr3: Signer, addr4: Signer, addr5: Signer;
@@ -36,11 +38,17 @@ describe('L2TokenFactory', () => {
 
     let erc20Atoken: any;
 
+    let tier1Amount: BigNumber;
+
     //mainnet
     let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
     let uniswapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
     let tos = "0x409c4D8cd5d2924b9bc5509230d16a61289c8153"
     let ton = "0x2be5e8c109e2197D077D13A82dAead6a9b3433C5"
+
+    //goerli
+    // let tos = "0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9"
+    // let ton = "0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00"
 
     let minPer = 5;
     let maxPer = 10;
@@ -83,6 +91,13 @@ describe('L2TokenFactory', () => {
     let claimPercent3 = 2000;
     let claimPercent4 = 2000;
     let claimPercent5 = 1000;
+
+    let realclaimPercents1 = 3000;
+    let realclaimPercents2 = 5000;
+    let realclaimPercents3 = 7000;
+    let realclaimPercents4 = 9000;
+    let realclaimPercents5 = 10000;
+
     let totalclaimCounts = 5;
 
     let blockTime: any;
@@ -95,6 +110,12 @@ describe('L2TokenFactory', () => {
     let addr4lockTOSIds: any[] = [];
     let addr5lockTOSIds: any[] = [];
 
+    //goerli
+    // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+
+    //mainnet
+    let testAccount = "0x156DD25d342a6B63874333985140aA3103bf1Ff0"
+    let richTON: Signer;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
@@ -121,6 +142,13 @@ describe('L2TokenFactory', () => {
         l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
         vestingFundAddress = await vestingFund.getAddress();
         l2vaultAdminAddress = await l2vaultAdmin.getAddress();
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [testAccount],
+        });
+
+        richTON = await ethers.getSigner(testAccount);        //ton,tos 주인
     })
 
     describe('# setL2ProjectManager', () => {
@@ -228,6 +256,21 @@ describe('L2TokenFactory', () => {
 
     });
 
+    describe("# set TON", () => {
+        it("setting the TON Contract", async () => {
+            tonContract = await ethers.getContractAt(TON_ABI.abi, ton, deployer)
+        })
+
+        it("transfer TON", async () => {
+            let transferTON = ethers.utils.parseUnits("3000", 18);
+            await tonContract.connect(richTON).transfer(addr1Address,transferTON)
+            await tonContract.connect(richTON).transfer(addr2Address,transferTON)
+            await tonContract.connect(richTON).transfer(addr3Address,transferTON)
+            await tonContract.connect(richTON).transfer(addr4Address,transferTON)
+            await tonContract.connect(richTON).transfer(addr5Address,transferTON)
+        })
+    })
+    
     describe("# setL2PublicSale L2ProjectManager", () => {
         describe("# set L2ProjectManager", () => {
             it('setL2ProjectManager can not be executed by not owner', async () => {
@@ -257,7 +300,7 @@ describe('L2TokenFactory', () => {
                             vestingFundAddress,
                             deployed.l2LiquidityProxy.address,
                             uniswapRouter,
-                            uniswapRouter,
+                            lockTOS.address,
                             tos,
                             ton
                         ],
@@ -278,7 +321,7 @@ describe('L2TokenFactory', () => {
                         vestingFundAddress,
                         deployed.l2LiquidityProxy.address,
                         uniswapRouter,
-                        uniswapRouter,
+                        lockTOS.address,
                         tos,
                         ton
                     ],
@@ -294,7 +337,7 @@ describe('L2TokenFactory', () => {
                 expect(await deployed.l2PublicProxy.vestingFund()).to.eq(vestingFundAddress)
                 expect(await deployed.l2PublicProxy.liquidityVault()).to.eq(deployed.l2LiquidityProxy.address)
                 expect(await deployed.l2PublicProxy.uniswapRouter()).to.eq(uniswapRouter)
-                expect(await deployed.l2PublicProxy.lockTOS()).to.eq(uniswapRouter)
+                expect(await deployed.l2PublicProxy.lockTOS()).to.eq(lockTOS.address)
                 expect(await deployed.l2PublicProxy.tos()).to.eq(tos)
                 expect(await deployed.l2PublicProxy.ton()).to.eq(ton)
                 expect(await deployed.l2PublicProxy.minPer()).to.eq(minPer)
@@ -539,6 +582,232 @@ describe('L2TokenFactory', () => {
                 [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
                 [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
             )
+        })
+
+        it("check setting value", async () => {
+            let timeInfo = await deployed.l2PublicProxy.timeInfo(erc20Atoken.address)
+            let manageInfo = await deployed.l2PublicProxy.manageInfo(erc20Atoken.address)
+            let claimInfo = await deployed.l2PublicProxy.claimInfo(erc20Atoken.address)
+            
+            expect(manageInfo.set1rdTokenAmount).to.be.equal(round1SaleAmount)
+            expect(manageInfo.set2rdTokenAmount).to.be.equal(round2SaleAmount)
+            expect(manageInfo.saleTokenPrice).to.be.equal(saleTokenPrice)
+            expect(manageInfo.tonPrice).to.be.equal(tonTokenPrice)
+            expect(manageInfo.hardCap).to.be.equal(hardcapAmount)
+            expect(manageInfo.changeTOS).to.be.equal(changeTOS)
+            expect(manageInfo.changeTick).to.be.equal(changeTick)
+
+            // console.log("blockTime : ",blockTime)
+            // console.log("setSnapshot : ",setSnapshot)
+            // console.log("whitelistStartTime : ",whitelistStartTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+            // console.log("round1StartTime : ",round1StartTime)
+            // console.log("round1EndTime : ",round1EndTime)
+            // console.log("round2StartTime : ",round2StartTime)
+            // console.log("round2EndTime : ",round2EndTime)
+
+            expect(Number(timeInfo.whiteListStartTime)).to.be.equal(whitelistStartTime)
+            expect(Number(timeInfo.whiteListEndTime)).to.be.equal(whitelistEndTime)
+            expect(Number(timeInfo.round1StartTime)).to.be.equal(round1StartTime)
+            expect(Number(timeInfo.round1EndTime)).to.be.equal(round1EndTime)
+            expect(Number(timeInfo.round2StartTime)).to.be.equal(round2StartTime)
+            expect(Number(timeInfo.round2EndTime)).to.be.equal(round2EndTime)
+            expect(Number(timeInfo.snapshot)).to.be.equal(setSnapshot)
+
+            expect(claimInfo.totalClaimCounts).to.be.equal(totalclaimCounts)
+
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,1)).to.be.equal(settingTier1)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,2)).to.be.equal(settingTier2)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,3)).to.be.equal(settingTier3)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,4)).to.be.equal(settingTier4)
+            // console.log(await deployed.l2PublicProxy.tiers(erc20Atoken.address,1))
+
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)).to.be.equal(settingTierPercent1)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)).to.be.equal(settingTierPercent2)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)).to.be.equal(settingTierPercent3)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)).to.be.equal(settingTierPercent4)
+            // console.log(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1))
+
+            expect(await deployed.l2PublicProxy.claimTimes(erc20Atoken.address,0)).to.be.equal(claimTime1)
+            expect(await deployed.l2PublicProxy.claimTimes(erc20Atoken.address,1)).to.be.equal(claimTime2)
+            expect(await deployed.l2PublicProxy.claimTimes(erc20Atoken.address,2)).to.be.equal(claimTime3)
+            expect(await deployed.l2PublicProxy.claimTimes(erc20Atoken.address,3)).to.be.equal(claimTime4)
+            expect(await deployed.l2PublicProxy.claimTimes(erc20Atoken.address,4)).to.be.equal(claimTime5)
+
+            expect(await deployed.l2PublicProxy.claimPercents(erc20Atoken.address,0)).to.be.equal(realclaimPercents1)
+            expect(await deployed.l2PublicProxy.claimPercents(erc20Atoken.address,1)).to.be.equal(realclaimPercents2)
+            expect(await deployed.l2PublicProxy.claimPercents(erc20Atoken.address,2)).to.be.equal(realclaimPercents3)
+            expect(await deployed.l2PublicProxy.claimPercents(erc20Atoken.address,3)).to.be.equal(realclaimPercents4)
+            expect(await deployed.l2PublicProxy.claimPercents(erc20Atoken.address,4)).to.be.equal(realclaimPercents5)
+        })
+    })
+
+    describe("# PublicSale Test", () => {
+        describe("# whiteList", () => {
+            it("calculTier for user", async () => {
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
+                    addr1Address
+                );
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
+                    addr2Address
+                );
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
+                    addr3Address
+                );
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
+                    addr4Address
+                );
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
+                    addr5Address
+                );
+                expect(addr1Tier).to.be.equal(1)
+                expect(addr2Tier).to.be.equal(2)
+                expect(addr3Tier).to.be.equal(3)
+                expect(addr4Tier).to.be.equal(4)
+                expect(addr5Tier).to.be.equal(4)
+            })
+
+            it("calculTierAmount for user", async () => {
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr1Address
+                );
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr2Address
+                );
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr3Address
+                );
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr4Address
+                );
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr5Address
+                );
+
+                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)
+                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)
+                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)
+                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)
+
+                let tier1stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1)).add(1);
+                let tier2stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2)).add(1);
+                let tier3stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3)).add(1);
+                let tier4stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4)).add(1);
+
+                let tier1Amount = round1SaleAmount.mul(tier1Percents).div(10000).div(tier1stAccount);
+                let tier2Amount = round1SaleAmount.mul(tier2Percents).div(10000).div(tier2stAccount);
+                let tier3Amount = round1SaleAmount.mul(tier3Percents).div(10000).div(tier3stAccount);
+                let tier4Amount = round1SaleAmount.mul(tier4Percents).div(10000).div(tier4stAccount);
+
+                expect(addr1Tier).to.be.equal(tier1Amount)
+                expect(addr2Tier).to.be.equal(tier2Amount)
+                expect(addr3Tier).to.be.equal(tier3Amount)
+                expect(addr4Tier).to.be.equal(tier4Amount)
+                expect(addr5Tier).to.be.equal(tier4Amount)
+            })
+
+            // it("check ton amount", async () => {
+            //     let tonbalance = await tonContract.balanceOf(addr1Address);
+            //     console.log(tonbalance)
+            // })
+
+            it("duration the time", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [whitelistStartTime]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("add whiteList", async () => {
+                let tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1));
+                expect(tiersWhitelist).to.be.equal(0)
+                await deployed.l2PublicProxyLogic.connect(addr1).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1));
+                expect(tiersWhitelist).to.be.equal(1)
+
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2));
+                expect(tiersWhitelist).to.be.equal(0)
+                await deployed.l2PublicProxyLogic.connect(addr2).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2));
+                expect(tiersWhitelist).to.be.equal(1)
+
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3));
+                expect(tiersWhitelist).to.be.equal(0)
+                await deployed.l2PublicProxyLogic.connect(addr3).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3));
+                expect(tiersWhitelist).to.be.equal(1)
+
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
+                expect(tiersWhitelist).to.be.equal(0)
+                await deployed.l2PublicProxyLogic.connect(addr4).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
+                expect(tiersWhitelist).to.be.equal(1)
+
+                await deployed.l2PublicProxyLogic.connect(addr5).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
+                expect(tiersWhitelist).to.be.equal(2)
+            })
+
+            it("calculTierAmount for user after addWhitelist", async () => {
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr1Address
+                );
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr2Address
+                );
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr3Address
+                );
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr4Address
+                );
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
+                    addr5Address
+                );
+                console.log("1");
+                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)
+                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)
+                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)
+                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)
+
+                let tier1stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1));
+                let tier2stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2));
+                let tier3stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3));
+                let tier4stAccount = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
+
+                let tier1Amount = round1SaleAmount.mul(tier1Percents).div(10000).div(tier1stAccount);
+                let tier2Amount = round1SaleAmount.mul(tier2Percents).div(10000).div(tier2stAccount);
+                let tier3Amount = round1SaleAmount.mul(tier3Percents).div(10000).div(tier3stAccount);
+                let tier4Amount = round1SaleAmount.mul(tier4Percents).div(10000).div(tier4stAccount);
+
+                expect(addr1Tier).to.be.equal(tier1Amount)
+                expect(addr2Tier).to.be.equal(tier2Amount)
+                expect(addr3Tier).to.be.equal(tier3Amount)
+                expect(addr4Tier).to.be.equal(tier4Amount)
+                expect(addr5Tier).to.be.equal(tier4Amount)
+            })
+
+        })
+
+        describe("# round1 Sale", () => {
+            
+        })
+
+        describe("# round2 Sale", () => {
+
         })
     })
 
