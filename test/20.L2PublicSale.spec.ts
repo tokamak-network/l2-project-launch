@@ -12,6 +12,8 @@ import ERC20D from './abi/ERC20D.json'
 import L2StandardERC20 from './abi/L2StandardERC20.json'
 import snapshotGasCost from './shared/snapshotGasCost'
 
+import { time } from "@nomicfoundation/hardhat-network-helpers";
+
 describe('L2TokenFactory', () => {
     let deployer: Signer, addr1: Signer, addr2:Signer;
     let deployed: L2ProjectLaunchFixture
@@ -39,13 +41,46 @@ describe('L2TokenFactory', () => {
     let maxPer = 10;
 
     let standardTier1 = 100;
-    let standardTier2 = 300;
+    let standardTier2 = 200;
     let standardTier3 = 1000;
     let standardTier4 = 4000;
     
     let delayTime = 600;
 
+    let settingTier1 = 100;
+    let settingTier2 = 200;
+    let settingTier3 = 1000;
+    let settingTier4 = 4000;
+
+    let settingTierPercent1 = 600;
+    let settingTierPercent2 = 1200;
+    let settingTierPercent3 = 2200;
+    let settingTierPercent4 = 6000;
+
+    let round1SaleAmount = ethers.utils.parseUnits("50000", 18);
+    let round2SaleAmount = ethers.utils.parseUnits("50000", 18);
+
+    let saleTokenPrice = 200;
+    let tonTokenPrice = 2000;
+    
+    let hardcapAmount = ethers.utils.parseUnits("100", 18);
+    let changeTick = 18;
     let changeTOS = 10;
+
+    let setSnapshot: any;
+    let whitelistStartTime: any, whitelistEndTime: any;
+    let round1StartTime: any, round1EndTime: any;
+    let round2StartTime: any, round2EndTime: any;
+    
+    let claimTime1: any, claimTime2: any, claimTime3: any, claimTime4: any, claimTime5: any
+    let claimPercent1 = 3000;
+    let claimPercent2 = 2000;
+    let claimPercent3 = 2000;
+    let claimPercent4 = 2000;
+    let claimPercent5 = 1000;
+    let totalclaimCounts = 5;
+
+    let blockTime: any;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
@@ -112,6 +147,7 @@ describe('L2TokenFactory', () => {
             erc20Atoken = await ethers.getContractAt(ERC20A.abi, projectInfo.l1Token, addr1);
             let tx = await erc20Atoken.balanceOf(addr1Address)
             console.log(tx);
+            await erc20Atoken.connect(addr1).transfer(l2vaultAdminAddress,tx);
 
             expect(deployedEvent.args.contractAddress).to.not.eq(ethers.constants.AddressZero);
             expect(deployedEvent.args.name).to.eq(projectInfo.tokenName);
@@ -246,7 +282,7 @@ describe('L2TokenFactory', () => {
         })
 
         describe("# setVaultAdmin", () => {
-            it('setVaultAdmin can not be executed by not owner', async () => {
+            it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
                 await expect(
                     deployed.l2PublicProxy.connect(addr1).setVaultAdmin(
                         erc20Atoken.address,
@@ -255,7 +291,7 @@ describe('L2TokenFactory', () => {
                     ).to.be.revertedWith("caller is not l2ProjectManager")
             })
     
-            it('setVaultAdmin can be executed by only owner ', async () => {
+            it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
                 await deployed.l2PublicProxy.connect(l2ProjectManager).setVaultAdmin(
                     erc20Atoken.address,
                     l2vaultAdminAddress
@@ -275,7 +311,117 @@ describe('L2TokenFactory', () => {
     })
 
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
+        it("check the is L2Token", async () => {
+            expect(await deployed.l2PublicProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
+            expect(await deployed.l2PublicProxy.isL2Token(erc20Atoken.address)).to.be.equal(true);
+        })
+
+        it("check the isVaultAdmin", async () => {
+            expect(await deployed.l2PublicProxy.isVaultAdmin(erc20Atoken.address,l2ProjectManagerAddresss)).to.be.equal(false)
+            expect(await deployed.l2PublicProxy.isVaultAdmin(ton,l2vaultAdminAddress)).to.be.equal(false)
+            expect(await deployed.l2PublicProxy.isVaultAdmin(erc20Atoken.address,l2vaultAdminAddress)).to.be.equal(true)
+        })
         
+        it("vaultInitialize can not be executed by not vaultAdmin", async () => {
+            blockTime = Number(await time.latest())
+            setSnapshot = blockTime - 100;
+            whitelistStartTime = blockTime + 86400;
+            whitelistEndTime = whitelistStartTime + (86400*7);
+            round1StartTime = whitelistEndTime + 1;
+            round1EndTime = round1StartTime + (86400*7);
+            round2StartTime = round1EndTime + 1;
+            round2EndTime = round2StartTime + (86400*7);
+            claimTime1 = round2EndTime + (86400 * 20);
+            claimTime2 = claimTime1 + (60 * 1);
+            claimTime3 = claimTime2 + (60 * 2);
+            claimTime4 = claimTime3 + (60 * 3);
+            claimTime5 = claimTime4 + (60 * 4);
+            // console.log("blockTime : ",blockTime)
+            // console.log("setSnapshot : ",setSnapshot)
+            // console.log("whitelistStartTime : ",whitelistStartTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+
+            await expect(
+                deployed.l2PublicProxy.connect(addr1).vaultInitialize(
+                    erc20Atoken.address,
+                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
+                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
+                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                )
+            ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
+        })
+
+        it("vaultInitialize can not be executed by input not L2TokenAddr", async () => {
+            await expect(
+                deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                    addr1Address,
+                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
+                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
+                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                )
+            ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
+        })
+
+        it("vaultInitialize can not be executed by not input token", async () => {
+            await expect(
+                deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                    erc20Atoken.address,
+                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
+                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
+                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                )
+            ).to.be.revertedWith("not input token")
+        })
+
+        it("vaultInitialize can be executed by only L2VaultAdmin & l2Token", async () => {
+            // console.log("blockTime : ",blockTime)
+            // console.log("setSnapshot : ",setSnapshot)
+            // console.log("whitelistStartTime : ",whitelistStartTime)
+            // console.log("whitelistEndTime : ",whitelistEndTime)
+            // console.log("round1StartTime : ",round1StartTime)
+            // console.log("round1EndTime : ",round1EndTime)
+            // console.log("round2StartTime : ",round2StartTime)
+            // console.log("round2EndTime : ",round2EndTime)
+            // console.log("claimTime1 : ",claimTime1)
+            // console.log("claimTime2 : ",claimTime2)
+            // console.log("claimTime3 : ",claimTime3)
+            // console.log("claimTime4 : ",claimTime4)
+            // console.log("claimTime5 : ",claimTime5)
+
+            // console.log("round1SaleAmount : ",round1SaleAmount)
+            // console.log("round2SaleAmount : ",round2SaleAmount)
+            // console.log("saleTokenPrice : ",saleTokenPrice)
+            // console.log("tonTokenPrice : ",tonTokenPrice)
+            // console.log("hardcapAmount : ",hardcapAmount)
+            // console.log("changeTOS : ",changeTOS)
+            // console.log("changeTick : ",changeTick)
+            // console.log("totalclaimCounts : ",totalclaimCounts)
+            // console.log("claimPercent1 : ",claimPercent1)
+            // console.log("claimPercent2 : ",claimPercent2)
+            // console.log("claimPercent3 : ",claimPercent3)
+            // console.log("claimPercent4 : ",claimPercent4)
+            // console.log("claimPercent5 : ",claimPercent5)
+            let tx = await erc20Atoken.balanceOf(l2vaultAdminAddress)
+            await erc20Atoken.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
+
+            await deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                erc20Atoken.address,
+                [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
+                [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
+                [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+            )
+        })
     })
 });
 

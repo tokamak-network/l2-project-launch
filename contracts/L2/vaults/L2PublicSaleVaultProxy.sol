@@ -6,6 +6,8 @@ import "./L2PublicSaleVaultStorage.sol";
 
 import "../../libraries/SafeERC20.sol";
 
+import "hardhat/console.sol";
+
 contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 {
     using SafeERC20 for IERC20;
@@ -123,6 +125,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         external
         onlyVaultAdminOfToken(_l2token) 
     {   
+        console.log("1");
         setTier(
             _l2token, 
             _Tier[0], 
@@ -131,6 +134,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _Tier[3]
         );
         
+        console.log("2");
         setTierPercents(
             _l2token, 
             _Tier[4], 
@@ -139,6 +143,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _Tier[7]
         );
 
+        console.log("3");
         setAllAmount(
             _l2token,
             _amount[0],
@@ -150,6 +155,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _amount[6]
         );
 
+        console.log("4");
         set1RoundTime(
             _l2token,
             _time[1],
@@ -158,6 +164,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _time[4]
         );
 
+        console.log("5");
         set2RoundTime(
             _l2token,
             _time[0],
@@ -165,6 +172,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             _time[6] 
         );
 
+        console.log("6");
         setClaimTime(
             _l2token,
             _time[7],
@@ -240,7 +248,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         beforeStartAddWhiteTime(_l2token)
     {
         uint256 balance = IERC20(_l2token).balanceOf(address(this));
-        require((_totalExpectSaleAmount + _totalExpectOpenSaleAmount) <= balance && 1 ether <= balance, "amount err");
+        require((_totalExpectSaleAmount + _totalExpectOpenSaleAmount) <= balance && 1 ether <= balance, "not input token");
         require(_changePercent <= maxPer && _changePercent >= minPer,"need to set min,max");
         require((_totalExpectSaleAmount+(_totalExpectOpenSaleAmount)) >= (_hardcapAmount*(_payTokenPrice)/(_saleTokenPrice)), "over hardcap");
         
@@ -339,6 +347,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         beforeStartAddWhiteTime(_l2token)
     {
         LibPublicSaleVault.TokenSaleClaim storage claimInfos = claimInfo[_l2token];
+        require(_claimCounts == _claimTimes.length && _claimCounts == _claimPercents.length, "claimCounts err");
         if(claimInfos.totalClaimCounts != 0) {
             require(isL2ProjectManager(), "only DAO");
             delete claimTimes[_l2token];
