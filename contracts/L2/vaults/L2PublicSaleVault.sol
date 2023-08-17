@@ -68,26 +68,26 @@ contract L2PublicSaleVault is
         emit AddedWhiteList(_l2token, msg.sender, tier);
     }
 
-    function exclusiveSale(
+    function round1Sale(
         address _l2token,
         uint256 _amount
     )
         public
     {
-        _exclusiveSale(
+        _round1Sale(
             _l2token, 
             msg.sender,
             _amount
         );
     }
 
-    function deposit(
+    function round2Sale(
         address _l2token,
         uint256 _amount
     )   
         public
     {
-        _deposit(
+        _round2Sale(
             _l2token,
             msg.sender,
             _amount
@@ -260,7 +260,7 @@ contract L2PublicSaleVault is
 
     /* ========== INTERNAL ========== */
 
-    function _exclusiveSale(
+    function _round1Sale(
         address _l2token,
         address _sender,
         uint256 _amount
@@ -274,11 +274,11 @@ contract L2PublicSaleVault is
 
         require(
             block.timestamp >= timeInfos.round1StartTime,
-            "not exclusiveTime"
+            "not round1SaleTime"
         );
         require(
             block.timestamp < timeInfos.round1EndTime,
-            "end exclusiveTime"
+            "end round1SaleTime"
         );
         // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][_sender];
@@ -314,7 +314,7 @@ contract L2PublicSaleVault is
         );
     }
 
-    function _deposit(
+    function _round2Sale(
         address _l2token,
         address _sender,
         uint256 _amount
