@@ -349,7 +349,8 @@ contract L2PublicSaleVault is
         }
 
         user2rds.depositAmount = user2rds.depositAmount+(_amount);
-        saleInfos.total2rdDepositAmount = saleInfos.total2rdDepositAmount+(_amount);
+        totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
+        // saleInfos.total2rdDepositAmount = saleInfos.total2rdDepositAmount+(_amount);
 
         _calculTONTransferAmount(
             _l2token,
@@ -483,11 +484,9 @@ contract L2PublicSaleVault is
         LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
         LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
         uint8 tier = calculTier(_l2token,_account);
-        console.log("1");
         if (user1rds.join == true && tier > 0) {
-            console.log("2");
-            console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
-            console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
+            // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
+            // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
             uint256 salePossible =
                 manageInfos.set1rdTokenAmount
                     *(tiersPercents[_l2token][tier])
