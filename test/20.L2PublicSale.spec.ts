@@ -118,6 +118,8 @@ describe('L2TokenFactory', () => {
 
     let round2Amount: any;
 
+    let contractHaveTON = ethers.utils.parseUnits("10000", 18);
+
     //goerli
     // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
 
@@ -984,6 +986,153 @@ describe('L2TokenFactory', () => {
             it("can not round2Sale attend after round2Sale EndTime", async () => {
                 let tx = deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,round2Amount)
                 await expect(tx).to.be.revertedWith("end depositTime")
+            })
+        })
+
+        describe("# claim", () => {
+            it("claim fail before claimTime1", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address)
+                await expect(tx).to.be.revertedWith("not claimTime")
+            })
+
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [claimTime1+1]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("claim success after claimTime1", async () => {
+                expect(await erc20Atoken.balanceOf(addr1Address)).to.be.equal(0)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr1Address,1)
+                console.log()
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                expect(await erc20Atoken.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
+            })
+
+            it("claim fail after claimTime1 because no buy", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).claim(erc20Atoken.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+            })
+
+            it("if already get reward about round, claim fail", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address)
+                await expect(tx).to.be.revertedWith("no reward")
+            })
+
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [claimTime2+1]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("claim success after claimTime2", async () => {
+                expect(await erc20Atoken.balanceOf(addr2Address)).to.be.equal(0)
+                let beforeAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr1Address,2)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr2Address,0)
+                
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(erc20Atoken.address);
+
+                let afterAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(await erc20Atoken.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
+            })
+
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [claimTime3+1]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("claim success after claimTime3", async () => {
+                expect(await erc20Atoken.balanceOf(addr3Address)).to.be.equal(0)
+                let beforeAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let beforeAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr1Address,3)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr2Address,3)
+                let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr3Address,0)
+                
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(erc20Atoken.address);
+
+                let afterAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let afterAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(await erc20Atoken.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
+            })
+
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [claimTime4+1]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("claim success after claimTime4", async () => {
+                expect(await erc20Atoken.balanceOf(addr4Address)).to.be.equal(0)
+                let beforeAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let beforeAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                let beforeAddr3Amount = await erc20Atoken.balanceOf(addr3Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr1Address,4)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr2Address,4)
+                let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr3Address,4)
+                let getAddr4Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr4Address,0)
+                
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr4).claim(erc20Atoken.address);
+
+                let afterAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let afterAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                let afterAddr3Amount = await erc20Atoken.balanceOf(addr3Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
+                expect(await erc20Atoken.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
+            })
+
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [claimTime5+1]);
+                await ethers.provider.send('evm_mine');
+            })
+
+            it("claim success after claimTime5", async () => {
+                expect(await erc20Atoken.balanceOf(addr5Address)).to.be.equal(0)
+                let beforeAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let beforeAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                let beforeAddr3Amount = await erc20Atoken.balanceOf(addr3Address)
+                let beforeAddr4Amount = await erc20Atoken.balanceOf(addr4Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr1Address,5)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr2Address,5)
+                let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr3Address,5)
+                let getAddr4Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr4Address,5)
+                let getAddr5Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(erc20Atoken.address,addr5Address,0)
+                
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr4).claim(erc20Atoken.address);
+                await deployed.l2PublicProxyLogic.connect(addr5).claim(erc20Atoken.address);
+
+                let afterAddr1Amount = await erc20Atoken.balanceOf(addr1Address)
+                let afterAddr2Amount = await erc20Atoken.balanceOf(addr2Address)
+                let afterAddr3Amount = await erc20Atoken.balanceOf(addr3Address)
+                let afterAddr4Amount = await erc20Atoken.balanceOf(addr4Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
+                expect(afterAddr4Amount.sub(beforeAddr4Amount)).to.be.equal(getAddr4Amount._reward)
+                expect(await erc20Atoken.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
+            })
+
+            it("if already get Allreward, claim fail", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+                let tx2 = deployed.l2PublicProxyLogic.connect(addr5).claim(erc20Atoken.address)
+                await expect(tx2).to.be.revertedWith("no purchase amount")
+            })
+
+            it("PublicSale have TON for saleToken", async () => {
+                expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
             })
         })
     })
