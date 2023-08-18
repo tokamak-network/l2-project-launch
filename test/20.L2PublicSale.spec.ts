@@ -15,6 +15,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 const TON_ABI = require("../abis/TON.json");
+const TOS_ABI = require("../abis/TOS.json");
 
 describe('L2TokenFactory', () => {
     let deployer: Signer, addr1: Signer, addr2:Signer, addr3: Signer, addr4: Signer, addr5: Signer;
@@ -125,7 +126,9 @@ describe('L2TokenFactory', () => {
 
     //mainnet
     let testAccount = "0x156DD25d342a6B63874333985140aA3103bf1Ff0"
+    let testAccount2 = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
     let richTON: Signer;
+    let richTOS: Signer;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
@@ -158,7 +161,14 @@ describe('L2TokenFactory', () => {
             params: [testAccount],
         });
 
-        richTON = await ethers.getSigner(testAccount);        //ton,tos 주인
+        richTON = await ethers.getSigner(testAccount);        //ton주인
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [testAccount2],
+        });
+
+        richTOS = await ethers.getSigner(testAccount2);        //ton주인
     })
 
     describe('# setL2ProjectManager', () => {
@@ -265,6 +275,35 @@ describe('L2TokenFactory', () => {
         })
 
     });
+
+    describe("# set TOS", () => {
+        it("setting the TOS Contract", async () => {
+            tosContract = await ethers.getContractAt(TOS_ABI.abi, tos, deployer)
+        })
+
+        it("transfer TOS", async () => {
+            let transferTOS = ethers.utils.parseUnits("1000", 18);
+            let tx = await tosContract.balanceOf(richTOS.address);
+            console.log(tx)
+            await tosContract.connect(richTOS).transfer(addr1Address,transferTOS)
+            await tosContract.connect(richTOS).transfer(addr2Address,transferTOS)
+        })
+    })
+
+    describe("# initialize lockTOS", () => {
+        it("initialize lockTOS", async () => {
+            const lockTosInitializeIfo = {
+                epochUnit: ethers.BigNumber.from("604800"),
+                maxTime: ethers.BigNumber.from("94348800")
+            }
+
+            await (await lockTOS.connect(deployer).initialize(
+                tosContract.address,
+                lockTosInitializeIfo.epochUnit,
+                lockTosInitializeIfo.maxTime
+            )).wait()
+        })
+    })
 
     describe("# set TON", () => {
         it("setting the TON Contract", async () => {
@@ -396,8 +435,8 @@ describe('L2TokenFactory', () => {
             let addr3balance = await tosContract.balanceOf(addr3Address);
             let addr4balance = await tosContract.balanceOf(addr4Address);
             let addr5balance = await tosContract.balanceOf(addr5Address);
-            expect(addr1balance).to.be.gte(0);
-            expect(addr2balance).to.be.gte(0);
+            expect(addr1balance).to.be.gt(0);
+            expect(addr2balance).to.be.gt(0);
             expect(addr3balance).to.be.equal(0);
             expect(addr4balance).to.be.equal(0);
             expect(addr5balance).to.be.equal(0);
@@ -407,9 +446,9 @@ describe('L2TokenFactory', () => {
             addr3balance = await tosContract.balanceOf(addr3Address);
             addr4balance = await tosContract.balanceOf(addr4Address);
             addr5balance = await tosContract.balanceOf(addr4Address);
-            expect(addr3balance).to.be.gte(0);
-            expect(addr4balance).to.be.gte(0);
-            expect(addr5balance).to.be.gte(0);
+            expect(addr3balance).to.be.gt(0);
+            expect(addr4balance).to.be.gt(0);
+            expect(addr5balance).to.be.gt(0);
         })
 
         it("create locks for user", async () => {
@@ -1134,6 +1173,32 @@ describe('L2TokenFactory', () => {
             it("PublicSale have TON for saleToken", async () => {
                 expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
             })
+        })
+
+        describe("# exchangeWTONtoTOS", () => {
+            it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(erc20Atoken.address);
+                await expect(tx).to.be.revertedWith("need the exchangeWTONtoTOS")
+            })
+
+            it("hardcapCalcul(how much TON change to TOS) view test", async () => {
+                let changeTONamount = await deployed.l2PublicProxyLogic.hardcapCalcul(erc20Atoken.address)
+                expect(changeTONamount).to.be.gte(0)
+            })
+
+            it("anybody can execute exchangeWTONtoTOS", async () => {
+                let changeTick = await deployed.l2PublicProxyLogic.changeTick();
+                console.log("changeTick :", changeTick)
+                let amount1 = ethers.utils.parseUnits("1", 27);
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
+                await deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(erc20Atoken.address,amount1)
+                console.log(await tosContract.balanceOf(deployed.l2LiquidityProxy.address))
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.gt(0)
+            })
+        })
+
+        describe("# depositWithdraw", () => {
+
         })
     })
 

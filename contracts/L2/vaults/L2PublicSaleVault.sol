@@ -6,9 +6,9 @@ import "../../libraries/SafeERC20.sol";
 import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
 import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
 import { L2PublicSaleVaultStorage } from "./L2PublicSaleVaultStorage.sol";
-import { LibPublicSaleVault } from "../../libraries/LibPublicSaleVault.sol";
+import "../../libraries/LibPublicSaleVault.sol";
 
-import "../libraries/LibPublicSale.sol";
+// import "../libraries/LibPublicSale.sol";
 import "../interfaces/ISwapRouter.sol";
 
 import "hardhat/console.sol";
@@ -18,6 +18,11 @@ interface IILockTOS {
         external
         view
         returns (uint256 balance);
+}
+
+interface IIWTON {
+    function swapToTON(uint256 wtonAmount) external returns (bool);
+    function swapFromTON(uint256 tonAmount) external returns (bool);
 }
 
 interface IIERC20Burnable {
@@ -200,38 +205,37 @@ contract L2PublicSaleVault is
 
         uint256 liquidityTON = hardcapCalcul(_l2token);
         require(liquidityTON > 0, "don't pass the hardCap");
-
-        address poolAddress = LibPublicSale.getPoolAddress(ton,address(tos));
+        address poolAddress = LibPublicSaleVault.getPoolAddress(wton,tos);
 
         (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
         require(sqrtPriceX96 > 0, "pool not initial");
 
         int24 timeWeightedAverageTick = OracleLibrary.consult(poolAddress, 120);
         require(
-            tick < LibPublicSale.acceptMaxTick(timeWeightedAverageTick, 60, 2),
+            tick < LibPublicSaleVault.acceptMaxTick(timeWeightedAverageTick, 60, 2),
             "over changed tick range."
         );
 
         (uint256 amountOutMinimum, , uint160 sqrtPriceLimitX96)
-            = LibPublicSale.limitPrameters(amountIn, poolAddress, ton, address(tos), changeTick);
-
+            = LibPublicSaleVault.limitPrameters(amountIn, poolAddress, wton, tos, manageInfos.changeTick);
+    
         (,bytes memory result) = address(quoter).call(
             abi.encodeWithSignature(
                 "quoteExactInputSingle(address,address,uint24,uint256,uint160)", 
-                ton,address(tos),poolFee,amountIn,0
+                wton,tos,poolFee,amountIn,0
             )
         );
         
         uint256 amountOutMinimum2 = parseRevertReason(result);
         amountOutMinimum2 = amountOutMinimum2 * 995 / 1000; //slippage 0.5% apply
-        
+
         //quoter 값이 더 크다면 quoter값이 minimum값으로 사용됨
         //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
                 
         if(manageInfos.exchangeTOS == false) {
-            // IIWTON(wton).swapFromTON(liquidityTON);
-            manageInfos.remainTON = liquidityTON;
+            IIWTON(wton).swapFromTON(liquidityTON);
+            manageInfos.remainTON = liquidityTON*(1000000000);
             manageInfos.exchangeTOS = true;
         } else {
             require(manageInfos.remainTON >= amountIn, "amountIn over");
@@ -239,12 +243,12 @@ contract L2PublicSaleVault is
 
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
-        manageInfos.remainTON -= manageInfos.remainTON;
+        manageInfos.remainTON = manageInfos.remainTON - _amountIn;
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
-                tokenIn: ton,
-                tokenOut: address(tos),
+                tokenIn: wton,
+                tokenOut: tos,
                 fee: poolFee,
                 recipient: liquidityVault,
                 deadline: block.timestamp,
@@ -253,7 +257,7 @@ contract L2PublicSaleVault is
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
-        
+        console.log("amountOut :", amountOut);
         emit ExchangeSwap(l2token, msg.sender, _amountIn ,amountOut);
     }
 

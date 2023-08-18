@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 import "./TickMath.sol";
 import "./OracleLibrary.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface IIUniswapV3Factory {
     function getPool(address,address,uint24) external view returns (address);

@@ -5,6 +5,8 @@ import { LibPublicSaleVault } from "../../libraries/LibPublicSaleVault.sol";
 
 contract L2PublicSaleVaultStorage {
     uint24 public constant poolFee = 3000;
+
+    address public constant wton = 0xc4A11aaf6ea915Ed7Ac194161d2fC9384F15bff2;
     
     address public quoter;
     address public vestingFund;

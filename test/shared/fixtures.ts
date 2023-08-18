@@ -33,7 +33,7 @@ import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Crea
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
 
-import { LibPublicSale } from '../../typechain-types/contracts/L2/libraries/LibPublicSale.sol'
+import { LibPublicSaleVault } from '../../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
 import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
 
@@ -62,11 +62,11 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
     tosInfo.name, tosInfo.symbol, tosInfo.version
   )) as TOS
 
-  await (await lockTOS.connect(deployer).initialize(
-    tos.address,
-    lockTosInitializeIfo.epochUnit,
-    lockTosInitializeIfo.maxTime
-  )).wait()
+  // await (await lockTOS.connect(deployer).initialize(
+  //   tos.address,
+  //   lockTosInitializeIfo.epochUnit,
+  //   lockTosInitializeIfo.maxTime
+  // )).wait()
 
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
@@ -177,11 +177,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
     const l2PublicProxy = (await l2PublicSaleProxy.connect(deployer).deploy()) as L2PublicSaleVaultProxy
 
-    const libL2PublicSale = await ethers.getContractFactory('LibPublicSale')
-    const libL2Public = (await libL2PublicSale.connect(deployer).deploy()) as LibPublicSale
+    const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
+    const libL2Public = (await libL2PublicSale.connect(deployer).deploy()) as LibPublicSaleVault
 
     const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
-      signer: deployer, libraries: { LibPublicSale: libL2Public.address }
+      signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
     })
     const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
 
