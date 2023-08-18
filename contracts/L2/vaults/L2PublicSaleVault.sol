@@ -170,7 +170,7 @@ contract L2PublicSaleVault is
         external
     {
         LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
-        require(manageInfos.adminWithdraw != true && manageInfos.exchangeTOS == true,"need the exchangeWTONtoTOS");
+        require(manageInfos.adminWithdraw != true && manageInfos.exchangeTOS == true, "need the exchangeWTONtoTOS");
 
         LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
         uint256 liquidityTON = hardcapCalcul(_l2token);
@@ -186,6 +186,7 @@ contract L2PublicSaleVault is
         }
         
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
+        IERC20(ton).transfer(vestingFund,getAmount);
         // IIVestingPublicFundAction(vestingFund).funding(getAmount);
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
@@ -200,7 +201,7 @@ contract L2PublicSaleVault is
         nonZero(amountIn)
     {
         LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
-        LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+        LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
         require(block.timestamp > timeInfos.round2EndTime, "need to end the depositTime");
 
         uint256 liquidityTON = hardcapCalcul(_l2token);
@@ -257,7 +258,7 @@ contract L2PublicSaleVault is
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
-        console.log("amountOut :", amountOut);
+
         emit ExchangeSwap(l2token, msg.sender, _amountIn ,amountOut);
     }
 
