@@ -1,8 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "./ProxyStorage.sol";
-import { AccessibleCommon } from "../common/AccessibleCommon.sol";
+import "./ProxyStorage2.sol";
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -10,20 +9,35 @@ import "../interfaces/IProxyEvent.sol";
 import "../interfaces/IProxyAction.sol";
 // import "hardhat/console.sol";
 
-contract Proxy is ProxyStorage, AccessibleCommon, IProxyEvent, IProxyAction
+contract Proxy2 is ProxyStorage2, IProxyEvent, IProxyAction
 {
 
     /* ========== DEPENDENCIES ========== */
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    /* ========== CONSTRUCTOR ========== */
-
-    constructor () {
-        _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
-        _setupRole(ADMIN_ROLE, msg.sender);
+    modifier onlyOwner() {
+        require(_owner == msg.sender, "not owner");
+        _;
     }
 
+    /* ========== CONSTRUCTOR ========== */
+    constructor () {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
 
     /* ========== onlyOwner ========== */
+
+    function renounceOwnership() external onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "new owner is the zero address");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
 
     /// @inheritdoc IProxyAction
     function setProxyPause(bool _pause) external onlyOwner {

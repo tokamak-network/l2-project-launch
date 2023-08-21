@@ -239,7 +239,7 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
 
         lockIdCounter = lockIdCounter.add(1);
         lockId = lockIdCounter;
-        console.log("lockId %s", lockId);
+        // console.log("lockId %s", lockId);
 
         _deposit(msg.sender, lockId, _value, unlockTime);
         userLocks[msg.sender].push(lockId);
@@ -274,7 +274,7 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
         if (pointHistory.length == 0) {
             return 0;
         }
-        console.log('-------------------totalSupplyAt _timestamp %s', _timestamp);
+        // console.log('-------------------totalSupplyAt _timestamp %s', _timestamp);
         (bool success, LibLockTOS.Point memory point) =
             _findClosestPoint(pointHistory, _timestamp);
         if (!success) {
@@ -321,12 +321,12 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
             return 0;
         }
 
-        console.log('-------------------totalSupply timestamp %s', block.timestamp);
+        // console.log('-------------------totalSupply timestamp %s', block.timestamp);
         LibLockTOS.Point memory point = _fillRecordGaps(
             pointHistory[pointHistory.length - 1],
             block.timestamp
         );
-        console.log('totalSupply _fillRecordGaps point.timestamp %s' ,  point.timestamp);
+        // console.log('totalSupply _fillRecordGaps point.timestamp %s' ,  point.timestamp);
 
         int256 currentBias =
             point.slope.mul(block.timestamp.sub(point.timestamp).toInt256());
@@ -367,23 +367,23 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
         }
 
         LibLockTOS.Point memory point = lockPointHistory[_lockId][len - 1];
-        console.log('balanceOfLock %s',  _lockId);
-        console.log('balanceOfLock point.slope');
-        console.logInt(point.slope);
-        console.log('balanceOfLock point.bias');
-        console.logInt(point.bias);
-        console.log('balanceOfLock point.timestamp');
-        console.log(point.timestamp);
-        console.log('block.timestamp %s', block.timestamp);
+        // console.log('balanceOfLock %s',  _lockId);
+        // console.log('balanceOfLock point.slope');
+        // console.logInt(point.slope);
+        // console.log('balanceOfLock point.bias');
+        // console.logInt(point.bias);
+        // console.log('balanceOfLock point.timestamp');
+        // console.log(point.timestamp);
+        // console.log('block.timestamp %s', block.timestamp);
 
 
         int256 currentBias =
             point.slope.mul(block.timestamp.sub(point.timestamp).toInt256());
 
-        console.log('balanceOfLock currentBias');
-        console.logInt(currentBias);
+        // console.log('balanceOfLock currentBias');
+        // console.logInt(currentBias);
         uint256 bal = uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0));
-        console.log('balanceOfLock currentBias %s', bal);
+        // console.log('balanceOfLock currentBias %s', bal);
         return
             uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0))
                 .div(MULTIPLIER);
@@ -635,12 +635,12 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
             ? currentWeekPoint.slope
             : int256(0);
         pointHistory[pointHistory.length - 1] = currentWeekPoint;
-        console.log("pointHistory  index %s", pointHistory.length - 1);
-        console.log("bias");
-        console.logInt(currentWeekPoint.bias);
-        console.log("slope");
-        console.logInt(currentWeekPoint.slope);
-        console.log("pointHistory.timestamp %s", currentWeekPoint.timestamp);
+        // console.log("pointHistory  index %s", pointHistory.length - 1);
+        // console.log("bias");
+        // console.logInt(currentWeekPoint.bias);
+        // console.log("slope");
+        // console.logInt(currentWeekPoint.slope);
+        // console.log("pointHistory.timestamp %s", currentWeekPoint.timestamp);
 
         // Update slope changes
         _updateSlopeChanges(changeNew, changeOld);
@@ -652,7 +652,7 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
         returns (LibLockTOS.Point memory lastWeek)
     {
         uint256 timestamp = block.timestamp;
-        console.log('_recordHistoryPoints timestamp %s', timestamp );
+        // console.log('_recordHistoryPoints timestamp %s', timestamp );
         if (pointHistory.length > 0) {
             lastWeek = pointHistory[pointHistory.length - 1];
         } else {
@@ -662,20 +662,20 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
                 timestamp: timestamp
             });
         }
-        console.log('_recordHistoryPoints pointHistory.length %s', pointHistory.length );
+        // console.log('_recordHistoryPoints pointHistory.length %s', pointHistory.length );
 
         // Iterate through all past unrecoreded weeks and record
         uint256 pointTimestampIterator =
             lastWeek.timestamp.div(epochUnit).mul(epochUnit);
 
-        console.log('pointTimestampIterator %s', pointTimestampIterator );
+        // console.log('pointTimestampIterator %s', pointTimestampIterator );
 
         while (pointTimestampIterator != timestamp) {
             pointTimestampIterator = Math.min(
                 pointTimestampIterator.add(epochUnit),
                 timestamp
             );
-            console.log('pointTimestampIterator Math.min(timestamp) %s', pointTimestampIterator );
+            // console.log('pointTimestampIterator Math.min(timestamp) %s', pointTimestampIterator );
             int256 deltaSlope = slopeChanges[pointTimestampIterator];
             int256 deltaTime =
                 Math.min(pointTimestampIterator.sub(lastWeek.timestamp), epochUnit).toInt256();
@@ -685,11 +685,11 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
             lastWeek.slope = lastWeek.slope > 0 ? lastWeek.slope : int256(0);
             lastWeek.timestamp = pointTimestampIterator;
 
-            console.log('pointHistory.push lastWeek.timestamp %s', lastWeek.timestamp );
+            // console.log('pointHistory.push lastWeek.timestamp %s', lastWeek.timestamp );
             pointHistory.push(lastWeek);
         }
-        console.log('pointHistory.length %s', pointHistory.length );
-        console.log('lastWeek %s', lastWeek.timestamp );
+        // console.log('pointHistory.length %s', pointHistory.length );
+        // console.log('lastWeek %s', lastWeek.timestamp );
 
         return lastWeek;
     }
@@ -700,19 +700,19 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
         view
         returns (LibLockTOS.Point memory)
     {
-        console.log('_fillRecordGaps timestamp %s', timestamp );
+        // console.log('_fillRecordGaps timestamp %s', timestamp );
 
         // Iterate through all past unrecoreded weeks
         uint256 pointTimestampIterator =
             week.timestamp.div(epochUnit).mul(epochUnit);
 
-        console.log('_fillRecordGaps pointTimestampIterator %s', pointTimestampIterator );
+        // console.log('_fillRecordGaps pointTimestampIterator %s', pointTimestampIterator );
 
-        console.log('week.slope' );
-        console.logInt(week.slope );
-        console.log('week.bias' );
-        console.logInt(week.bias );
-        console.log('week.timestamp %s', week.timestamp );
+        // console.log('week.slope' );
+        // console.logInt(week.slope );
+        // console.log('week.bias' );
+        // console.logInt(week.bias );
+        // console.log('week.timestamp %s', week.timestamp );
 
         while (pointTimestampIterator != timestamp) {
             pointTimestampIterator = Math.min(
@@ -720,30 +720,30 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
                 timestamp
             );
 
-            console.log('_fillRecordGaps min pointTimestampIterator %s', pointTimestampIterator );
+            // console.log('_fillRecordGaps min pointTimestampIterator %s', pointTimestampIterator );
 
             int256 deltaSlope = slopeChanges[pointTimestampIterator];
             int256 deltaTime =
                 Math.min(pointTimestampIterator.sub(week.timestamp), epochUnit).toInt256();
 
-            console.log('deltaSlope' );
-            console.logInt(deltaSlope );
-            console.log('deltaTime' );
-            console.logInt(deltaTime );
+            // console.log('deltaSlope' );
+            // console.logInt(deltaSlope );
+            // console.log('deltaTime' );
+            // console.logInt(deltaTime );
 
             week.bias = week.bias.sub(week.slope.mul(deltaTime));
-            console.log('week.bias' );
-            console.logInt(week.bias );
+            // console.log('week.bias' );
+            // console.logInt(week.bias );
 
             week.slope = week.slope.add(deltaSlope);
-            console.log('week.slope' );
-            console.logInt(week.slope );
+            // console.log('week.slope' );
+            // console.logInt(week.slope );
 
             week.bias = week.bias > 0 ? week.bias : int256(0);
             week.slope = week.slope > 0 ? week.slope : int256(0);
             week.timestamp = pointTimestampIterator;
 
-            console.log('week.timestamp %s', week.timestamp );
+            // console.log('week.timestamp %s', week.timestamp );
         }
         return week;
     }
@@ -753,16 +753,16 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
         LibLockTOS.SlopeChange memory changeNew,
         LibLockTOS.SlopeChange memory changeOld
     ) internal {
-        console.log('_updateSlopeChanges');
-        console.log('changeNew.changeTime %s', changeNew.changeTime);
-        console.log('changeOld.changeTime %s', changeOld.changeTime);
+        // console.log('_updateSlopeChanges');
+        // console.log('changeNew.changeTime %s', changeNew.changeTime);
+        // console.log('changeOld.changeTime %s', changeOld.changeTime);
 
         int256 deltaSlopeNew = slopeChanges[changeNew.changeTime];
-        console.log('slopeChanges[changeNew.changeTime] ');
-        console.logInt(deltaSlopeNew);
+        // console.log('slopeChanges[changeNew.changeTime] ');
+        // console.logInt(deltaSlopeNew);
         int256 deltaSlopeOld = slopeChanges[changeOld.changeTime];
-        console.log('slopeChanges[changeOld.changeTime] ');
-        console.logInt(deltaSlopeOld);
+        // console.log('slopeChanges[changeOld.changeTime] ');
+        // console.logInt(deltaSlopeOld);
 
         if (changeOld.changeTime > block.timestamp) {
             deltaSlopeOld = deltaSlopeOld.add(changeOld.slope);
@@ -771,8 +771,8 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
             }
             slopeChanges[changeOld.changeTime] = deltaSlopeOld;
         }
-        console.log('--slopeChanges[changeOld.changeTime]');
-        console.logInt(slopeChanges[changeOld.changeTime]);
+        // console.log('--slopeChanges[changeOld.changeTime]');
+        // console.logInt(slopeChanges[changeOld.changeTime]);
         if (
             changeNew.changeTime > block.timestamp &&
             changeNew.changeTime > changeOld.changeTime
@@ -780,8 +780,8 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
             deltaSlopeNew = deltaSlopeNew.sub(changeNew.slope);
             slopeChanges[changeNew.changeTime] = deltaSlopeNew;
         }
-        console.log('--slopeChanges[changeNew.changeTime]');
-        console.logInt(slopeChanges[changeNew.changeTime]);
+        // console.log('--slopeChanges[changeNew.changeTime]');
+        // console.logInt(slopeChanges[changeNew.changeTime]);
     }
 
     function getCurrentTime() external view returns (uint256) {
@@ -791,4 +791,5 @@ contract LockTOS is LockTOSStorage, AccessibleCommon, ILockTOS {
     function currentStakedTotalTOS() external view returns (uint256) {
         return IERC20(tos).balanceOf(address(this));
     }
+
 }
