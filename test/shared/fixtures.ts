@@ -3,7 +3,9 @@ import { ethers } from 'hardhat'
 import {  Wallet, Signer } from 'ethers'
 
 import Web3EthAbi from 'web3-eth-abi';
-import { L2ProjectLaunchFixture, L1Fixture, TONFixture} from './fixtureInterfaces'
+import {
+  L2ProjectLaunchFixture, L1Fixture, TONFixture, LockIdFixture
+  } from './fixtureInterfaces'
 import { keccak256 } from 'ethers/lib/utils'
 
 import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
@@ -28,6 +30,7 @@ import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
+import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
@@ -40,6 +43,14 @@ const tosInfo = {
 const lockTosInitializeIfo = {
   epochUnit: ethers.BigNumber.from("604800"),
   maxTime: ethers.BigNumber.from("94348800")
+}
+
+const lockIdNFTInfo = {
+  name: "STOS NFT",
+  symbol: "STOS",
+  version: "1.0",
+  epochUnit: 60*60*24*7,
+  maxTime : 60*60*24*365*3
 }
 
 export const l1Fixtures = async function (): Promise<L1Fixture> {
@@ -202,5 +213,53 @@ export const tonFixture = async function (): Promise<TONFixture> {
     tonAdminAddress: tonAdminAddress,
     l2TonAddress: l2TonAddress,
     tonAdmin: tonAdmin
+  }
+}
+
+export const lockIdFixture = async function (): Promise<LockIdFixture> {
+  const [deployer, addr1, addr2 ] = await ethers.getSigners();
+
+  const { tonAddress, tonAdminAddress } = await hre.getNamedAccounts();
+  const tonAdmin =  await hre.ethers.getSigner(tonAdminAddress);
+
+  const LockTOS_ = await ethers.getContractFactory('LockTOS');
+  const lockTOS = (await LockTOS_.connect(deployer).deploy()) as LockTOS
+
+  const TOS_ = await ethers.getContractFactory('TOS');
+  const tos = (await TOS_.connect(deployer).deploy(
+    tosInfo.name, tosInfo.symbol, tosInfo.version
+  )) as TOS
+
+  await (await lockTOS.connect(deployer).initialize(
+    tos.address,
+    lockTosInitializeIfo.epochUnit,
+    lockTosInitializeIfo.maxTime
+  )).wait()
+
+  await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
+  await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
+
+  const LockIdNFT_ = await ethers.getContractFactory('LockIdNFT');
+  const lockIdNFT = (await LockIdNFT_.connect(deployer).deploy(
+    lockIdNFTInfo.name,
+    lockIdNFTInfo.symbol,
+    deployer.address,
+    lockIdNFTInfo.epochUnit,
+    lockIdNFTInfo.maxTime,
+    tos.address
+  )) as LockIdNFT
+
+
+  return  {
+    deployer: deployer,
+    addr1: addr1,
+    addr2: addr2,
+    tos: tos,
+    lockTOS: lockTOS,
+    tonAddress: tonAddress,
+    tonAdminAddress: tonAdminAddress,
+    tonAdmin: tonAdmin,
+    lockIdNFT: lockIdNFT
   }
 }

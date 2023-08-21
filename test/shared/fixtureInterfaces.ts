@@ -3,10 +3,6 @@ import { ethers } from 'hardhat'
 import { BigNumber } from 'ethers'
 import {  Wallet, Signer } from 'ethers'
 
-// import { ERC20A } from '../../typechain-types/contracts/L1/tokens/ERC20A'
-// import { ERC20B } from '../../typechain-types/contracts/L1/factory/ERC20B'
-// import { ERC20C } from '../../typechain-types/contracts/L1/factory/ERC20C'
-// import { ERC20D } from '../../typechain-types/contracts/L1/factory/ERC20D'
 import { LibProject } from '../../typechain-types/contracts/libraries/LibProject.sol'
 import { L1toL2Message } from '../../typechain-types/contracts/L1/L1toL2Message.sol'
 
@@ -29,6 +25,7 @@ import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
+import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -77,8 +74,8 @@ interface L1Fixture {
 }
 
 interface Point {
-    bias: BigNumber,
     slope: BigNumber,
+    bias: BigNumber,
     timestamp: BigNumber
 }
 
@@ -104,7 +101,31 @@ interface TONFixture {
     tonAdmin: Signer
 }
 
-export { L2ProjectLaunchFixture, ProjectInfo,
-        L1Fixture, Point, LockedBalance,
-        LockedBalanceInfo,
-        TONFixture}
+interface LockIdFixture {
+    deployer: Signer,
+    addr1: Signer,
+    addr2: Signer,
+    tos: TOS,
+    lockTOS: LockTOS,
+    tonAddress: string,
+    tonAdminAddress: string,
+    tonAdmin: Signer,
+    lockIdNFT: LockIdNFT
+}
+
+interface NftTokenInfo {
+    name: string,
+    symbol: string,
+}
+
+export {
+    L2ProjectLaunchFixture,
+    ProjectInfo,
+    L1Fixture,
+    Point,
+    LockedBalance,
+    LockedBalanceInfo,
+    TONFixture,
+    LockIdFixture,
+    NftTokenInfo
+}
