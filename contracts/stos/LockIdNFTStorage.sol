@@ -14,6 +14,9 @@ contract LockIdNFTStorage is ERC165P {
     // universal stos contract
     address public _manager;
 
+    // staker contract
+    address public staker;
+
     // Token name
     string public _name;
 
@@ -91,6 +94,11 @@ contract LockIdNFTStorage is ERC165P {
 
     modifier onlyManager() {
         require(_manager == msg.sender, "not manager");
+        _;
+    }
+
+    modifier onlyStaker() {
+        require(staker == msg.sender, "not staker");
         _;
     }
 

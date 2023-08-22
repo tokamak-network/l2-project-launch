@@ -9,13 +9,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
 
 import "../proxy/ProxyStorage2.sol";
 import "./LockIdNFTStorage.sol";
 import "./LockIdStorage.sol";
 import "hardhat/console.sol";
 
-contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, IERC721Metadata, IERC721Enumerable {
+contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, IERC721Metadata, IERC721Enumerable {
     // using SafeMath for uint256;
     using Address for address;
     using Strings for uint256;
@@ -30,13 +31,16 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
     }
 
     constructor (
-        string memory name_, string memory symbol_, address managerAddress,
+        string memory name_, string memory symbol_,
+        address managerAddress,
+        address stakerAddress,
         uint256 epochUnit_,
         uint256 maxTime_,
         address tosAddress
         ) {
 
         _manager = managerAddress;
+        staker = stakerAddress;
         _name = name_;
         _symbol = symbol_;
         epochUnit = epochUnit_;
@@ -45,26 +49,14 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
     }
 
     /*** External onlyManager ***/
-
-    function setBaseURI(string memory baseURI_) public onlyManager ifFree virtual {
-       _setBaseURI(baseURI_);
-    }
-
-    function setTokenURI(uint256 tokenId, string memory _tokenURI) public onlyManager ifFree virtual {
-       _setTokenURI(tokenId, _tokenURI);
-    }
-
-    function setTokenURI(uint256[] memory tokenIds, string[] memory _tokenURIs) public onlyManager ifFree virtual {
-        require(tokenIds.length != 0 && tokenIds.length == _tokenURIs.length, "wrong length");
-        for(uint256 i = 0; i < tokenIds.length; i++){
-            _setTokenURI(tokenIds[i], _tokenURIs[i]);
-        }
+    function setStaker(address staker_) public onlyManager ifFree virtual {
+       staker = staker_;
     }
 
     /*** External ***/
 
     function createLock(uint256 _amount, uint256 _unlockWeeks)
-        public nonZero(_amount) nonZero(_unlockWeeks)
+        public nonZero(_amount) nonZero(_unlockWeeks) onlyStaker
         returns (uint256 lockId)
     {
         uint256 unlockTime = (block.timestamp + (_unlockWeeks * epochUnit)) / epochUnit * epochUnit;
@@ -81,7 +73,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         address _addr,
         uint256 _lockId,
         uint256 _value
-    ) public nonZero(_value) {
+    ) public nonZero(_value) onlyStaker {
         LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
         require(lock.owner != address(0) && lock.start > 0, "not exist");
         require(lock.withdrawn == false, "It is withdrawn already.");
@@ -97,7 +89,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         uint256 _lockId,
         uint256 _value,
         uint256 _unlockWeeks
-    ) public {
+    ) public onlyStaker {
         require(_value != 0 || _unlockWeeks != 0, "zero value");
 
         LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
@@ -115,38 +107,41 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
     }
 
     /*** Public ***/
-    function approve(address to, uint256 tokenId) public virtual override {
+
+    // 모든 아이디는 staker를 자동 승인
+    function approve(address to, uint256 tokenId) public virtual override onlyStaker {
 
     }
-
 
     /**
      * @dev See {IERC721-setApprovalForAll}.
      */
-    function setApprovalForAll(address operator, bool approved) public virtual override {
-
+    // 모든 계정은 staker를 자동 승인
+    function setApprovalForAll(address user, bool approved) public virtual override onlyStaker {
+        // _operatorApprovals[user][_manager] = approved;
     }
-
 
     /**
      * @dev See {IERC721-transferFrom}.
      */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
-
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override onlyStaker {
+        // require(_isApprovedOrOwner(msg.sender, tokenId), "TitanNFT: transfer caller is not owner nor approved");
+        _transfer(from, to, tokenId);
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override onlyStaker {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
      * @dev See {IERC721-safeTransferFrom}.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override {
-
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override onlyStaker {
+        // require(_isApprovedOrOwner(msg.sender, tokenId), "TitanNFT: transfer caller is not owner nor approved");
+        _safeTransfer(from, to, tokenId, _data);
     }
 
     /*** View ***/
@@ -207,19 +202,35 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "LockIdNFT: nonexistent token");
 
-        string memory _tokenURI = _tokenURIs[tokenId];
-        string memory base = baseURI();
+        LibLockId.LockedInfo memory info = lockIdInfos[tokenId];
 
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
-        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
-        if (bytes(_tokenURI).length > 0) {
-            return string(abi.encodePacked(base, _tokenURI));
-        }
-        // If there is a baseURI but no tokenURI, concatenate the tokenID to the baseURI.
-        return string(abi.encodePacked(base, tokenId.toString()));
+       bytes memory json = abi.encodePacked(
+            '{',
+                '"owner": "', ownerOf(tokenId), '", ',
+                '"unlockTime": ', info.end.toString(), ', ',
+                '"principal": ', info.amount.toString(), ', ',
+                '"stos": ', balanceOfLock(tokenId).toString(), ', ',
+                '"image": "data:image/svg+xml;base64,', generateSvgToBase64(tokenId), '"',
+            '}'
+        );
+
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(json)
+            )
+        );
+    }
+
+    function generateSvgToBase64(uint256 tokenId) public pure returns (string memory) {
+
+        return Base64.encode(abi.encodePacked(
+            '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
+            '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
+            '<rect width="100%" height="500%" fill="grey" />',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle"> #',
+            tokenId.toString(), ' </text></svg>'
+        ));
     }
 
     function tokenOfOwnerByIndex(address owner_, uint256 index) public view override returns (uint256) {
@@ -257,7 +268,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
      * @dev See {IERC721-isApprovedForAll}.
      */
     function isApprovedForAll(address owner_, address operator) public view virtual override returns (bool) {
-        return _operatorApprovals[owner_][operator];
+        // return _operatorApprovals[owner_][operator];
     }
 
     /*** internal ***/
@@ -267,11 +278,11 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         return owner_ != address(0);
     }
 
-    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
-        require(_exists(tokenId), "LockIdNFT: operator query for nonexistent token");
-        address owner_ = ownerOf(tokenId);
-        return (spender == owner_ || getApproved(tokenId) == spender || isApprovedForAll(owner_, spender));
-    }
+    // function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
+    //     require(_exists(tokenId), "LockIdNFT: operator query for nonexistent token");
+    //     address owner_ = ownerOf(tokenId);
+    //     return (spender == owner_ || getApproved(tokenId) == spender || isApprovedForAll(owner_, spender));
+    // }
 
     function _safeMint(address to, uint256 tokenId) internal virtual {
         _safeMint(to, tokenId, "");
@@ -292,7 +303,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         require(to != address(0), "LockIdNFT: mint to the zero address");
         require(!_exists(tokenId), "LockIdNFT: token already minted");
 
-        _beforeTokenTransfer(address(0), to, tokenId, 1);
+        // _beforeTokenTransfer(address(0), to, tokenId, 1);
 
         _tokenOwner[tokenId] = to;
         unchecked {
@@ -300,7 +311,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         }
 
         emit Transfer(address(0), to, tokenId);
-         _afterTokenTransfer(address(0), to, tokenId, 1);
+        //  _afterTokenTransfer(address(0), to, tokenId, 1);
     }
 
 
@@ -412,9 +423,9 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
+    // function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
 
-    }
+    // }
 
      /**
      * @dev Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
@@ -430,19 +441,9 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _afterTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
+    // function _afterTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
 
-    }
-
-
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
-        require(_exists(tokenId), "TitanNFT: URI set of nonexistent token");
-        _tokenURIs[tokenId] = _tokenURI;
-    }
-
-    function _setBaseURI(string memory baseURI_) internal virtual {
-        _baseURI = baseURI_;
-    }
+    // }
 
     /// @dev Deposit
     function _deposit(
@@ -729,4 +730,36 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         }
         return (false, 0);
     }
+
+    // function _approve(address to, uint256 tokenId) private {
+    //     _tokenApprovals[tokenId] = to;
+    //     emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
+    // }
+
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory _data) internal virtual {
+        _transfer(from, to, tokenId);
+        require(_checkOnERC721Received(from, to, tokenId, _data), "TitanNFT: transfer to non ERC721Receiver implementer");
+    }
+
+    function _transfer(address from, address to, uint256 tokenId) internal {
+        // require(ownerOf(tokenId) == from, "ProjectToken: transfer of token that is not own");
+        require(to != address(0), "ProjectToken: transfer to the zero address");
+
+        // _beforeTokenTransfer(from, to, tokenId);
+
+        // _clearApproval(tokenId);
+
+        _ownedTokensCount[from]--;
+        _ownedTokensCount[to]++;
+
+        _tokenOwner[tokenId] = to;
+
+        _removeTokenFromOwnerEnumeration(from, tokenId);
+
+        _addTokenToOwnerEnumeration(to, tokenId);
+
+        emit Transfer(from, to, tokenId);
+    }
+
 }
