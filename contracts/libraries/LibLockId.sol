@@ -24,8 +24,10 @@ library LibLockId {
 
     // SyncInfo
     struct SyncInfo {
-        uint32 syncTime;
-        uint256 blockNumber;
+        int256 slope;
+        int256 bias;
+        uint32 timestamp; // point 정보에 있는 인덱스에 해당하는 timestamp
+        uint32 syncTime; // 동기화 시점
     }
 
 }

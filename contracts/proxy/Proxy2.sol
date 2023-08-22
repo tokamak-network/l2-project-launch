@@ -56,6 +56,27 @@ contract Proxy2 is ProxyStorage2, IProxyEvent, IProxyAction
         emit Upgraded(impl);
     }
 
+    /**
+     * @notice Set the implementation and call a function in a single transaction. Useful to ensure
+     *         atomic execution of initialization-based upgrades.
+     *
+     * @param _implementation Address of the implementation contract.
+     * @param _data           Calldata to delegatecall the new implementation with.
+     */
+    function upgradeToAndCall(address _implementation, bytes calldata _data)
+        public
+        payable
+        virtual
+        onlyOwner
+        returns (bytes memory)
+    {
+        // _setImplementation(_implementation);
+        _setImplementation2(_implementation, 0, true);
+
+        (bool success, bytes memory returndata) = _implementation.delegatecall(_data);
+        require(success, "Proxy: delegatecall to new implementation contract failed");
+        return returndata;
+    }
 
     /// @inheritdoc IProxyAction
     function setImplementation2(
