@@ -32,6 +32,10 @@ import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Crea
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 
+import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol/L1StosToL2'
+import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol/L1StosInL2'
+import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
+
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
 const tosInfo = {
@@ -111,8 +115,6 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l2PaymasterDeposit =  (await L2PaymasterDeposit_.connect(deployer).deploy(
       paymasterAddress
     )) as L2PaymasterDeposit;
-
-
 
     //==== L1TokenFactory =================================
 
@@ -217,8 +219,7 @@ export const tonFixture = async function (): Promise<TONFixture> {
 }
 
 export const lockIdFixture = async function (): Promise<LockIdFixture> {
-  const [deployer, addr1, addr2 ] = await ethers.getSigners();
-
+  const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
   const { tonAddress, tonAdminAddress } = await hre.getNamedAccounts();
   const tonAdmin =  await hre.ethers.getSigner(tonAdminAddress);
 
@@ -239,7 +240,6 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
 
-
   const LockIdNFT_ = await ethers.getContractFactory('LockIdNFT');
   const lockIdNFT = (await LockIdNFT_.connect(deployer).deploy(
     lockIdNFTInfo.name,
@@ -250,7 +250,70 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     tos.address
   )) as LockIdNFT
 
+  //==== LibProject =================================
+  const LibProject_ = await ethers.getContractFactory('LibProject');
+  const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
+  //---- for L2 message
+  const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
+  const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
+  await addressManager.connect(deployer).setAddress("OVM_Sequencer", sequencer1.address);
+
+  //---
+  const MockL1Messenger = await ethers.getContractFactory('MockL1Messenger')
+  const l1Messenger = (await MockL1Messenger.connect(deployer).deploy()) as MockL1Messenger
+  const MockL2Messenger = await ethers.getContractFactory('MockL2Messenger')
+  const l2Messenger = (await MockL2Messenger.connect(deployer).deploy()) as MockL2Messenger
+
+  await addressManager.connect(deployer).setAddress("Proxy__OVM_L1CrossDomainMessenger", l1Messenger.address);
+  await (await l1Messenger.connect(deployer).setL2messenger(l2Messenger.address)).wait()
+
+  //---- for L1 stos -> L2 register
+  const L1StosToL2_ = await ethers.getContractFactory('L1StosToL2', {
+    signer: deployer, libraries: { LibProject: libProject.address }
+  })
+
+  const l1StosToL2 = (await L1StosToL2_.connect(deployer).deploy(
+    deployer.address,
+    lockTOS.address,
+    addressManager.address,
+    ethers.BigNumber.from("100"),
+    200000
+  )) as L1StosToL2
+
+
+  const L1StosInL2_ = await ethers.getContractFactory('L1StosInL2')
+  const l1StosInL2 = (await L1StosInL2_.connect(deployer).deploy(
+    deployer.address,
+    l2Messenger.address
+  )) as L1StosInL2
+
+  const lockIdNFTInfoL1 = {
+    name: "L1 STOS",
+    symbol: "STOS",
+    version: "1.0",
+    epochUnit: 60*60*24*7,
+    maxTime : 60*60*24*365*3
+  }
+  const LockIdNftForRegister_ = await ethers.getContractFactory('LockIdNftForRegister')
+  const lockIdNftForRegister = (await LockIdNftForRegister_.connect(deployer).deploy(
+    lockIdNFTInfoL1.name,
+    lockIdNFTInfoL1.symbol,
+    l1StosInL2.address,
+    lockIdNFTInfoL1.epochUnit,
+    lockIdNFTInfoL1.maxTime
+  )) as LockIdNftForRegister
+
+  await (await l1StosInL2.connect(deployer).setLockIdNft(lockIdNftForRegister.address)).wait()
+  await (await l1StosInL2.connect(deployer).setL1Register(l1StosToL2.address)).wait()
+
+
+  await (await l1StosToL2.connect(deployer).setL2Register(l1StosInL2.address)).wait()
+
+
+  // console.log('l1StosToL2 ', l1StosToL2.address)
+  // console.log('l1StosInL2 ', l1StosInL2.address)
+  // console.log('lockIdNftForRegister ', lockIdNftForRegister.address)
   return  {
     deployer: deployer,
     addr1: addr1,
@@ -260,6 +323,11 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     tonAddress: tonAddress,
     tonAdminAddress: tonAdminAddress,
     tonAdmin: tonAdmin,
-    lockIdNFT: lockIdNFT
+    lockIdNFT: lockIdNFT,
+    l1StosToL2: l1StosToL2,
+    l1StosInL2: l1StosInL2,
+    lockIdNftRegisterInL2: lockIdNftForRegister,
+    addressManager: addressManager,
+    l1Messenger: l1Messenger
   }
 }

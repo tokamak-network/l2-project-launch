@@ -27,6 +27,10 @@ import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Crea
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 
+import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol'
+import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol'
+import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
+
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -79,6 +83,13 @@ interface Point {
     timestamp: BigNumber
 }
 
+interface SyncInfo {
+    slope: BigNumber,
+    bias: BigNumber,
+    timestamp: BigNumber,
+    syncTime: BigNumber
+}
+
 interface LockedBalance {
     start: BigNumber,
     end: BigNumber,
@@ -110,12 +121,22 @@ interface LockIdFixture {
     tonAddress: string,
     tonAdminAddress: string,
     tonAdmin: Signer,
-    lockIdNFT: LockIdNFT
+    lockIdNFT: LockIdNFT,
+    l1StosToL2: L1StosToL2,
+    l1StosInL2: L1StosInL2,
+    lockIdNftRegisterInL2: LockIdNftForRegister,
+    addressManager: Lib_AddressManager,
+    l1Messenger: MockL1Messenger
 }
 
 interface NftTokenInfo {
     name: string,
     symbol: string,
+}
+
+interface SnapshotBalance {
+    timestamp: number,
+    balance: BigNumber
 }
 
 export {
@@ -127,5 +148,7 @@ export {
     LockedBalanceInfo,
     TONFixture,
     LockIdFixture,
-    NftTokenInfo
+    NftTokenInfo,
+    SyncInfo,
+    SnapshotBalance
 }
