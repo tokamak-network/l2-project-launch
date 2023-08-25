@@ -4,11 +4,12 @@ pragma solidity ^0.8.9;
 import "../libraries/LibLockId.sol";
 
 contract L1StosToL2Storage  {
-
+    uint256 public maxLockCountPerRegister;
     address public _manager;
     address public addressManager;
     address public lockTos;
-    uint256 public maxLockCountPerSync;
+    address public l2Register;
+    uint32 minGasLimitRegister;
 
     // account-lockId-sync된 정보 (히스토리의 인덱스 번호, time)
     mapping(uint256 => LibLockId.SyncInfo) public syncInfoOfLockId;

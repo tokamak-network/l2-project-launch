@@ -30,4 +30,9 @@ library LibLockId {
         uint32 syncTime; // 동기화 시점
     }
 
+    struct SyncPacket {
+        uint256 lockId;
+        SyncInfo packet;
+    }
+
 }

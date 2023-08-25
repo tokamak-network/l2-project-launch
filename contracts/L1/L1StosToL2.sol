@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
+import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/LibLockTOS.sol";
 import "../proxy/ProxyStorage2.sol";
 import "./L1StosToL2Storage.sol";
 import "hardhat/console.sol";
-
 
 interface ILockTos {
     function locksInfo(uint256 _lockId)
@@ -29,34 +29,58 @@ interface ILockTos {
 
 }
 
+interface IL1StosInL2 {
+    function register(bytes memory data) external ;
+}
+
+interface L1CrossDomainMessengerI {
+    function sendMessage(
+        address _target,
+        bytes memory _message,
+        uint32 _gasLimit
+    ) external;
+}
+
 
 contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
 
-    modifier nonZero(uint256 _val) {
-        require(_val != 0, "zero value");
-        _;
-    }
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor (address managerAddress, address lockTosAddress, address addressManagerAddress) {
+    constructor (
+        address managerAddress,
+        address lockTosAddress,
+        address addressManagerAddress,
+        uint256 maxLockCountPerRegister_,
+        uint32 minGasLimitRegister_
+    ) {
         _manager = managerAddress;
         lockTos = lockTosAddress;
         addressManager = addressManagerAddress;
+        maxLockCountPerRegister = maxLockCountPerRegister_;
+        minGasLimitRegister = minGasLimitRegister_;
+    }
+
+    function setL2Register(address l2Register_) external onlyManager {
+        require(l2Register != l2Register_, "same");
+        l2Register = l2Register_;
     }
 
     /* ========== Anybody can ========== */
 
-    function sync(address account) public {
+    function register(address account) public {
         uint256[] memory lockIds = ILockTos(lockTos).locksOf(account);
-        require(lockIds.length <= maxLockCountPerSync, "exceeded the maximum number of sync. Please use array function.");
-        _sync(account, lockIds);
+        // console.log("register %s", account);
+        // console.log("lockIds.length %s", lockIds.length);
+        require(lockIds.length != 0, "no register data");
+        require(lockIds.length <= maxLockCountPerRegister, "exceeded the maximum number of register.");
+        _register(account, lockIds);
     }
 
-    function sync(address account, uint256[] memory lockIds) public {
-        require(lockIds.length <= maxLockCountPerSync, "exceeded the maximum number of sync.");
-        require(lockIds.length != 0, "no sync data");
+    function register(address account, uint256[] memory lockIds) public {
+        require(lockIds.length <= maxLockCountPerRegister, "exceeded the maximum number of register.");
+        require(lockIds.length != 0, "no register data");
         uint256[] memory userLockIds = ILockTos(lockTos).locksOf(account);
 
         for(uint256 i = 0; i < lockIds.length; i++){
@@ -73,7 +97,7 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
             require(!unMatched, "owner is not account");
         }
 
-        _sync(account, lockIds);
+        _register(account, lockIds);
     }
 
     /* ========== VIEW ========== */
@@ -94,16 +118,17 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
         }
     }
 
-    function viewSyncInfoOfLockId(uint256 lockId) external view returns(LibLockId.SyncInfo memory) {
+    function viewRegisterInfoOfLockId(uint256 lockId) external view returns(LibLockId.SyncInfo memory) {
         return syncInfoOfLockId[lockId];
     }
 
     /* === ======= internal ========== */
 
-    function _sync(address account, uint256[] memory lockIds) internal {
+    function _register(address account, uint256[] memory lockIds) internal {
 
-        uint256[] memory syncIds ;
         bytes memory syncPackets ;
+        uint256 syncIdsCount ;
+
         // packet {address: count to sync: 1st sync packet: 2nd sync packet: .....}
         // address : 20 bytes
         // count to sync : 1 byte (max 256 sync packets) but it is less than maxLockCountPerSync
@@ -111,12 +136,17 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
         // one sync packets : 104 bytes:  (32 byte) uint256 lockId, (32+32+4+4) syncInfo -> total 104
 
         for(uint256 i = 0; i < lockIds.length; i++){
+
             LibLockId.SyncInfo memory curSync = syncInfoOfLockId[lockIds[i]];
+
             (, uint256 end, uint256 amount) = ILockTos(lockTos).locksInfo(lockIds[i]);
+
             if (amount != 0 && block.timestamp < end){
                 LibLockTOS.Point[] memory history = ILockTos(lockTos).pointHistoryOf(lockIds[i]);
+
                 if(history.length != 0){
                     LibLockTOS.Point memory point = history[history.length-1];
+
                     if(curSync.timestamp < point.timestamp) {
                         LibLockId.SyncInfo memory newSync = LibLockId.SyncInfo(
                             {
@@ -126,18 +156,45 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
                                 syncTime: uint32(block.timestamp)
                             }
                         );
+
                         syncInfoOfLockId[lockIds[i]] = newSync;
-                        syncIds[syncIds.length-1] = lockIds[i];
-                        syncPackets = bytes.concat(syncPackets, abi.encode(lockIds[i], newSync));
+                        syncIdsCount++;
+
+                        syncPackets = bytes.concat(syncPackets,
+                            abi.encodePacked(lockIds[i], newSync.slope, newSync.bias, newSync.timestamp, newSync.syncTime));
+
                     }
                 }
             }
         }
 
-        require(syncPackets.length > 0, "no sync data");
-        bytes memory syncData = bytes.concat(abi.encodePacked(account, syncIds.length), syncPackets);
+        require(syncPackets.length > 0, "no register data");
+        // console.log('_register syncPackets.length  %s', syncPackets.length);
 
-        // 동기화 요청
+        _sendMessage(
+            l2Register,
+            abi.encodePacked(account, syncPackets),
+            // bytes.concat(abi.encodePacked(account), syncPackets),
+            minGasLimitRegister
+            );
+    }
+
+
+    function _sendMessage(address target, bytes memory data, uint32 minGasLimit) internal {
+        address l1Messenger = LibProject.getL1CommunicationMessenger(addressManager);
+        require(l1Messenger != address(0), "l1Messenger is ZeroAddress");
+
+        bytes memory callData = abi.encodeWithSelector(IL1StosInL2.register.selector, data);
+
+        // console.log('_sendMessage target %s', target, ' data.length %s', data.length);
+        // console.logBytes(data);
+        // console.log('_sendMessage l1Messenger %s', l1Messenger);
+
+        L1CrossDomainMessengerI(l1Messenger).sendMessage(
+                target,
+                callData,
+                minGasLimit
+            );
     }
 
 }

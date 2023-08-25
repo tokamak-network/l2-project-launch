@@ -9,21 +9,21 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
 
 import "../proxy/ProxyStorage2.sol";
-import "./LockIdNFTStorage.sol";
-import "./LockIdStorage.sol";
+import "./LockIdRegisterStorage1.sol";
+import "./LockIdRegisterStorage2.sol";
 import "hardhat/console.sol";
 
-contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, IERC721Metadata, IERC721Enumerable {
+contract LockIdNftForRegister is
+    ProxyStorage2,
+    LockIdRegisterStorage1,
+    LockIdRegisterStorage2,
+    IERC721, IERC721Metadata, IERC721Enumerable
+{
     // using SafeMath for uint256;
     using Address for address;
     using Strings for uint256;
-
-    event LockCreated(address account, uint256 lockId, uint256 amount, uint256 unlockTime);
-    event LockDeposited(address account, uint256 lockId, uint256 value);
-    event IncreasedLock(address account, uint256 lockId, uint256 value, uint256 unlockTime);
 
     modifier nonZero(uint256 _val) {
         require(_val != 0, "zero value");
@@ -31,137 +31,65 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     }
 
     constructor (
-        string memory name_, string memory symbol_,
-        address managerAddress,
-        address stakerAddress,
+        string memory name_, string memory symbol_, address managerAddress,
         uint256 epochUnit_,
-        uint256 maxTime_,
-        address tosAddress
+        uint256 maxTime_
         ) {
 
         _manager = managerAddress;
-        staker = stakerAddress;
         _name = name_;
         _symbol = symbol_;
         epochUnit = epochUnit_;
         maxTime = maxTime_;
-        tos = tosAddress;
     }
 
     /*** External onlyManager ***/
-    function setStaker(address staker_) public onlyManager ifFree virtual {
-       staker = staker_;
-    }
 
     /*** External ***/
-
-    function createLock(uint256 _amount, uint256 _unlockWeeks)
-        public nonZero(_amount) nonZero(_unlockWeeks) onlyStaker
-        returns (uint256 lockId)
+    function register(
+        address account,
+        LibLockId.SyncPacket[] memory packets
+        )
+        public onlyManager
     {
-        uint256 unlockTime = (block.timestamp + (_unlockWeeks * epochUnit)) / epochUnit * epochUnit;
-        require(unlockTime - block.timestamp <= maxTime, "Max unlock time is exceeded" );
-
-        lockId = ++maxTokenId;
-        _safeMint(msg.sender, lockId);
-        _deposit(msg.sender, lockId, _amount, unlockTime);
-
-        emit LockCreated(msg.sender, lockId, _amount, unlockTime);
-    }
-
-    function depositFor(
-        address _addr,
-        uint256 _lockId,
-        uint256 _value
-    ) public nonZero(_value) onlyStaker {
-        LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
-        require(lock.owner != address(0) && lock.start > 0, "not exist");
-        require(lock.withdrawn == false, "It is withdrawn already.");
-        require(lock.end > block.timestamp, "Lock time is finished");
-        require(lock.owner == _addr, "not owner");
-
-        _deposit(_addr, _lockId, _value, 0);
-        emit LockDeposited(msg.sender, _lockId, _value);
-    }
-
-    function increaseLock(
-        address _addr,
-        uint256 _lockId,
-        uint256 _value,
-        uint256 _unlockWeeks
-    ) public onlyStaker {
-        require(_value != 0 || _unlockWeeks != 0, "zero value");
-
-        LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
-        require(lock.owner != address(0) && lock.start > 0, "not exist");
-        require(lock.owner == msg.sender && _addr == msg.sender, "not owner");
-        require(lock.withdrawn == false, "It is withdrawn already.");
-        require(lock.end > block.timestamp, "Lock time is finished");
-        uint256 unlockTime = 0;
-        if (_unlockWeeks > 0) {
-            unlockTime = (lock.end + (_unlockWeeks * epochUnit)) / epochUnit * epochUnit;
-            require(unlockTime - block.timestamp < maxTime, "Max unlock time is exceeded");
+        require(packets.length !=0, 'no data');
+        for(uint256 i = 0; i < packets.length; i++){
+            if(!_exists(packets[i].lockId)) {
+                _safeMint(account, packets[i].lockId);
+            }
+            _deposit(account, packets[i].lockId, packets[i].packet);
         }
-        _deposit(lock.owner, _lockId, _value, unlockTime);
-        emit IncreasedLock(msg.sender, _lockId, _value, unlockTime);
     }
 
     /*** Public ***/
-
-    // 모든 아이디는 staker를 자동 승인
-    function approve(address to, uint256 tokenId) public virtual override onlyStaker {
+    function approve(address to, uint256 tokenId) public virtual override {
 
     }
 
-    /**
-     * @dev See {IERC721-setApprovalForAll}.
-     */
-    // 모든 계정은 staker를 자동 승인
-    function setApprovalForAll(address user, bool approved) public virtual override onlyStaker {
-        // _operatorApprovals[user][_manager] = approved;
+    function setApprovalForAll(address operator, bool approved) public virtual override {
+
     }
 
-    /**
-     * @dev See {IERC721-transferFrom}.
-     */
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override onlyStaker {
-        // require(_isApprovedOrOwner(msg.sender, tokenId), "TitanNFT: transfer caller is not owner nor approved");
-        _transfer(from, to, tokenId);
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+
     }
 
-    /**
-     * @dev See {IERC721-safeTransferFrom}.
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override onlyStaker {
-        safeTransferFrom(from, to, tokenId, "");
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
+
     }
 
-    /**
-     * @dev See {IERC721-safeTransferFrom}.
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override onlyStaker {
-        // require(_isApprovedOrOwner(msg.sender, tokenId), "TitanNFT: transfer caller is not owner nor approved");
-        _safeTransfer(from, to, tokenId, _data);
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual override {
+
     }
 
     /*** View ***/
 
-    /**
-     * @dev Overrides supportsInterface
-     */
+    // /**
+    //  * @dev Overrides supportsInterface
+    //  */
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, ERC165P) returns (bool) {
         return _supportedInterfaces[interfaceId];
     }
-
-    // for opensea manager
-    // function owner() public view virtual returns (address) {
-    //     return _manager;
-    // }
-
-    // function isOwner(address addr) public view virtual returns (bool) {
-    //     if(_manager == addr) return true;
-    //     else return false;
-    // }
 
     function manager() public view virtual returns (address) {
         return _manager;
@@ -194,44 +122,12 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         return _symbol;
     }
 
-
     function baseURI() public view virtual returns (string memory) {
         return _baseURI;
     }
 
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "LockIdNFT: nonexistent token");
-        // https://titan-nft.tokamak.network/titangoerli-metadata/tokenId
-        LibLockId.LockedInfo memory info = lockIdInfos[tokenId];
-
-       bytes memory json = abi.encodePacked(
-            '{',
-                '"owner": "', ownerOf(tokenId), '", ',
-                '"unlockTime": ', info.end.toString(), ', ',
-                '"principal": ', info.amount.toString(), ', ',
-                '"stos": ', balanceOfLock(tokenId).toString(), ', ',
-                '"image": "data:image/svg+xml;base64,', generateSvgToBase64(tokenId), '"',
-                // titan url
-            '}'
-        );
-
-        return string(
-            abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(json)
-            )
-        );
-    }
-
-    function generateSvgToBase64(uint256 tokenId) public pure returns (string memory) {
-
-        return Base64.encode(abi.encodePacked(
-            '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
-            '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
-            '<rect width="100%" height="500%" fill="grey" />',
-            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle"> #',
-            tokenId.toString(), ' </text></svg>'
-        ));
+        return '';
     }
 
     function tokenOfOwnerByIndex(address owner_, uint256 index) public view override returns (uint256) {
@@ -256,20 +152,10 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         return _ownedTokens[owner_];
     }
 
-    /**
-     * @dev See {IERC721-getApproved}.
-     */
     function getApproved(uint256 tokenId) public view virtual override returns (address) {
-        require(_exists(tokenId), "LockIdNFT: approved query for nonexistent token");
-
-        return _tokenApprovals[tokenId];
     }
 
-    /**
-     * @dev See {IERC721-isApprovedForAll}.
-     */
     function isApprovedForAll(address owner_, address operator) public view virtual override returns (bool) {
-        // return _operatorApprovals[owner_][operator];
     }
 
     /*** internal ***/
@@ -278,12 +164,6 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         address owner_ = _tokenOwner[tokenId];
         return owner_ != address(0);
     }
-
-    // function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
-    //     require(_exists(tokenId), "LockIdNFT: operator query for nonexistent token");
-    //     address owner_ = ownerOf(tokenId);
-    //     return (spender == owner_ || getApproved(tokenId) == spender || isApprovedForAll(owner_, spender));
-    // }
 
     function _safeMint(address to, uint256 tokenId) internal virtual {
         _safeMint(to, tokenId, "");
@@ -382,16 +262,6 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         _allTokensIndex[tokenId] = 0;
     }
 
-    /**
-     * @dev Internal function to invoke {IERC721Receiver-onERC721Received} on a target address.
-     * The call is not executed if the target address is not a contract.
-     *
-     * @param from address representing the previous owner of the given token ID
-     * @param to target address that will receive the tokens
-     * @param tokenId uint256 ID of the token to be transferred
-     * @param _data bytes optional data to send along with the call
-     * @return bool whether the call correctly returned the expected magic value
-     */
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory _data)
         private returns (bool)
     {
@@ -410,94 +280,41 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     }
 
 
-     /**
-     * @dev Hook that is called before any token transfer. This includes minting and burning. If {ERC721Consecutive} is
-     * used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
-     *
-     * Calling conditions:
-     *
-     * - When `from` and `to` are both non-zero, ``from``'s tokens will be transferred to `to`.
-     * - When `from` is zero, the tokens will be minted for `to`.
-     * - When `to` is zero, ``from``'s tokens will be burned.
-     * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
-    // function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
-
-    // }
-
-     /**
-     * @dev Hook that is called after any token transfer. This includes minting and burning. If {ERC721Consecutive} is
-     * used, the hook may be called as part of a consecutive (batch) mint, as indicated by `batchSize` greater than 1.
-     *
-     * Calling conditions:
-     *
-     * - When `from` and `to` are both non-zero, ``from``'s tokens were transferred to `to`.
-     * - When `from` is zero, the tokens were minted for `to`.
-     * - When `to` is zero, ``from``'s tokens were burned.
-     * - `from` and `to` are never both zero.
-     * - `batchSize` is non-zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
-    // function _afterTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) internal virtual {
-
-    // }
-
     /// @dev Deposit
     function _deposit(
         address _addr,
         uint256 _lockId,
-        uint256 _value,
-        uint256 _unlockTime
+        LibLockId.SyncInfo memory syncInfo
     ) internal ifFree {
-
-        /////////////////////////////////////////////////
-        // update base LockedInfo 락 기본 정보
-        LibLockId.LockedInfo memory preInfo = lockIdInfos[_lockId];
-        LibLockId.LockedInfo memory afterInfo = LibLockId.LockedInfo({
-                start: preInfo.start,
-                end: preInfo.end,
-                amount: preInfo.amount + _value,
-                owner: _addr,
-                withdrawn: false
-            });
-
-        if (_unlockTime > 0)  afterInfo.end = _unlockTime;
-        if (afterInfo.start == 0)  afterInfo.start = block.timestamp;
-
-        /////////////////////////////////////////////////
-        // 기본정보 반영
-        lockIdInfos[_lockId] = afterInfo;
 
         /////////////////////////////////////////////////
         // add point of LockId , 가장 최근의 포인트 (모두 누적 반영)
         uint256 lenOfId = pointHistoryByLockId[_lockId].length;
-        LibLockId.Point memory pointByIdOld ;
-        LibLockId.Point memory pointByIdNew = LibLockId.Point({
-            slope: int256(afterInfo.amount * MULTIPLIER / maxTime),
-            bias: 0,
-            timestamp : block.timestamp
+        LibLockId.SyncInfo memory pointByIdOld ;
+        LibLockId.SyncInfo memory pointByIdNew = LibLockId.SyncInfo({
+            slope: syncInfo.slope,
+            bias: syncInfo.bias,
+            timestamp : syncInfo.timestamp,
+            syncTime : uint32(block.timestamp)
         });
-        pointByIdNew.bias = pointByIdNew.slope * int256(afterInfo.end - block.timestamp);
 
         if(lenOfId > 0) pointByIdOld = pointHistoryByLockId[_lockId][lenOfId-1];
         else {
-            pointByIdOld = LibLockId.Point({
+            pointByIdOld = LibLockId.SyncInfo({
                 slope: 0,
                 bias: 0,
-                timestamp : block.timestamp
+                timestamp : 0,
+                syncTime : 0
             });
         }
 
         /////////////////////////////////////////////////
         // 변경된 값
-        LibLockId.Point memory pointByIdChange = LibLockId.Point({
+        LibLockId.SyncInfo memory pointByIdChange = LibLockId.SyncInfo({
             slope: pointByIdNew.slope - pointByIdOld.slope,
             bias: pointByIdNew.bias - pointByIdOld.bias,
-            timestamp : block.timestamp
+            timestamp : syncInfo.timestamp,
+            syncTime : uint32(block.timestamp)
         });
 
         /////////////////////////////////////////////////
@@ -510,7 +327,7 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         uint256 nextTimeIndexOfTotalPoint =  nextTimeIndex(block.timestamp);
 
         uint256 len = pointHistoryByWeek[nextTimeIndexOfTotalPoint].length;
-        LibLockId.Point memory pointLast ; // 가장 최근의 point
+        LibLockId.SyncInfo memory pointLast ; // 가장 최근의 point
 
         if (len == 0 ) {
             // 가장 최근 인덱스
@@ -519,10 +336,11 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
             pointLast = pointHistoryByWeek[nextTimeIndexOfTotalPoint][len-1];
         }
 
-        LibLockId.Point memory pointNew = LibLockId.Point({
+        LibLockId.SyncInfo memory pointNew = LibLockId.SyncInfo({
             slope: pointLast.slope + pointByIdChange.slope,
             bias: pointLast.bias + pointByIdChange.bias,
-            timestamp : block.timestamp
+            timestamp : syncInfo.timestamp,
+            syncTime : uint32(block.timestamp)
         });
 
         /////////////////////////////////////////////////
@@ -533,13 +351,6 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
             indexCheckOfTimeset[nextTimeIndexOfTotalPoint] = true;
             indexOfTimeset.push(nextTimeIndexOfTotalPoint);
         }
-
-        // Transfer TOS
-        // if(_value != 0)
-        //     require(
-        //         IERC20(tos).transferFrom(msg.sender, address(this), _value),
-        //         "LockIdNFT: fail transferFrom"
-        //     );
     }
 
     function nextTimeIndex(uint256 _stime) public view returns(uint256) {
@@ -551,32 +362,35 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     }
 
     /// 가장 최근의 포인트
-    function pointOfLastTimeIndex() public view returns(LibLockId.Point memory) {
+    function pointOfLastTimeIndex() public view returns(LibLockId.SyncInfo memory) {
         return lastPointOfTimeIndex(lastIndexOfTimeset());
     }
 
     /// 해당 타임의 가장 최신 포인트
-    function lastPointOfTimeIndex(uint256 _index) public view returns(LibLockId.Point memory) {
+    function lastPointOfTimeIndex(uint256 _index) public view returns(LibLockId.SyncInfo memory) {
         if (_index != 0) {
-            LibLockId.Point[] memory points = pointHistoryByWeek[_index];
+            LibLockId.SyncInfo[] memory points = pointHistoryByWeek[_index];
 
             if (points.length != 0) {
-                return LibLockId.Point({
+                return LibLockId.SyncInfo({
                     slope: points[points.length-1].slope,
                     bias: points[points.length-1].bias,
-                    timestamp: points[points.length-1].timestamp
+                    timestamp: points[points.length-1].timestamp,
+                    syncTime : points[points.length-1].syncTime
                 });
             } else {
-                return LibLockId.Point({
+                return LibLockId.SyncInfo({
                     slope: 0,
                     bias: 0,
-                    timestamp: 0
+                    timestamp: 0,
+                    syncTime : 0
                 });
             }
-        } else return LibLockId.Point({
+        } else return LibLockId.SyncInfo({
                     slope: 0,
                     bias: 0,
-                    timestamp: 0
+                    timestamp: 0,
+                    syncTime : 0
                 });
     }
 
@@ -584,7 +398,7 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     function pointHistoryOfId(uint256 _lockId)
         public
         view
-        returns (LibLockId.Point[] memory)
+        returns (LibLockId.SyncInfo[] memory)
     {
         return pointHistoryByLockId[_lockId];
     }
@@ -594,7 +408,7 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     function pointHistoryOfTimeIndex(uint256 _timeIndex)
         public
         view
-        returns (LibLockId.Point[] memory)
+        returns (LibLockId.SyncInfo[] memory)
     {
         return pointHistoryByWeek[_timeIndex];
     }
@@ -612,7 +426,7 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         }
     }
 
-    function balanceOfLockAt(address _addr, uint256 _timestamp)
+    function balanceOfLockAt(address _addr, uint32 _timestamp)
         public
         view
         returns (uint256 balance)
@@ -635,12 +449,13 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     }
 
     /// 특정 락아이디의 현재 시간의 stos
-    function balanceOfLockAt(uint256 _lockId, uint256 _timestamp)
+    function balanceOfLockAt(uint256 _lockId, uint32 _timestamp)
         public
         view
         returns (uint256 amount)
     {
-        (bool success, LibLockId.Point memory point) = _findClosestPoint(pointHistoryByLockId[_lockId], _timestamp);
+        (bool success, LibLockId.SyncInfo memory point) = _findClosestPoint(
+            pointHistoryByLockId[_lockId], _timestamp);
         amount = (!success? 0: balanceOfPoint(point, _timestamp));
     }
 
@@ -653,7 +468,7 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
        amount = balanceOfPoint(pointOfLastTimeIndex(), block.timestamp);
     }
 
-    function totalSupplyLocksAt(uint256 _timestamp)
+    function totalSupplyLocksAt(uint32 _timestamp)
         public
         view
         returns (uint256 amount)
@@ -661,17 +476,18 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         // 해당 타임에 맞는 타임인덱스
         (bool success, uint256 timeindex) = _findClosestTimeindex(_timestamp);
         if(!success) return 0;
-        (bool success1, LibLockId.Point memory point) = _findClosestPoint(pointHistoryByWeek[timeindex], _timestamp);
+        (bool success1, LibLockId.SyncInfo memory point) = _findClosestPoint(
+            pointHistoryByWeek[timeindex], _timestamp);
         if(!success1) return 0;
         amount = balanceOfPoint(point, _timestamp);
     }
 
-    function balanceOfPoint(LibLockId.Point memory point, uint256 timestamp)
+    function balanceOfPoint(LibLockId.SyncInfo memory point, uint256 timestamp)
         public
         pure
         returns (uint256)
     {
-        if(timestamp < point.timestamp) return 0;
+        if(timestamp < point.syncTime) return 0;
         int256 currentBias = point.slope * int256(timestamp - point.timestamp);
         return
             uint256(point.bias > currentBias ? (point.bias - currentBias) : int256(0)) / MULTIPLIER;
@@ -682,9 +498,9 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
     }
 
     function _findClosestPoint(
-        LibLockId.Point[] storage _history,
-        uint256 _timestamp
-    ) internal view returns(bool success, LibLockId.Point memory point) {
+        LibLockId.SyncInfo[] storage _history,
+        uint32 _timestamp
+    ) internal view returns(bool success, LibLockId.SyncInfo memory point) {
         if (_history.length == 0) {
             return (false, point);
         }
@@ -692,14 +508,14 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         uint256 right = _history.length;
         while (left + 1 < right) {
             uint256 mid = (left + right) / 2;
-            if (_history[mid].timestamp <= _timestamp) {
+            if (_history[mid].syncTime <= _timestamp) {
                 left = mid;
             } else {
                 right = mid;
             }
         }
 
-        if (_history[left].timestamp <= _timestamp) {
+        if (_history[left].syncTime <= _timestamp) {
             return (true, _history[left]);
         }
         return (false, point);
@@ -731,36 +547,4 @@ contract LockIdNftForStake is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IE
         }
         return (false, 0);
     }
-
-    // function _approve(address to, uint256 tokenId) private {
-    //     _tokenApprovals[tokenId] = to;
-    //     emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
-    // }
-
-
-    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory _data) internal virtual {
-        _transfer(from, to, tokenId);
-        require(_checkOnERC721Received(from, to, tokenId, _data), "TitanNFT: transfer to non ERC721Receiver implementer");
-    }
-
-    function _transfer(address from, address to, uint256 tokenId) internal {
-        // require(ownerOf(tokenId) == from, "ProjectToken: transfer of token that is not own");
-        require(to != address(0), "ProjectToken: transfer to the zero address");
-
-        // _beforeTokenTransfer(from, to, tokenId);
-
-        // _clearApproval(tokenId);
-
-        _ownedTokensCount[from]--;
-        _ownedTokensCount[to]++;
-
-        _tokenOwner[tokenId] = to;
-
-        _removeTokenFromOwnerEnumeration(from, tokenId);
-
-        _addTokenToOwnerEnumeration(to, tokenId);
-
-        emit Transfer(from, to, tokenId);
-    }
-
 }
