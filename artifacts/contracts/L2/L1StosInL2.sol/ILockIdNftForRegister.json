@@ -1,0 +1,63 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ILockIdNftForRegister",
+  "sourceName": "contracts/L2/L1StosInL2.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "lockId",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "int256",
+                  "name": "slope",
+                  "type": "int256"
+                },
+                {
+                  "internalType": "int256",
+                  "name": "bias",
+                  "type": "int256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "timestamp",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "syncTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibLockId.SyncInfo",
+              "name": "packet",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct LibLockId.SyncPacket[]",
+          "name": "packets",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "register",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
