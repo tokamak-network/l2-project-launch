@@ -27,4 +27,10 @@ contract LockIdStorage {
     // 업데이트가 있는 주(타임)에 대한 인덱싱
     uint256[] public indexOfTimeset;
     mapping(uint256 => bool) public indexCheckOfTimeset;
+
+    // 무제한 락업 account -amount
+    mapping(address => uint256) public unlimitedAmountByAccount;
+    // 무제한 락업 amount
+    uint256 public unlimitedAmountTotal;
+
 }
