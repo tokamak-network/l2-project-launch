@@ -40,6 +40,11 @@ import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2P
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
 
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
+import l2VestingFundJson from "../../artifacts/contracts/L2/vaults/L2VestingFundVault.sol/L2VestingFundVault.json";
+
 const tosInfo = {
   name: "TONStarter",
   symbol: "TOS",
@@ -196,6 +201,17 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const L2InitialLiquidityVault = await ethers.getContractFactory('L2InitialLiquidityVault')
     const l2liquidity = (await L2InitialLiquidityVault.connect(deployer).deploy()) as L2InitialLiquidityVault
 
+    //==== L2VestingFundVault =================================
+
+    const L2VestingFundVaultProxy = await ethers.getContractFactory('L2VestingFundVaultProxy')
+    const l2vestingFundProxy = (await L2VestingFundVaultProxy.connect(deployer).deploy()) as L2VestingFundVaultProxy
+
+    const L2VestingFundVault = await ethers.getContractFactory('L2VestingFundVault')
+    const l2vestingFund = (await L2VestingFundVault.connect(deployer).deploy()) as L2VestingFundVault
+
+    await (await l2vestingFundProxy.connect(deployer).upgradeTo(l2vestingFund.address)).wait()
+    const l2VestingFundLogic = await ethers.getContractAt(l2VestingFundJson.abi, l2vestingFundProxy.address, deployer) as L2VestingFundVault
+
     return  {
       libProject: libProject,
       l1ERC20A_TokenFactory: l1ERC20A_TokenFactory,
@@ -227,7 +243,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l2VaultAdmin: L2vaultAdmin,
       l2LiquidityProxy: l2liquidityProxy,
       l2Liquidity: l2liquidity,
-      vestingFundAddr: vestingFundAddr
+      vestingFundAddr: vestingFundAddr,
+      l2VestingFundProxy: l2vestingFundProxy,
+      l2VestingFund: l2VestingFundLogic
   }
 }
 
