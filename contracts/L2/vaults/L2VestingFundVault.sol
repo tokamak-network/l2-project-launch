@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../libraries/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
 import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
@@ -29,37 +29,13 @@ contract L2VestingFundVault is
     AccessibleCommon, 
     L2VestingFundVaultStorage 
 {
-    using SafeERC20 for IERC20;
+    // using SafeERC20 for IERC20;
 
 
     ///@dev constructor
     constructor() {
 
     }
-
-    // function changeAddr(
-    //     address _token,
-    //     address _tosToken,
-    //     address _receivedAddress,
-    //     address _publicSaleVaultAddress,
-    //     address _projectToken,
-    //     uint24 _fee
-    // )
-    //     external 
-    //     onlyL2ProjectManager
-    //     nonZeroAddress(_token)
-    //     nonZeroAddress(_tosToken)
-    //     nonZeroAddress(_receivedAddress)
-    //     nonZeroAddress(_publicSaleVaultAddress)
-    //     nonZeroAddress(_projectToken)
-    // {
-    //     token = _token;
-    //     tosToken = _tosToken;
-    //     receivedAddress = _receivedAddress;
-    //     publicSaleVaultAddress = _publicSaleVaultAddress;
-    //     projectToken = _projectToken;
-    //     fee = _fee;
-    // }
 
     function changeReceivedAddress(
         address _l2Token,
@@ -127,7 +103,33 @@ contract L2VestingFundVault is
     )
         internal
     {
+        require(_claimTimes.length != 0,
+                "claimCounts must be greater than zero");
 
+        require(_claimTimes.length == _claimAmounts.length,
+                "_claimTimes and _claimAmounts length do not match");
+
+        uint256 _claimCounts = _claimTimes.length;
+
+        require(_claimAmounts[_claimCounts-1] == 100, "Final claimAmounts is not 100%");
+
+        uint256 i = 0;
+        for (i = 1; i < _claimCounts; i++) {
+            require(_claimTimes[i-1] > block.timestamp && _claimTimes[i] > _claimTimes[i-1], "claimTimes should not be decreasing");
+            require(_claimAmounts[i] > _claimAmounts[i-1], "claimAmounts should not be decreasing");
+        }
+
+        totalClaimCounts[_l2Token] = _claimCounts;
+
+        claimTimes[_l2Token] = new uint256[](_claimCounts);
+        claimAmounts[_l2Token] = new uint256[](_claimCounts);
+
+        for(i = 0; i < _claimCounts; i++) {
+            claimTimes[_l2Token][i] = _claimTimes[i];
+            claimAmounts[_l2Token][i] = _claimAmounts[i];
+        }
+
+        emit Initialized(_claimCounts, _claimTimes, _claimAmounts);
     }
 
     function claim(
@@ -135,7 +137,7 @@ contract L2VestingFundVault is
     ) 
         public 
     {
-        require(currentSqrtPriceX96() != 0, "pool's current sqrtPriceX96 is zero.");
+        require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
 
         require(claimTimes[_l2Token][0] != 0 && block.timestamp > claimTimes[_l2Token][0], "Vault: not started yet");
         require(totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token],"Vault: already All get");
@@ -151,6 +153,7 @@ contract L2VestingFundVault is
         uint256 amount = calculClaimAmount(_l2Token,curRound);
         require(amount > 0, "claimable amount is zero");
         require(IERC20(tonToken).balanceOf(address(this)) >= amount,"Vault: insufficient balance");
+        require(remainAmount(_l2Token) >= amount,"Vault: over remain balance");
 
         nowClaimRound[_l2Token] = curRound;
         totalClaimsAmount[_l2Token] = totalClaimsAmount[_l2Token] + amount;
@@ -166,8 +169,8 @@ contract L2VestingFundVault is
     ) 
         external
     {
-        require(currentSqrtPriceX96() != 0, "pool's current sqrtPriceX96 is zero.");
-        require(claimTimes.length != 0, "set up a claim round for vesting");
+        require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
+        require(claimTimes[_l2Token].length != 0, "set up a claim round for vesting");
 
         require(msg.sender == publicSaleVault, "caller is not publicSaleVault.");
         require(IERC20(tonToken).allowance(publicSaleVault, address(this)) >= amount, "funding: insufficient allowance");
@@ -177,10 +180,10 @@ contract L2VestingFundVault is
 
         emit Funded(msg.sender, amount);
 
-        uint256 curRound = currentRound();
+        uint256 curRound = currentRound(_l2Token);
 
-        if (curRound > 0 && calculClaimAmount(curRound) > 0 && totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token]) {
-            _claim();
+        if (curRound > 0 && calculClaimAmount(_l2Token,curRound) > 0 && totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token]) {
+            _claim(_l2Token);
         }
     }
 
@@ -197,7 +200,7 @@ contract L2VestingFundVault is
         returns (uint256 round) 
     {
         if(claimTimes[_l2Token].length == 0) return 0;
-        if(block.timestamp < claimTimes[0]){
+        if(block.timestamp < claimTimes[_l2Token][0]){
             round = 0;
         }
         if (block.timestamp >= claimTimes[_l2Token][totalClaimCounts[_l2Token]-1]) {
@@ -229,6 +232,84 @@ contract L2VestingFundVault is
             amount = (totalAllocatedAmount[_l2Token] * claimAmounts[_l2Token][_round-1] / 100) - totalClaimsAmount[_l2Token];
         }
     }
+
+    function remainAmount(
+        address _l2Token
+    )
+        public
+        view
+        returns (uint256 amount)
+    {
+        return totalAllocatedAmount[_l2Token] - totalClaimsAmount[_l2Token];
+    }
+
+    function getPoolAddress(
+        address _l2Token
+    ) 
+        public 
+        view 
+        returns (address pool)
+    {
+        bytes32 POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+
+        if (tosToken == address(0) || _l2Token == address(0) || fees[_l2Token] == 0
+            || uniswapV3Factory == address(0) )  return address(0);
+
+        address token0 = tosToken;
+        address token1 = _l2Token;
+        if (tosToken > _l2Token) {
+            token0 = _l2Token;
+            token1 = tosToken;
+        }
+
+        pool = address(
+            uint160(
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        hex'ff',
+                        uniswapV3Factory,
+                        keccak256(abi.encode(token0, token1, fees[_l2Token])),
+                        POOL_INIT_CODE_HASH
+                    )
+                )
+            ))
+        );
+    }
+
+    function currentSqrtPriceX96(
+        address _l2Token
+    ) 
+        public 
+        view 
+        returns (uint160 sqrtPriceX96)
+    {
+        sqrtPriceX96 = 0;
+        address pool = getPoolAddress(_l2Token);
+        if (pool != address(0) && isContract(pool)) {
+            // (,tick,,,,,) = IIUniswapV3Pool(pool).slot0();
+            (sqrtPriceX96,,,,,,) = IIUniswapV3Pool(pool).slot0();
+        }
+    }
+
+    function isContract(address _addr) public view returns (bool _isContract) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
+    }
+
+    // function availableInitializer(
+    //     address _l2Token,
+    //     address _addr
+    // ) 
+    //     external 
+    //     view 
+    //     returns (bool result) 
+    // {
+    //     if (!settingCheck && (_addr == receivedAddress || isAdmin(_addr))) result = true;
+    // }
 
     function isL2ProjectManager(address account) public view returns (bool) {
         return (account != address(0) && l2ProjectManager == account);

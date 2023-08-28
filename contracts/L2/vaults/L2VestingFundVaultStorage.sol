@@ -17,7 +17,10 @@ contract L2VestingFundVaultStorage {
     address public tosToken;
     address public uniswapV3Factory;
 
-    address public projectToken;
+    // address public projectToken;
+
+    // // l2token - projectToken
+    // mapping(address => address) public projectToken;
 
     // l2token - tokenOwner
     mapping(address => address) public vaultAdminOfToken;
@@ -38,16 +41,16 @@ contract L2VestingFundVaultStorage {
     mapping(address => uint256[]) public claimAmounts;
 
     // l2token - totalAllocatedAmount
-    mapping(address => uint256[]) public totalAllocatedAmount;
+    mapping(address => uint256) public totalAllocatedAmount;
     
     // l2token - totalClaimsAmount
-    mapping(address => uint256[]) public totalClaimsAmount;
+    mapping(address => uint256) public totalClaimsAmount;
 
     // l2token - totalClaimCounts
-    mapping(address => uint256[]) public totalClaimCounts;
+    mapping(address => uint256) public totalClaimCounts;
 
     // l2token - nowClaimRound
-    mapping(address => uint256[]) public nowClaimRound;
+    mapping(address => uint256) public nowClaimRound;
 
 
     event SetVaultAdmin(
@@ -58,6 +61,13 @@ contract L2VestingFundVaultStorage {
     event SetInitializer(
         address newInitializer
     );
+
+    event Initialized(
+        uint256 claimCounts,
+        uint256[] claimTimes,
+        uint256[] claimAmounts
+    );
+
     
     event Claimed(
         address l2Token, 
