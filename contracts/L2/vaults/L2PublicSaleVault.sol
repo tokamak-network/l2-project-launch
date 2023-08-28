@@ -29,6 +29,9 @@ interface IIERC20Burnable {
     function burn(uint256 amount) external ;
 }
 
+interface IIVestingPublicFundAction {
+    function funding(uint256 amount) external;
+}
 
 contract L2PublicSaleVault is 
     ProxyStorage,
@@ -186,8 +189,8 @@ contract L2PublicSaleVault is
         }
         
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
-        IERC20(ton).transfer(vestingFund,getAmount);
-        // IIVestingPublicFundAction(vestingFund).funding(getAmount);
+        // IERC20(ton).transfer(vestingFund,getAmount);
+        IIVestingPublicFundAction(vestingFund).funding(getAmount);
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }

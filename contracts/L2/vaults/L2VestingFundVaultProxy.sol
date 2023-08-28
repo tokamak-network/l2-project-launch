@@ -7,7 +7,7 @@ import "./L2VestingFundVaultStorage.sol";
 
 import "hardhat/console.sol";
 
-contract L2VestingFUndVaultProxy is Proxy, L2VestingFundVaultStorage
+contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
 {
     /* ========== DEPENDENCIES ========== */
 
