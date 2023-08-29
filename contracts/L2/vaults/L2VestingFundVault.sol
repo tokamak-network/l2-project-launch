@@ -83,6 +83,7 @@ contract L2VestingFundVault is
         nonZeroAddress(_receivedAddress)
     {
         require(settingChecks[_l2Token] != true, "Already initalized");
+        require(vaultAdminOfToken[_l2Token] == msg.sender, "not l2Token vaultAdmin");
         
         receivedAddress[_l2Token] = _receivedAddress;
         fees[_l2Token] = _fee;
@@ -174,7 +175,6 @@ contract L2VestingFundVault is
 
         require(msg.sender == publicSaleVault, "caller is not publicSaleVault.");
         require(IERC20(tonToken).allowance(publicSaleVault, address(this)) >= amount, "funding: insufficient allowance");
-
         totalAllocatedAmount[_l2Token] += amount;
         IERC20(tonToken).transferFrom(publicSaleVault, address(this), amount);
 
@@ -287,6 +287,7 @@ contract L2VestingFundVault is
     {
         sqrtPriceX96 = 0;
         address pool = getPoolAddress(_l2Token);
+        console.log("pool", pool);
         if (pool != address(0) && isContract(pool)) {
             // (,tick,,,,,) = IIUniswapV3Pool(pool).slot0();
             (sqrtPriceX96,,,,,,) = IIUniswapV3Pool(pool).slot0();

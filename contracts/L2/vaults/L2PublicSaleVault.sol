@@ -30,7 +30,7 @@ interface IIERC20Burnable {
 }
 
 interface IIVestingPublicFundAction {
-    function funding(uint256 amount) external;
+    function funding(address l2token,uint256 amount) external;
 }
 
 contract L2PublicSaleVault is 
@@ -190,7 +190,7 @@ contract L2PublicSaleVault is
         
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
         // IERC20(ton).transfer(vestingFund,getAmount);
-        IIVestingPublicFundAction(vestingFund).funding(getAmount);
+        IIVestingPublicFundAction(vestingFund).funding(_l2token,getAmount);
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
