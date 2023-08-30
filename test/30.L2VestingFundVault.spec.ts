@@ -755,7 +755,7 @@ describe('L2TokenFactory', () => {
                     l2vaultAdminAddress
                 )
                 expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
-                expect(await deployed.l2VestingFundProxy.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
+                expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
             })
 
             it('cannot be changed to the same value', async () => {
@@ -1399,6 +1399,88 @@ describe('L2TokenFactory', () => {
             let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
             expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
         })
+    })
+
+    describe("L2VestingFundVault claim", () => {
+        it("can not claim before claimTIme", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("Vault: not started yet")
+        })
+
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
+            await ethers.provider.send('evm_mine');
+        })
+
+        it("can claim after claimTime1", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+        })
+
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("claimable amount is zero")
+        })
+
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
+            await ethers.provider.send('evm_mine');
+        })
+
+        it("can claim after claimTime2", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+        })
+
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("claimable amount is zero")
+        })
+
+
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime3+1]);
+            await ethers.provider.send('evm_mine');
+        })
+
+        it("can claim after claimTime3", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+            expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
+        })
+
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("Vault: already All get")
+        })
+
     })
 
 });

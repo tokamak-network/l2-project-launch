@@ -60,9 +60,9 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
 
     /* ========== VIEW ========== */
 
-    function isVaultAdmin(address l2Token, address account) public view returns (bool) {
-        return (account != address(0) && vaultAdminOfToken[l2Token] == account);
-    }
+    // function isVaultAdmin(address l2Token, address account) public view returns (bool) {
+    //     return (account != address(0) && vaultAdminOfToken[l2Token] == account);
+    // }
 
 
     /* === ======= internal ========== */
