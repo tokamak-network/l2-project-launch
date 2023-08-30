@@ -35,6 +35,7 @@ import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol/L1StosToL2'
 import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol/L1StosInL2'
 import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
+import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable.sol'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
@@ -250,6 +251,18 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     tos.address
   )) as LockIdNFT
 
+
+  const LockIdNftTransferable_ = await ethers.getContractFactory('LockIdNftTransferable');
+  const lockIdNftTransferable = (await LockIdNftTransferable_.connect(deployer).deploy(
+    lockIdNFTInfo.name,
+    lockIdNFTInfo.symbol,
+    deployer.address,
+    lockIdNFTInfo.epochUnit,
+    lockIdNFTInfo.maxTime,
+    tos.address
+  )) as LockIdNftTransferable
+
+
   //==== LibProject =================================
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
@@ -328,6 +341,7 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     l1StosInL2: l1StosInL2,
     lockIdNftRegisterInL2: lockIdNftForRegister,
     addressManager: addressManager,
-    l1Messenger: l1Messenger
+    l1Messenger: l1Messenger,
+    lockIdNftTransferable: lockIdNftTransferable
   }
 }

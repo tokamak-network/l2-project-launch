@@ -24,13 +24,20 @@ contract LockIdStorage {
     // 시간대의 타임 (매주목요일0시) -> 해당 시간대의 포인트 배열
     mapping(uint256 => LibLockId.Point[]) public pointHistoryByWeek;
 
+    // 무제한 락업 시간대의 타임 (매주목요일0시) - UnlimitedAmount
+    mapping(uint256 => LibLockId.UnlimitedAmount[]) public unlimitedHistoryByWeek;
+
     // 업데이트가 있는 주(타임)에 대한 인덱싱
     uint256[] public indexOfTimeset;
     mapping(uint256 => bool) public indexCheckOfTimeset;
 
-    // 무제한 락업 account -amount
-    mapping(address => uint256) public unlimitedAmountByAccount;
-    // 무제한 락업 amount
-    uint256 public unlimitedAmountTotal;
+    // 무제한 락업 account - UnlimitedAmount
+    mapping(address => LibLockId.UnlimitedAmount[]) public unlimitedAmountByAccount;
 
+    // 무제한 락업에 대한 업데이트가 있는 주(타임)에 대한 인덱싱
+    uint256[] public indexOfTimesetForUnlimited;
+    mapping(uint256 => bool) public indexCheckOfTimesetForUnlimited;
+
+    // slop이 변경되는 시점에 slop 변화랑 저장
+    mapping(uint256 => int256) public slopeChanges;
 }

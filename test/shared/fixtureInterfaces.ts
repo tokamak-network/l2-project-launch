@@ -30,6 +30,7 @@ import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol'
 import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol'
 import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
+import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable.sol'
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -94,7 +95,7 @@ interface LockedBalance {
     start: BigNumber,
     end: BigNumber,
     amount: BigNumber,
-    withdrawn: boolean
+    withdrawalTime: number
 }
 
 interface LockedBalanceInfo {
@@ -126,7 +127,8 @@ interface LockIdFixture {
     l1StosInL2: L1StosInL2,
     lockIdNftRegisterInL2: LockIdNftForRegister,
     addressManager: Lib_AddressManager,
-    l1Messenger: MockL1Messenger
+    l1Messenger: MockL1Messenger,
+    lockIdNftTransferable: LockIdNftTransferable
 }
 
 interface NftTokenInfo {
