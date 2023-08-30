@@ -73,6 +73,7 @@ contract L1toL2Message is ERC165Storage{
         _registerInterface(OnApprove(address(this)).onApprove.selector);
     }
 
+    /*
     function onApprove(
         address sender,
         address spender,
@@ -132,6 +133,7 @@ contract L1toL2Message is ERC165Storage{
 
         return true;
     }
+    */
 
     function depositAndCall(
         address addressManager, address l1Token, address l2Token, address depositAndCallTarget,
