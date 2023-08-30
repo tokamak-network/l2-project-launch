@@ -18,8 +18,7 @@ library LibLockId {
         uint256 start;
         uint256 end;
         uint256 amount;
-        address owner;
-        bool withdrawn;
+        uint32 withdrawlTime;
     }
 
     // SyncInfo
@@ -33,6 +32,11 @@ library LibLockId {
     struct SyncPacket {
         uint256 lockId;
         SyncInfo packet;
+    }
+
+    struct UnlimitedAmount {
+        uint32 timestamp;
+        uint256 amount;
     }
 
 }

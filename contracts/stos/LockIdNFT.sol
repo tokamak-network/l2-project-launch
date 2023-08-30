@@ -82,11 +82,12 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         uint256 _lockId,
         uint256 _value
     ) public nonZero(_value) {
+        require(_exists(_lockId), "nonexistent token");
+        require(_tokenOwner[_lockId] == _addr && _addr != address(0), "not owner");
+
         LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
-        require(lock.owner != address(0) && lock.start > 0, "not exist");
-        require(lock.withdrawn == false, "It is withdrawn already.");
+        require(lock.withdrawlTime == 0, "It is withdrawn already.");
         require(lock.end > block.timestamp, "Lock time is finished");
-        require(lock.owner == _addr, "not owner");
 
         _deposit(_addr, _lockId, _value, 0);
         emit LockDeposited(msg.sender, _lockId, _value);
@@ -99,18 +100,19 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
         uint256 _unlockWeeks
     ) public {
         require(_value != 0 || _unlockWeeks != 0, "zero value");
+        require(_exists(_lockId), "nonexistent token");
+        require(_tokenOwner[_lockId] == _addr && _addr != address(0), "not owner");
 
         LibLockId.LockedInfo memory lock = lockIdInfos[_lockId];
-        require(lock.owner != address(0) && lock.start > 0, "not exist");
-        require(lock.owner == msg.sender && _addr == msg.sender, "not owner");
-        require(lock.withdrawn == false, "It is withdrawn already.");
+        require(lock.start > 0, "not exist");
+        require(lock.withdrawlTime == 0, "It is withdrawn already.");
         require(lock.end > block.timestamp, "Lock time is finished");
         uint256 unlockTime = 0;
         if (_unlockWeeks > 0) {
             unlockTime = (lock.end + (_unlockWeeks * epochUnit)) / epochUnit * epochUnit;
             require(unlockTime - block.timestamp < maxTime, "Max unlock time is exceeded");
         }
-        _deposit(lock.owner, _lockId, _value, unlockTime);
+        _deposit(_addr, _lockId, _value, unlockTime);
         emit IncreasedLock(msg.sender, _lockId, _value, unlockTime);
     }
 
@@ -459,8 +461,7 @@ contract LockIdNFT is ProxyStorage2, LockIdNFTStorage, LockIdStorage, IERC721, I
                 start: preInfo.start,
                 end: preInfo.end,
                 amount: preInfo.amount + _value,
-                owner: _addr,
-                withdrawn: false
+                withdrawlTime: 0
             });
 
         if (_unlockTime > 0)  afterInfo.end = _unlockTime;
