@@ -193,16 +193,10 @@ describe('LockIdFixture', () => {
     describe('# LockIdNftTransferable ', () => {
 
         it('addLockPeriod', async () => {
-            let lockPeriods = [
-                ethers.BigNumber.from("8"),
-                ethers.BigNumber.from("24")
-            ]
 
-            for(let i =0; i< lockPeriods.length; i++ ){
-                await(await deployed.lockIdNftTransferable.connect(deployer).addLockPeriod(
-                    lockPeriods[i]
-                )).wait();
-            }
+            await(await deployed.lockIdNftTransferable.connect(deployer).addLockPeriod(
+                ethers.BigNumber.from("8")
+            )).wait();
 
         });
 
@@ -374,7 +368,7 @@ describe('LockIdFixture', () => {
             // console.log('stosBalanceL2', stosBalanceL2)
 
         });
-
+        /*
         it('createLock: create stos ', async () => {
             let lockIdInfos0 = await deployed.lockIdNftTransferable.lockIdInfos(ethers.constants.One)
             console.log('lockIdInfos0', ethers.constants.One, lockIdInfos0)
@@ -459,93 +453,11 @@ describe('LockIdFixture', () => {
 
         });
 
-        it('increaseLock: increase lock period ', async () => {
-            // 3. addr1 increase stos
-            const user = addr2
-            let lockId =  addr2Ids[addr2Ids.length-1][0];
-            // console.log('lockId', lockId)
-
-            // logPoint("pointHistoryByLockId", await deployed.lockIdNftTransferable.pointHistoryOfId(lockId) )
-            // let indexTimes = await deployed.lockIdNftTransferable.allIndexOfTimes();
-            // logPointWeeks("pointHistoryByWeek", deployed, indexTimes[0])
-
-            let lockIdInfos0 = await deployed.lockIdNftTransferable.lockIdInfos(lockId)
-            expect(await deployed.lockIdNftTransferable.ownerOf(lockId)).to.be.eq(user.address)
-            // console.log('lockIdInfos0', lockIdInfos0)
-            let unlockWeeks = ethers.BigNumber.from("24");
-            let amount = ethers.utils.parseEther("50");
-            let allowance = await deployed.tos.allowance(user.address, deployed.lockIdNftTransferable.address);
-            if (allowance.lt(amount)) {
-                await deployed.tos.connect(user).approve(deployed.lockIdNftTransferable.address, amount);
-            }
-
-            const interface1 = deployed.lockIdNftTransferable.interface ;
-            const topic = interface1.getEventTopic('IncreasedLock');
-            const receipt = await(await deployed.lockIdNftTransferable.connect(user).increaseLock(
-                user.address,
-                lockId,
-                amount,
-                unlockWeeks
-            )).wait();
-
-            const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0 );
-            const deployedEvent = interface1.parseLog(log);
-            let lockId2 = deployedEvent.args.lockId
-            let lockIdPoints:Array<Point> = convertPointStructOutputToPoint(
-                await deployed.lockIdNftTransferable.pointHistoryOfId(lockId2)
-            );
-            expect(lockId2).to.be.eq(lockId)
-            addr1Ids.push([lockId2, lockIdPoints]);
-            // console.log('lockId2', lockId2)
-
-            let block = await ethers.provider.getBlock('latest')
-            // console.log('block.timestamp ', block.timestamp)
-
-            let lockIdInfos1 = await deployed.lockIdNftTransferable.lockIdInfos(lockId2)
-            expect(await deployed.lockIdNftTransferable.ownerOf(lockId2)).to.be.eq(user.address)
-            expect(lockIdInfos1.amount).to.be.eq(lockIdInfos0.amount.add(amount))
-
-            // console.log('lockIdInfos1', lockIdInfos1)
-
-            // console.log('block.timestamp', block.timestamp)
-
-            // logPoint("pointHistoryByLockId", await deployed.lockIdNftTransferable.pointHistoryOfId(lockId) )
-            // indexTimes = await deployed.lockIdNftTransferable.allIndexOfTimes();
-            // logPointWeeks("pointHistoryByWeek", deployed, indexTimes)
-
-            ethers.provider.send("evm_increaseTime", [60*60*24*7*2])
-            ethers.provider.send("evm_mine");
-
-            await checkDecreaseStosByPassTime(deployed, lockId, BigNumber.from(""+block.timestamp))
-            await checkDecreaseStosByPassTime(deployed, ethers.constants.Zero, BigNumber.from(""+block.timestamp))
-
-            await checkSumOfLocks(deployed, BigNumber.from(""+block.timestamp))
-            await checkSumOfLocks(deployed, ethers.constants.Zero)
-
-            // let balanceAddr1 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr1.address, block.timestamp)
-            // let balanceAddr2 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr2.address, block.timestamp)
-
-            // // 세번째 스냅샷
-            // stosBalanceL1.push({
-            //     timestamp: block.timestamp,
-            //     balance: balanceAddr1
-            // });
-
-            // stosBalanceL2.push({
-            //     timestamp: block.timestamp,
-            //     balance: balanceAddr2
-            // });
-
-            // console.log('stosBalanceL1', stosBalanceL1)
-            // console.log('stosBalanceL2', stosBalanceL2)
-
-        });
-        /*
         it('createLock: create stos ', async () => {
             // 1. create stos by addr2
             const user = addr2
             let amount = ethers.utils.parseEther("50");
-            let unlockWeeks = ethers.BigNumber.from("24");
+            let unlockWeeks = ethers.BigNumber.from("8");
             let allowance = await deployed.tos.allowance(user.address, deployed.lockTOS.address);
             if (allowance.lt(amount)) {
                 await deployed.tos.connect(user).approve(deployed.lockIdNftTransferable.address, amount);
@@ -661,30 +573,30 @@ describe('LockIdFixture', () => {
             ethers.provider.send("evm_increaseTime", [60*60*1])
             ethers.provider.send("evm_mine");
 
-            // await checkDecreaseStosByPassTime(deployed, lockId, BigNumber.from(""+block.timestamp))
-            // await checkDecreaseStosByPassTime(deployed, ethers.constants.Zero, BigNumber.from(""+block.timestamp))
-            // await checkSumOfLocks(deployed, BigNumber.from(""+block.timestamp))
-            // await checkSumOfLocks(deployed, ethers.constants.Zero)
+            await checkDecreaseStosByPassTime(deployed, lockId, BigNumber.from(""+block.timestamp))
+            await checkDecreaseStosByPassTime(deployed, ethers.constants.Zero, BigNumber.from(""+block.timestamp))
+            await checkSumOfLocks(deployed, BigNumber.from(""+block.timestamp))
+            await checkSumOfLocks(deployed, ethers.constants.Zero)
 
-            // let balanceAddr1 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr1.address, block.timestamp)
-            // let balanceAddr2 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr2.address, block.timestamp)
+            let balanceAddr1 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr1.address, block.timestamp)
+            let balanceAddr2 = await deployed.lockIdNftTransferable["balanceOfLockAt(address,uint256)"](addr2.address, block.timestamp)
 
-            // // 두번째 스냅샷
-            // stosBalanceL1.push({
-            //     timestamp: block.timestamp,
-            //     balance: balanceAddr1
-            // });
+            // 두번째 스냅샷
+            stosBalanceL1.push({
+                timestamp: block.timestamp,
+                balance: balanceAddr1
+            });
 
-            // stosBalanceL2.push({
-            //     timestamp: block.timestamp,
-            //     balance: balanceAddr2
-            // });
+            stosBalanceL2.push({
+                timestamp: block.timestamp,
+                balance: balanceAddr2
+            });
 
             // console.log('stosBalanceL1', stosBalanceL1)
             // console.log('stosBalanceL2', stosBalanceL2)
 
         });
-        /*
+
         it('createLock: create stos ', async () => {
             // 1. create stos by addr2
             const user = addr2

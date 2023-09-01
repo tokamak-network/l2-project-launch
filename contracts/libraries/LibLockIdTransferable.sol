@@ -2,9 +2,9 @@
 pragma solidity ^0.8.4;
 
 /**
- * @title LibLockId
+ * @title LibLockIdTransferable
  */
-library LibLockId {
+library LibLockIdTransferable {
 
     // LockId의 포인트 정보
     struct Point {
@@ -17,8 +17,15 @@ library LibLockId {
     struct LockedInfo {
         uint256 start;
         uint256 end;
+        uint256 unlockWeeks;
+        uint256 withdrawalTime;
         uint256 amount;
-        uint256 withdrawlTime;
+    }
+
+    struct SlopeChange {
+        int256 bias;
+        int256 slope;
+        uint256 changeTime;
     }
 
     // SyncInfo

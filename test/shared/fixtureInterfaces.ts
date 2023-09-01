@@ -31,6 +31,7 @@ import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol'
 import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol'
 import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
 import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable.sol'
+import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -128,7 +129,8 @@ interface LockIdFixture {
     lockIdNftRegisterInL2: LockIdNftForRegister,
     addressManager: Lib_AddressManager,
     l1Messenger: MockL1Messenger,
-    lockIdNftTransferable: LockIdNftTransferable
+    lockIdNftTransferable: LockIdNftTransferable,
+    lockTOSv2: LockTOSv2
 }
 
 interface NftTokenInfo {

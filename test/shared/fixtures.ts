@@ -36,6 +36,7 @@ import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol/L1
 import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol/L1StosInL2'
 import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
 import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable.sol'
+import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 
@@ -238,8 +239,22 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     lockTosInitializeIfo.maxTime
   )).wait()
 
+  // console.log('lockTOS', lockTOS.address)
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
+  //--
+  const LockTOSv2_ = await ethers.getContractFactory('LockTOSv2');
+  const lockTOSv2 = (await LockTOSv2_.connect(deployer).deploy()) as LockTOSv2
+
+  await (await lockTOSv2.connect(deployer).initialize(
+    tos.address,
+    lockTosInitializeIfo.epochUnit,
+    lockTosInitializeIfo.maxTime
+  )).wait()
+
+  // console.log('lockTOSv2', lockTOSv2.address)
+
 
   const LockIdNFT_ = await ethers.getContractFactory('LockIdNFT');
   const lockIdNFT = (await LockIdNFT_.connect(deployer).deploy(
@@ -342,6 +357,7 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
     lockIdNftRegisterInL2: lockIdNftForRegister,
     addressManager: addressManager,
     l1Messenger: l1Messenger,
-    lockIdNftTransferable: lockIdNftTransferable
+    lockIdNftTransferable: lockIdNftTransferable,
+    lockTOSv2: lockTOSv2
   }
 }
