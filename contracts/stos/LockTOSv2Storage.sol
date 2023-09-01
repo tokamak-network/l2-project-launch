@@ -26,11 +26,22 @@ contract LockTOSv2Storage {
     address[] public uniqueUsers;
     LibLockTOSv2.Point[] public pointHistory;
     mapping(uint256 => LibLockTOSv2.Point[]) public lockPointHistory;
-    mapping(address => mapping(uint256 => LibLockTOSv2.LockedBalance))
-        public lockedBalances;
+    // mapping(address => mapping(uint256 => LibLockTOSv2.LockedBalance))
+    //     public lockedBalances;
+    // mapping(address => mapping(uint256 => bool)) public lockedBalances;
+    mapping(address => mapping(uint256 => bool)) public userLocksCheck;
 
     mapping(uint256 => LibLockTOSv2.LockedBalance) public allLocks;
     mapping(address => uint256[]) public userLocks;
     mapping(uint256 => int256) public slopeChanges;
     mapping(uint256 => bool) public inUse;
+
+
+    // Mapping from token ID to approved address
+    mapping (uint256 => address) public _tokenApprovals;
+
+    // Mapping from owner to operator approvals
+    mapping (address => mapping (address => bool)) public _operatorApprovals;
+
+
 }

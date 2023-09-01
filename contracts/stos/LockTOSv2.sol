@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.9;
 
 import "../common/AccessibleCommon.sol";
 import "./LockTOSv2Storage.sol";
@@ -19,6 +19,14 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
+
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 tokenId
+    );
+
+    event Approval(address from, address to, uint256 tokenId);
 
     event LockCreated(
         address account,
@@ -130,6 +138,104 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         lockId = createLock(_value, _unlockWeeks);
     }
 
+    function approve(address to, uint256 tokenId) public virtual {
+        address owner_ = ownerOf(tokenId);
+        require(to != owner_, "approval to current owner");
+
+        require(msg.sender == owner_ || isApprovedForAll(owner_, msg.sender),
+            "approve caller is not owner nor approved for all"
+        );
+
+        _approve(to, tokenId);
+    }
+
+    function _approve(address to, uint256 tokenId) private {
+        _tokenApprovals[tokenId] = to;
+        emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public virtual {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(msg.sender, tokenId), "transfer caller is not owner nor approved");
+
+        _transfer(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual {
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual {
+        require(_isApprovedOrOwner(msg.sender, tokenId), "transfer caller is not owner nor approved");
+        _safeTransfer(from, to, tokenId, _data);
+    }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
+        require(_exists(tokenId), "LockIdNFT: operator query for nonexistent token");
+        address owner_ = ownerOf(tokenId);
+        return (spender == owner_ || getApproved(tokenId) == spender || isApprovedForAll(owner_, spender));
+    }
+
+    function isApprovedForAll(address owner_, address operator) public view virtual returns (bool) {
+        return _operatorApprovals[owner_][operator];
+    }
+
+    function getApproved(uint256 tokenId) public view virtual returns (address) {
+        require(_exists(tokenId), "LockIdNFT: approved query for nonexistent token");
+
+        return _tokenApprovals[tokenId];
+    }
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory _data) internal virtual {
+        _transfer(from, to, tokenId);
+    }
+
+    function _transfer(address from, address to, uint256 tokenId) internal {
+        // require(ownerOf(tokenId) == from, "ProjectToken: transfer of token that is not own");
+        require(to != address(0), "to is zero address");
+
+        // 기본정보 수정
+        LibLockTOSv2.LockedBalance memory lock = allLocks[tokenId];
+        require(lock.owner == from, "transfer of token that is not own");
+        require(lock.withdrawalTime == 0, "It is withdrawn already.");
+        require(lock.end > block.timestamp, "Lock time is finished");
+
+        allLocks[tokenId].withdrawalTime = block.timestamp;
+        allLocks[tokenId].owner = address(0);
+        allLocks[tokenId].start = 0;
+        allLocks[tokenId].end = 0;
+        allLocks[tokenId].amount = 0;
+
+        LibLockTOSv2.Point memory userPoint =
+            LibLockTOSv2.Point({
+                timestamp: block.timestamp,
+                slope: 0,
+                bias: 0
+            });
+        lockPointHistory[tokenId].push(userPoint);
+
+        // 새로 락업아이디 추가 .
+        uint256 newLockId = ++lockIdCounter;
+
+        _deposit(to, newLockId, lock.amount, lock.end, false);
+
+        userLocksCheck[to][newLockId] = true;
+        userLocks[to].push(newLockId);
+
+        emit Transfer(address(0), from, newLockId);
+        emit Transfer(from, to, newLockId);
+    }
+
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        // LibLockTOSv2.LockedBalance memory token_ = allLocks[tokenId];
+        address owner_ = allLocks[tokenId].owner;
+        return owner_ != address(0);
+    }
+
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        return allLocks[tokenId].owner;
+    }
+
     /// @inheritdoc ILockTOSv2
     function increaseUnlockTime(uint256 _lockId, uint256 _unlockWeeks)
         external
@@ -138,7 +244,11 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         require(_unlockWeeks > 0, "Unlock period less than a week");
         cumulativeEpochUnit = cumulativeEpochUnit.add(_unlockWeeks);
 
-        LibLockTOSv2.LockedBalance memory lock = lockedBalances[msg.sender][_lockId];
+        // bool check = userLocksCheck[msg.sender][_lockId];
+        // require(check, "it is not your lockId");
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == msg.sender, "lockId's owner is not caller");
+
         uint256 unlockTime = lock.end.add(_unlockWeeks.mul(epochUnit));
         unlockTime = unlockTime.div(epochUnit).mul(epochUnit);
         require(
@@ -148,7 +258,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         require(lock.end > block.timestamp, "Lock time already finished");
         require(lock.end < unlockTime, "New lock time must be greater");
         require(lock.amount > 0, "No existing locked TOS");
-        _deposit(msg.sender, _lockId, 0, unlockTime);
+        _deposit(msg.sender, _lockId, 0, unlockTime, true);
 
         emit LockUnlockTimeIncreased(msg.sender, _lockId, unlockTime);
     }
@@ -163,8 +273,12 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         require(_value > 0 || _unlockWeeks > 0, "Unlock period less than a week");
         require(_addr == msg.sender, "sender is not addr");
 
-        LibLockTOSv2.LockedBalance memory lock = lockedBalances[msg.sender][_lockId];
-        require(lock.start != 0, "it is not yours");
+        // LibLockTOSv2.LockedBalance memory lock = userLocksCheck[msg.sender][_lockId];
+        // bool isOwner = userLocksCheck[msg.sender][_lockId];
+        // require(isOwner, "lockId's owner is not caller");
+
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == msg.sender, "lockId's owner is not caller");
 
         uint256 unlockTime = lock.end.add(_unlockWeeks.mul(epochUnit));
         unlockTime = unlockTime.div(epochUnit).mul(epochUnit);
@@ -179,7 +293,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         if(_unlockWeeks > 0)
             cumulativeEpochUnit = cumulativeEpochUnit.add(_unlockWeeks);
 
-        _deposit(msg.sender, _lockId, _value, unlockTime);
+        _deposit(msg.sender, _lockId, _value, unlockTime, true);
 
         emit LockIncreased(msg.sender, _lockId, _value, unlockTime);
     }
@@ -194,12 +308,13 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         for (uint256 i = 0; i < locks.length; i++) {
             LibLockTOSv2.LockedBalance memory lock = allLocks[locks[i]];
             if (
-                lock.withdrawn == false &&
+                lock.withdrawalTime == 0 &&
                 locks[i] > 0 &&
                 lock.amount > 0 &&
                 lock.start > 0 &&
                 lock.end > 0 &&
-                lock.end < block.timestamp
+                lock.end < block.timestamp &&
+                lock.owner == msg.sender
             ) {
                 _withdraw(locks[i]);
             }
@@ -219,9 +334,11 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
 
     /// @dev Send staked amount back to user
     function _withdraw(uint256 _lockId) internal {
-        LibLockTOSv2.LockedBalance memory lockedOld =
-            lockedBalances[msg.sender][_lockId];
-        require(lockedOld.withdrawn == false, "Already withdrawn");
+
+        // require(userLocksCheck[msg.sender][_lockId], "it is not your lockId");
+        LibLockTOSv2.LockedBalance memory lockedOld = allLocks[_lockId];
+        require(lockedOld.owner == msg.sender, "lockId's owner is not caller");
+        require(lockedOld.withdrawalTime == 0, "Already withdrawn");
         require(lockedOld.start > 0, "Lock does not exist");
         require(lockedOld.end < block.timestamp, "Lock time not finished");
         require(lockedOld.amount > 0, "No amount to withdraw");
@@ -232,7 +349,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
                 start: 0,
                 end: 0,
                 owner: address(0),
-                withdrawn: true
+                withdrawalTime: block.timestamp
             });
 
         // Checkpoint
@@ -240,8 +357,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
 
         // Transfer TOS back
         uint256 amount = lockedOld.amount;
-        lockedBalances[msg.sender][_lockId] = lockedNew;
+        // userLocksCheck[lockedOld.owner][_lockId] = true;
         allLocks[_lockId] = lockedNew;
+        userLocksCheck[lockedOld.owner][_lockId] = false;
 
         IERC20(tos).transfer(msg.sender, amount);
         emit LockWithdrawn(msg.sender, _lockId, amount);
@@ -273,7 +391,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         lockId = lockIdCounter;
         // console.log("lockId %s", lockId);
 
-        _deposit(msg.sender, lockId, _value, unlockTime);
+        _deposit(msg.sender, lockId, _value, unlockTime, true);
+
+        userLocksCheck[msg.sender][lockId] = true;
         userLocks[msg.sender].push(lockId);
 
         emit LockCreated(msg.sender, lockId, _value, unlockTime);
@@ -286,13 +406,16 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 _value
     ) public override {
         require(_value > 0, "Value locked should be non-zero");
-        LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][_lockId];
-        require(lock.withdrawn == false, "Lock is withdrawn");
+        // require(userLocksCheck[_addr][_lockId], "it is not your lockId");
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == _addr, "lockId's owner is not addr");
+        require(lock.withdrawalTime == 0, "Lock is withdrawn");
         require(lock.start > 0, "Lock does not exist");
         require(lock.end > block.timestamp, "Lock time is finished");
 
         cumulativeTOSAmount = cumulativeTOSAmount.add(_value);
-        _deposit(_addr, _lockId, _value, 0);
+
+        _deposit(_addr, _lockId, _value, 0, true);
         emit LockDeposited(msg.sender, _lockId, _value);
     }
 
@@ -327,8 +450,10 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 stakedAmount = 0;
         for (uint256 i = 0; i < len; ++i) {
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
-            stakedAmount = stakedAmount.add(lock.amount);
+            if (userLocksCheck[_addr][lockId]) {
+                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+                stakedAmount = stakedAmount.add(lock.amount);
+            }
         }
         return stakedAmount;
     }
@@ -339,10 +464,13 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 amount = 0;
         for(uint i = 0; i < len; i++){
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
-            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawn == false) {
-                amount = amount.add(lock.amount);
+            if (userLocksCheck[_addr][lockId]) {
+                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+                if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
+                    amount = amount.add(lock.amount);
+                }
             }
+
         }
         return amount;
     }
@@ -414,7 +542,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
 
         // console.log('balanceOfLock currentBias');
         // console.logInt(currentBias);
-        uint256 bal = uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0));
+        // uint256 bal = uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0));
         // console.log('balanceOfLock currentBias %s', bal);
         return
             uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0))
@@ -483,8 +611,8 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 size = 0;
         for(uint i = 0; i < len; i++){
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
-            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawn == false) {
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
                 size++;
             }
         }
@@ -493,8 +621,8 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         size = 0;
         for(uint i = 0; i < len; i++) {
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
-            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawn == false) {
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
                 withdrawable[size++] = lockId;
             }
         }
@@ -512,7 +640,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 _size = 0;
         for(uint i = 0; i < len; i++){
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
+
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+
             if(lock.end > block.timestamp) {
                 _size++;
             }
@@ -522,7 +652,8 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         _size = 0;
         for(uint i = 0; i < len; i++) {
             uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = lockedBalances[_addr][lockId];
+
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
             if(lock.end > block.timestamp) {
                 activeLocks[_size++] = lockId;
             }
@@ -571,17 +702,18 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         address _addr,
         uint256 _lockId,
         uint256 _value,
-        uint256 _unlockTime
+        uint256 _unlockTime,
+        bool _boolCheckPoint
     ) internal ifFree {
-        LibLockTOSv2.LockedBalance memory lockedOld =
-            lockedBalances[_addr][_lockId];
+
+        LibLockTOSv2.LockedBalance memory lockedOld = allLocks[_lockId];
         LibLockTOSv2.LockedBalance memory lockedNew =
             LibLockTOSv2.LockedBalance({
                 amount: lockedOld.amount,
                 start: lockedOld.start,
                 end: lockedOld.end,
                 owner: _addr,
-                withdrawn: false
+                withdrawalTime: 0
             });
 
         // Make new lock
@@ -594,10 +726,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         }
 
         // Checkpoint
-        _checkpoint(lockedNew, lockedOld);
+        if (_boolCheckPoint) _checkpoint(lockedNew, lockedOld);
 
         // Save new lock
-        lockedBalances[_addr][_lockId] = lockedNew;
         allLocks[_lockId] = lockedNew;
 
         // Save user point,
@@ -614,10 +745,11 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         lockPointHistory[_lockId].push(userPoint);
 
         // Transfer TOS
-        require(
-            IERC20(tos).transferFrom(msg.sender, address(this), _value),
-            "LockTOS: fail transferFrom"
-        );
+        if (_boolCheckPoint && _value != 0)
+            require(
+                IERC20(tos).transferFrom(msg.sender, address(this), _value),
+                "LockTOS: fail transferFrom"
+            );
     }
 
     /// @dev Checkpoint

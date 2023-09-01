@@ -240,8 +240,8 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
   )).wait()
 
   // console.log('lockTOS', lockTOS.address)
-  await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
-  await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+  await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("100000000"))).wait();
+  await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("100000000"))).wait();
 
   //--
   const LockTOSv2_ = await ethers.getContractFactory('LockTOSv2');
