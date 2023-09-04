@@ -9,11 +9,11 @@ library LibLockTOSv2 {
     }
 
     struct LockedBalance {
+        address owner;
         uint256 start;
         uint256 end;
         uint256 amount;
-        address owner;
-        bool withdrawn;
+        uint256 withdrawalTime;
     }
 
     struct SlopeChange {
@@ -22,11 +22,8 @@ library LibLockTOSv2 {
         uint256 changeTime;
     }
 
-    struct LockedBalanceInfo {
-        uint256 id;
-        uint256 start;
-        uint256 end;
+    struct UnlimitedAmount {
+        uint32 timestamp;
         uint256 amount;
-        uint256 balance;
     }
 }

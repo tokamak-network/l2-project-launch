@@ -6,11 +6,11 @@ import "../libraries/LibLockTOSv2.sol";
 
 interface ILockTOSv2 {
 
-    /// @dev Returns addresses of all holders of LockTOS
-    function allHolders() external returns (address[] memory);
+    // /// @dev Returns addresses of all holders of LockTOS
+    // function allHolders() external returns (address[] memory);
 
-    /// @dev Returns addresses of active holders of LockTOS
-    function activeHolders() external returns (address[] memory);
+    // /// @dev Returns addresses of active holders of LockTOS
+    // function activeHolders() external returns (address[] memory);
 
     /// @dev Returns all withdrawable locks
     function withdrawableLocksOf(address user) external view returns (uint256[] memory);
@@ -18,8 +18,8 @@ interface ILockTOSv2 {
     /// @dev Returns all locks of `_addr`
     function locksOf(address _addr) external view returns (uint256[] memory);
 
-    /// @dev Returns all locks of `_addr`
-    function activeLocksOf(address _addr) external view returns (uint256[] memory);
+    // /// @dev Returns all locks of `_addr`
+    // function activeLocksOf(address _addr) external view returns (uint256[] memory);
 
     /// @dev Total locked amount of `_addr`
     function totalLockedAmountOf(address _addr) external view returns (uint256);
@@ -76,16 +76,6 @@ interface ILockTOSv2 {
         uint256 _lockId,
         uint256 _value
     ) external;
-
-    /// @dev Create lock using permit
-    function createLockWithPermit(
-        uint256 _value,
-        uint256 _unlockTime,
-        uint256 _deadline,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
-    ) external returns (uint256 lockId);
 
     /// @dev Create lock
     function createLock(uint256 _value, uint256 _unlockTime)

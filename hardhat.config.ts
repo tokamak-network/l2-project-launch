@@ -77,10 +77,10 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      forking: {
-        url: `${process.env.ETH_NODE_URI_GOERLI}`,
-        blockNumber: 9448400
-      },
+      // forking: {
+      //   url: `${process.env.ETH_NODE_URI_GOERLI}`,
+      //   blockNumber: 9448400
+      // },
       // forking: {
       //   url: `${process.env.ETH_NODE_URI_DARIUS}`,
       //   blockNumber: 21600

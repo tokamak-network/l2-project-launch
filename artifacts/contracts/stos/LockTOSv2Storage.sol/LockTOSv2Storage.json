@@ -1,0 +1,468 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "LockTOSv2Storage",
+  "sourceName": "contracts/stos/LockTOSv2Storage.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "MULTIPLIER",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "_operatorApprovals",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_tokenApprovals",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "allLocks",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "start",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "end",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "withdrawalTime",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cumulativeEpochUnit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cumulativeTOSAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "epochUnit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "inUse",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "indexCheckOfTimesetForUnlimited",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "indexOfTimesetForUnlimited",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lockIdCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "lockPointHistory",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "bias",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "slope",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "migratedL2",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pauseProxy",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "pointHistory",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "bias",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "slope",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "slopeChanges",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakeRegistry",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tos",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "unlimitedAmountByAccount",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "timestamp",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "unlimitedHistoryByWeek",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "timestamp",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "userLocks",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "userLocksCheck",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052600160075534801561001557600080fd5b5061065b806100256000396000f3fe608060405234801561001057600080fd5b506004361061018d5760003560e01c8063a1f5f50e116100e3578063b9f2679b1161008c578063edc3bc3f11610066578063edc3bc3f1461041d578063f52a36f71461044b578063fd2dcecf1461046b57600080fd5b8063b9f2679b146103c3578063c79acdda146103f1578063cd29ca0e1461041457600080fd5b8063afae883e116100bd578063afae883e1461039e578063b534ad56146103a7578063b8355a4b146103b057600080fd5b8063a1f5f50e1461033c578063a7cc013614610362578063aa33fedb1461038b57600080fd5b8063683048351161014557806389f395de1161011f57806389f395de146103035780638ad4c44714610316578063993b6ef91461032957600080fd5b806368304835146102815780637267ad63146102b1578063872d0109146102e057600080fd5b8063367b7b2311610176578063367b7b23146101bd57806363a8fd89146101eb57806363d5a3d91461020857600080fd5b8063059f8b161461019257806322e67e71146101b4575b600080fd5b6101a1670de0b6b3a764000081565b6040519081526020015b60405180910390f35b6101a160025481565b6101d06101cb36600461059a565b610474565b604080519384526020840192909252908201526060016101ab565b6000546101f89060ff1681565b60405190151581526020016101ab565b61024f6102163660046105bc565b600b60205260009081526040902080546001820154600283015460038401546004909401546001600160a01b0390931693919290919085565b604080516001600160a01b0390961686526020860194909452928401919091526060830152608082015260a0016101ab565b6000546102999061010090046001600160a01b031681565b6040516001600160a01b0390911681526020016101ab565b6102c46102bf36600461059a565b6104b6565b6040805163ffffffff90931683526020830191909152016101ab565b6101f86102ee3660046105bc565b60146020526000908152604090205460ff1681565b600354610299906001600160a01b031681565b6101d06103243660046105bc565b6104f9565b6102c46103373660046105f1565b61052c565b6000546101f8907501000000000000000000000000000000000000000000900460ff1681565b6102996103703660046105bc565b600f602052600090815260409020546001600160a01b031681565b6101a16103993660046105f1565b610548565b6101a160045481565b6101a160055481565b6101a16103be3660046105bc565b610579565b6101f86103d13660046105f1565b600a60209081526000928352604080842090915290825290205460ff1681565b6101f86103ff3660046105bc565b600e6020526000908152604090205460ff1681565b6101a160065481565b6101f861042b36600461061b565b601060209081526000928352604080842090915290825290205460ff1681565b6101a16104593660046105bc565b600d6020526000908152604090205481565b6101a160015481565b6009602052816000526040600020818154811061049057600080fd5b600091825260209091206003909102018054600182015460029092015490935090915083565b601260205281600052604060002081815481106104d257600080fd5b60009182526020909120600290910201805460019091015463ffffffff9091169250905082565b6008818154811061050957600080fd5b600091825260209091206003909102018054600182015460029092015490925083565b601160205281600052604060002081815481106104d257600080fd5b600c602052816000526040600020818154811061056457600080fd5b90600052602060002001600091509150505481565b6013818154811061058957600080fd5b600091825260209091200154905081565b600080604083850312156105ad57600080fd5b50508035926020909101359150565b6000602082840312156105ce57600080fd5b5035919050565b80356001600160a01b03811681146105ec57600080fd5b919050565b6000806040838503121561060457600080fd5b61060d836105d5565b946020939093013593505050565b6000806040838503121561062e57600080fd5b610637836105d5565b9150610645602084016105d5565b9050925092905056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061018d5760003560e01c8063a1f5f50e116100e3578063b9f2679b1161008c578063edc3bc3f11610066578063edc3bc3f1461041d578063f52a36f71461044b578063fd2dcecf1461046b57600080fd5b8063b9f2679b146103c3578063c79acdda146103f1578063cd29ca0e1461041457600080fd5b8063afae883e116100bd578063afae883e1461039e578063b534ad56146103a7578063b8355a4b146103b057600080fd5b8063a1f5f50e1461033c578063a7cc013614610362578063aa33fedb1461038b57600080fd5b8063683048351161014557806389f395de1161011f57806389f395de146103035780638ad4c44714610316578063993b6ef91461032957600080fd5b806368304835146102815780637267ad63146102b1578063872d0109146102e057600080fd5b8063367b7b2311610176578063367b7b23146101bd57806363a8fd89146101eb57806363d5a3d91461020857600080fd5b8063059f8b161461019257806322e67e71146101b4575b600080fd5b6101a1670de0b6b3a764000081565b6040519081526020015b60405180910390f35b6101a160025481565b6101d06101cb36600461059a565b610474565b604080519384526020840192909252908201526060016101ab565b6000546101f89060ff1681565b60405190151581526020016101ab565b61024f6102163660046105bc565b600b60205260009081526040902080546001820154600283015460038401546004909401546001600160a01b0390931693919290919085565b604080516001600160a01b0390961686526020860194909452928401919091526060830152608082015260a0016101ab565b6000546102999061010090046001600160a01b031681565b6040516001600160a01b0390911681526020016101ab565b6102c46102bf36600461059a565b6104b6565b6040805163ffffffff90931683526020830191909152016101ab565b6101f86102ee3660046105bc565b60146020526000908152604090205460ff1681565b600354610299906001600160a01b031681565b6101d06103243660046105bc565b6104f9565b6102c46103373660046105f1565b61052c565b6000546101f8907501000000000000000000000000000000000000000000900460ff1681565b6102996103703660046105bc565b600f602052600090815260409020546001600160a01b031681565b6101a16103993660046105f1565b610548565b6101a160045481565b6101a160055481565b6101a16103be3660046105bc565b610579565b6101f86103d13660046105f1565b600a60209081526000928352604080842090915290825290205460ff1681565b6101f86103ff3660046105bc565b600e6020526000908152604090205460ff1681565b6101a160065481565b6101f861042b36600461061b565b601060209081526000928352604080842090915290825290205460ff1681565b6101a16104593660046105bc565b600d6020526000908152604090205481565b6101a160015481565b6009602052816000526040600020818154811061049057600080fd5b600091825260209091206003909102018054600182015460029092015490935090915083565b601260205281600052604060002081815481106104d257600080fd5b60009182526020909120600290910201805460019091015463ffffffff9091169250905082565b6008818154811061050957600080fd5b600091825260209091206003909102018054600182015460029092015490925083565b601160205281600052604060002081815481106104d257600080fd5b600c602052816000526040600020818154811061056457600080fd5b90600052602060002001600091509150505481565b6013818154811061058957600080fd5b600091825260209091200154905081565b600080604083850312156105ad57600080fd5b50508035926020909101359150565b6000602082840312156105ce57600080fd5b5035919050565b80356001600160a01b03811681146105ec57600080fd5b919050565b6000806040838503121561060457600080fd5b61060d836105d5565b946020939093013593505050565b6000806040838503121561062e57600080fd5b610637836105d5565b9150610645602084016105d5565b9050925092905056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
