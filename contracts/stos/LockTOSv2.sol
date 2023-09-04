@@ -6,46 +6,22 @@ import "./LockTOSv2Storage.sol";
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+// import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/SignedSafeMath.sol";
 
 import "../libraries/LibLockTOSv2.sol";
 import "../interfaces/ILockTOSv2.sol";
+import "../interfaces/ILockTOSv2Event.sol";
 import "../interfaces/ITOS.sol";
 import "hardhat/console.sol";
 
-contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
-    using SafeMath for uint256;
+contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Event {
+    // using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
 
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId
-    );
-
-    event Approval(address from, address to, uint256 tokenId);
-
-    event LockCreated(
-        address account,
-        uint256 lockId,
-        uint256 value,
-        uint256 unlockTime
-    );
-    event LockAmountIncreased(address account, uint256 lockId, uint256 value);
-    event LockUnlockTimeIncreased(
-        address account,
-        uint256 lockId,
-        uint256 unlockTime
-    );
-    event LockIncreased(address account, uint256 lockId, uint256 value, uint256 unlockTime);
-    event LockDeposited(address account, uint256 lockId, uint256 value);
-    event LockWithdrawn(address account, uint256 lockId, uint256 value);
-    event IncreasedUnlimitedLock(address caller, address account, uint256 amount);
-    event DecreasedUnlimitedLock(address caller, address account, uint256 amount);
-    event TransferUnlimitedLock(address from, address to, uint256 amount);
 
     /// @dev Check if a function is used or not
     modifier ifFree {
@@ -55,14 +31,15 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         free = 1;
     }
 
-    constructor() {
+    constructor(string memory _name, string memory _symbol) {
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setupRole(ADMIN_ROLE, msg.sender);
-        lockIdCounter = 0;
-        cumulativeEpochUnit = 0;
-        cumulativeTOSAmount = 0;
+        name = _name;
+        name = _symbol;
     }
 
+
+    /** onlyOwner  */
     function initialize(
         address _tos,
         uint256 _epochUnit,
@@ -74,24 +51,182 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         maxTime = _maxTime;
     }
 
-    /// @inheritdoc ILockTOSv2
-    function setMaxTime(uint256 _maxTime) external override onlyOwner {
+    function setMaxTime(uint256 _maxTime) external onlyOwner {
         maxTime = _maxTime;
     }
 
-    /// @inheritdoc ILockTOSv2
-    function needCheckpoint() external override view returns (bool need) {
-        uint256 len = pointHistory.length;
-        if (len == 0) {
-            return true;
-        }
-        need = (block.timestamp - pointHistory[len - 1].timestamp) > epochUnit; // if the last record was within a week
+    /** external  */
+
+    function transferFrom(address from, address to, uint256 tokenId) external virtual {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(msg.sender, tokenId), "transfer caller is not owner nor approved");
+
+        _transfer(from, to, tokenId);
     }
 
-    /// @inheritdoc ILockTOSv2
-    function increaseAmount(uint256 _lockId, uint256 _value) external override {
+    function safeTransferFrom(address from, address to, uint256 tokenId) external virtual {
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
+
+    function transferFromUnlimited(address from, address to, uint256 amount) external virtual {
+        address spender = msg.sender;
+        require (spender == from || isApprovedForAll(from, spender), "not approved");
+
+        _increaseUnlimitedAccount(from, amount, false, false);
+        _increaseUnlimitedAccount(to, amount, true, false);
+
+        emit TransferUnlimitedLock(from, to, amount);
+    }
+
+    function createLock(uint256 _value, uint256 _unlockWeeks)
+        public
+        returns (uint256 lockId)
+    {
+        require(_value > 0, "Value locked should be non-zero");
+        require(_unlockWeeks > 0, "Unlock period less than a week");
+
+        cumulativeEpochUnit = cumulativeEpochUnit + _unlockWeeks;
+        cumulativeTOSAmount = cumulativeTOSAmount + _value;
+        uint256 unlockTime = block.timestamp + (_unlockWeeks * epochUnit);
+        unlockTime = unlockTime / epochUnit * epochUnit;
+        require(
+            unlockTime - block.timestamp <= maxTime,
+            "Max unlock time is 3 years"
+        );
+
+        lockId = ++lockIdCounter;
+
+        _deposit(msg.sender, lockId, _value, unlockTime, true, true);
+
+        userLocksCheck[msg.sender][lockId] = true;
+        userLocks[msg.sender].push(lockId);
+
+        emit LockCreated(msg.sender, lockId, _value, unlockTime);
+    }
+
+    function increaseAmount(uint256 _lockId, uint256 _value) external {
         depositFor(msg.sender, _lockId, _value);
     }
+
+    function increaseUnlockTime(uint256 _lockId, uint256 _unlockWeeks)
+        external
+    {
+        require(_unlockWeeks > 0, "Unlock period less than a week");
+        cumulativeEpochUnit = cumulativeEpochUnit + _unlockWeeks;
+
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == msg.sender, "lockId's owner is not caller");
+
+        uint256 unlockTime = lock.end + (_unlockWeeks * epochUnit);
+        unlockTime = unlockTime / epochUnit * epochUnit;
+        require(
+            unlockTime - block.timestamp < maxTime,
+            "Max unlock time is 3 years"
+        );
+        require(lock.end > block.timestamp, "Lock time already finished");
+        require(lock.end < unlockTime, "New lock time must be greater");
+        require(lock.amount > 0, "No existing locked TOS");
+        _deposit(msg.sender, _lockId, 0, unlockTime, true, false);
+
+        emit LockUnlockTimeIncreased(msg.sender, _lockId, unlockTime);
+    }
+
+    function increaseLock(
+        address _addr,
+        uint256 _lockId,
+        uint256 _value,
+        uint256 _unlockWeeks)
+        external
+    {
+        require(_value > 0 || _unlockWeeks > 0, "Unlock period less than a week");
+        require(_addr == msg.sender, "sender is not addr");
+
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == msg.sender, "lockId's owner is not caller");
+
+        uint256 unlockTime = (lock.end + (_unlockWeeks * epochUnit)) / epochUnit * epochUnit;
+
+        require(
+            unlockTime - block.timestamp < maxTime,
+            "Max unlock time is 3 years"
+        );
+        require(lock.end > block.timestamp, "Lock time already finished");
+        require(lock.end < unlockTime, "New lock time must be greater");
+        require(lock.amount > 0, "No existing locked TOS");
+
+        if(_unlockWeeks > 0)
+            cumulativeEpochUnit = cumulativeEpochUnit + _unlockWeeks;
+
+        _deposit(msg.sender, _lockId, _value, unlockTime, true, true);
+
+        emit LockIncreased(msg.sender, _lockId, _value, unlockTime);
+    }
+
+    function increaseUnlimitedLock(address account, uint256 amount)
+        public nonZero(amount)
+    {
+        // caller 는 무조건 스테이커가 가능하게 하도록 수정되어야 함 .
+        require(msg.sender == account, 'caller is not account');
+        cumulativeTOSAmount = cumulativeTOSAmount + amount;
+
+        _increaseUnlimitedAccount(account, amount, true, true);
+        _increaseUnlimitedHistory(amount, true);
+        // checkUniqueUser(account);
+
+        emit IncreasedUnlimitedLock(msg.sender, account, amount);
+    }
+
+    function decreaseUnlimitedLock(address account, uint256 amount)
+        public nonZero(amount)
+    {
+        // caller 는 무조건 스테이커가 가능하게 하도록 수정되어야 함 .
+        require(msg.sender == account, 'caller is not account');
+
+        _increaseUnlimitedAccount(account, amount, false, false);
+        _increaseUnlimitedHistory(amount, false);
+
+        /////////////////////////////////////////////////
+        // 락아이디로 변경
+        uint256 unlockTime = (block.timestamp + ((maxTime / epochUnit) * epochUnit)) / epochUnit * epochUnit;
+        uint256 lockId = ++lockIdCounter;
+
+        _deposit(account, lockId, amount, unlockTime, true, false);
+        userLocksCheck[account][lockId] = true;
+        userLocks[account].push(lockId);
+
+        emit DecreasedUnlimitedLock(msg.sender, account, amount);
+        emit LockCreated(account, lockId, amount, unlockTime);
+    }
+
+    function withdrawAll() external ifFree {
+        uint256[] storage locks = userLocks[msg.sender];
+        if (locks.length == 0) {
+            return;
+        }
+
+        for (uint256 i = 0; i < locks.length; i++) {
+            LibLockTOSv2.LockedBalance memory lock = allLocks[locks[i]];
+            if (
+                lock.withdrawalTime == 0 &&
+                locks[i] > 0 &&
+                lock.amount > 0 &&
+                lock.start > 0 &&
+                lock.end > 0 &&
+                lock.end < block.timestamp &&
+                lock.owner == msg.sender
+            ) {
+                _withdraw(locks[i]);
+            }
+        }
+    }
+
+    function totalLockedAmountOf(address _addr) external view returns (uint256) {
+        return totalLockedAmountOfLock(_addr) + balanceOfUnlimitedAmount(_addr);
+    }
+
+
+    /** public  */
 
     function approve(address to, uint256 tokenId) public virtual {
         address owner_ = ownerOf(tokenId);
@@ -104,20 +239,11 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         _approve(to, tokenId);
     }
 
-    function _approve(address to, uint256 tokenId) private {
-        _tokenApprovals[tokenId] = to;
-        emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
-    }
+    function setApprovalForAll(address operator, bool approved) public virtual override {
+        require(operator != msg.sender, "approve to caller");
 
-    function transferFrom(address from, address to, uint256 tokenId) public virtual {
-        //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(msg.sender, tokenId), "transfer caller is not owner nor approved");
-
-        _transfer(from, to, tokenId);
-    }
-
-    function safeTransferFrom(address from, address to, uint256 tokenId) public virtual {
-        safeTransferFrom(from, to, tokenId, "");
+        _operatorApprovals[msg.sender][operator] = approved;
+        emit ApprovalForAll(msg.sender, operator, approved);
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data) public virtual {
@@ -125,15 +251,366 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         _safeTransfer(from, to, tokenId, _data);
     }
 
-    function transferFromUnlimited(address from, address to, uint256 amount) public virtual {
-        address spender = msg.sender;
-        require (spender == from || isApprovedForAll(from, spender), "not approved");
+    function depositFor(
+        address _addr,
+        uint256 _lockId,
+        uint256 _value
+    ) public {
+        require(_value > 0, "Value locked should be non-zero");
+        // require(userLocksCheck[_addr][_lockId], "it is not your lockId");
+        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
+        require(lock.owner == _addr, "lockId's owner is not addr");
+        require(lock.withdrawalTime == 0, "Lock is withdrawn");
+        require(lock.start > 0, "Lock does not exist");
+        require(lock.end > block.timestamp, "Lock time is finished");
 
-        _increaseUnlimitedAccount(from, amount, false, false);
-        _increaseUnlimitedAccount(to, amount, true, false);
+        cumulativeTOSAmount = cumulativeTOSAmount + _value;
 
-        emit TransferUnlimitedLock(from, to, amount);
+        _deposit(_addr, _lockId, _value, 0, true, true);
+        emit LockDeposited(msg.sender, _lockId, _value);
     }
+
+    function withdraw(uint256 _lockId) public  ifFree {
+        require(_lockId > 0, "_lockId is zero");
+        _withdraw(_lockId);
+    }
+
+    /** view  */
+
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        return allLocks[tokenId].owner;
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
+        require(_exists(tokenId), "nonexistent token");
+
+        string memory _tokenURI = tokenURIs[tokenId];
+        string memory base = baseURI;
+
+        // If there is no base URI, return the token URI.
+        if (bytes(base).length == 0) {
+            return _tokenURI;
+        }
+        // If both are set, concatenate the baseURI and tokenURI (via abi.encodePacked).
+        if (bytes(_tokenURI).length > 0) {
+            return string(abi.encodePacked(base, _tokenURI));
+        }
+        // If there is a baseURI but no tokenURI, concatenate the tokenID to the baseURI.
+    }
+
+    function getApproved(uint256 tokenId) public view virtual returns (address) {
+        require(_exists(tokenId), "LockIdNFT: approved query for nonexistent token");
+
+        return _tokenApprovals[tokenId];
+    }
+
+    function totalSupply() external view returns (uint256) {
+         return totalSupplyBalance() + totalSupplyUnlimited();
+    }
+
+    function totalSupplyAt(uint256 _timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        return totalSupplyBalanceAt(_timestamp) + totalSupplyUnlimitedAt(_timestamp);
+    }
+
+    function totalSupplyBalance()
+        public
+        view
+        returns (uint256)
+    {
+        if (pointHistory.length == 0) return 0;
+
+        LibLockTOSv2.Point memory point = _fillRecordGaps(
+            pointHistory[pointHistory.length - 1],
+            block.timestamp
+        );
+
+        int256 currentBias = point.slope * int256(block.timestamp - point.timestamp);
+        return
+            uint256(point.bias > currentBias ? point.bias-(currentBias) : int256(0)) / MULTIPLIER;
+    }
+
+    function totalSupplyBalanceAt(uint256 _timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        if (pointHistory.length == 0)  return 0;
+        (bool success, LibLockTOSv2.Point memory point) = _findClosestPoint(pointHistory, _timestamp);
+        if (!success)   return 0;
+
+        point = _fillRecordGaps(point, _timestamp);
+        int256 currentBias = point.slope * int256(_timestamp-point.timestamp);
+        return
+            uint256(point.bias > currentBias ? point.bias - currentBias : int256(0)) / MULTIPLIER;
+    }
+
+    function totalSupplyUnlimited()
+        public
+        view
+        returns (uint256 amount)
+    {
+        // 마지막 포인트
+        LibLockTOSv2.UnlimitedAmount memory pointLast = lastPointOfTimeIndexForUnlimited(
+                        (indexOfTimesetForUnlimited.length != 0 ? indexOfTimesetForUnlimited[indexOfTimesetForUnlimited.length - 1]:0)
+                    );
+       amount = balanceOfUnlimitedAt(pointLast, block.timestamp);
+    }
+
+    function totalSupplyUnlimitedAt(uint256 _timestamp)
+        public
+        view
+        returns (uint256 amount)
+    {
+        // 해당 타임에 맞는 타임인덱스
+        (bool success, uint256 timeindex) = _findClosestUnlimitedTimeindex(_timestamp);
+        if(!success) return 0;
+        (bool success1, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedHistoryByWeek[timeindex], _timestamp);
+        if(!success1) return 0;
+        amount = balanceOfUnlimitedAt(point, _timestamp);
+    }
+
+    function balanceOfLock(uint256 _lockId)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 len = lockPointHistory[_lockId].length;
+        if (len == 0) {
+            return 0;
+        }
+
+        LibLockTOSv2.Point memory point = lockPointHistory[_lockId][len - 1];
+
+        int256 currentBias = point.slope * int256(block.timestamp - point.timestamp);
+
+        return
+            uint256(point.bias > currentBias ? point.bias - currentBias : int256(0)) / MULTIPLIER;
+    }
+
+    function balanceOfLockAt(uint256 _lockId, uint256 _timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        (bool success, LibLockTOSv2.Point memory point) =
+            _findClosestPoint(lockPointHistory[_lockId], _timestamp);
+        if (!success) {
+            return 0;
+        }
+        int256 currentBias = point.slope * int256(_timestamp-point.timestamp);
+        return  uint256(point.bias > currentBias ? point.bias-currentBias : int256(0)) / MULTIPLIER;
+    }
+
+
+
+    function balanceOf(address _addr)
+        public
+        view
+        returns (uint256 balance)
+    {
+        return balanceOfLock(_addr) + balanceOfUnlimited(_addr);
+    }
+
+    function balanceOfAt(address _addr, uint256 _timestamp)
+        public
+        view
+        returns (uint256 balance)
+    {
+        return balanceOfLockAt(_addr, _timestamp) + balanceOfUnlimitedAt(_addr, _timestamp);
+    }
+
+    function balanceOfLock(address _addr)
+        public
+        view
+        returns (uint256 balance)
+    {
+        uint256[] memory locks = userLocks[_addr];
+        if (locks.length == 0) return 0;
+        for (uint256 i = 0; i < locks.length; ++i) {
+            balance = balance + balanceOfLock(locks[i]);
+        }
+    }
+
+    function balanceOfLockAt(address _addr, uint256 _timestamp)
+        public
+        view
+        returns (uint256 balance)
+    {
+        uint256[] memory locks = userLocks[_addr];
+        if (locks.length == 0) return 0;
+        for (uint256 i = 0; i < locks.length; ++i) {
+            balance = balance + balanceOfLockAt(locks[i], _timestamp);
+        }
+    }
+
+    function balanceOfUnlimited(address _addr)
+        public
+        view
+        returns (uint256 balance)
+    {
+        uint256 len = unlimitedAmountByAccount[_addr].length;
+        balance = (len == 0? 0: balanceOfUnlimitedAt(unlimitedAmountByAccount[_addr][len - 1], block.timestamp));
+
+    }
+
+    function balanceOfUnlimitedAt(address _addr, uint256 _timestamp)
+        public
+        view
+        returns (uint256 balance)
+    {
+        (bool success, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedAmountByAccount[_addr], _timestamp);
+        balance = (!success? 0: balanceOfUnlimitedAt(point, _timestamp));
+    }
+
+    function balanceOfUnlimitedAt(LibLockTOSv2.UnlimitedAmount memory point, uint256 timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        if(timestamp < point.timestamp || point.amount == 0) return 0;
+        return (point.amount * MULTIPLIER / maxTime * maxTime / MULTIPLIER);
+    }
+
+    function balanceOfUnlimitedAmount(address _addr)
+        public
+        view
+        returns (uint256 amount)
+    {
+        uint256 len = unlimitedAmountByAccount[_addr].length;
+        amount = (len == 0? 0: unlimitedAmountByAccount[_addr][len - 1].amount);
+    }
+
+    function needCheckpoint() external view returns (bool need) {
+        uint256 len = pointHistory.length;
+        if (len == 0) {
+            return true;
+        }
+        need = (block.timestamp - pointHistory[len - 1].timestamp) > epochUnit; // if the last record was within a week
+    }
+
+    function lastPointOfTimeIndexForUnlimited(uint256 _index) public view returns (LibLockTOSv2.UnlimitedAmount memory) {
+
+        LibLockTOSv2.UnlimitedAmount[] memory points = unlimitedHistoryByWeek[_index];
+
+        if (points.length != 0) {
+            return LibLockTOSv2.UnlimitedAmount({
+                timestamp: points[points.length-1].timestamp,
+                amount: points[points.length-1].amount
+            });
+        }
+
+        return LibLockTOSv2.UnlimitedAmount({
+            timestamp: 0,
+            amount: 0
+        });
+    }
+
+
+    function nextTimeIndex(uint256 _stime) public view returns(uint256) {
+        return (_stime +  epochUnit) / epochUnit * epochUnit;
+    }
+
+    function globalCheckpoint() external {
+        _recordHistoryPoints();
+    }
+
+    function totalLockedAmountOfLock(address _addr) public view returns (uint256) {
+        uint256 len = userLocks[_addr].length;
+        uint256 stakedAmount = 0;
+        for (uint256 i = 0; i < len; ++i) {
+            uint256 lockId = userLocks[_addr][i];
+            if (userLocksCheck[_addr][lockId]) {
+                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+                stakedAmount = stakedAmount + lock.amount;
+            }
+        }
+        return stakedAmount;
+    }
+
+    function withdrawableAmountOf(address _addr) external view returns (uint256) {
+        uint256 len = userLocks[_addr].length;
+        uint256 amount = 0;
+        for(uint i = 0; i < len; i++){
+            uint256 lockId = userLocks[_addr][i];
+            if (userLocksCheck[_addr][lockId]) {
+                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+                if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
+                    amount = amount + lock.amount;
+                }
+            }
+
+        }
+        return amount;
+    }
+
+    function locksInfo(uint256 _lockId)
+        public
+        view
+        returns (LibLockTOSv2.LockedBalance memory   )
+    {
+        return allLocks[_lockId];
+    }
+
+    function locksOf(address _addr)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return userLocks[_addr];
+    }
+
+    function withdrawableLocksOf(address _addr)  external view returns (uint256[] memory) {
+        uint256 len = userLocks[_addr].length;
+        uint256 size = 0;
+        for(uint i = 0; i < len; i++){
+            uint256 lockId = userLocks[_addr][i];
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
+                size++;
+            }
+        }
+
+        uint256[] memory withdrawable = new uint256[](size);
+        size = 0;
+        for(uint i = 0; i < len; i++) {
+            uint256 lockId = userLocks[_addr][i];
+            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
+            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
+                withdrawable[size++] = lockId;
+            }
+        }
+        return withdrawable;
+    }
+
+    function pointHistoryOf(uint256 _lockId)
+        public
+        view
+        returns (LibLockTOSv2.Point[] memory)
+    {
+        return lockPointHistory[_lockId];
+    }
+
+
+    function getCurrentTime() external view returns (uint256) {
+        return block.timestamp;
+    }
+
+    // function currentStakedTotalTOS() external view returns (uint256) {
+    //     return IERC20(tos).balanceOf(address(this));
+    // }
+
+
+    /** internal  */
+
+    function _approve(address to, uint256 tokenId) private {
+        _tokenApprovals[tokenId] = to;
+        emit Approval(ownerOf(tokenId), to, tokenId); // internal owner
+    }
+
 
     function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
         require(_exists(tokenId), "LockIdNFT: operator query for nonexistent token");
@@ -145,11 +622,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         return _operatorApprovals[owner_][operator];
     }
 
-    function getApproved(uint256 tokenId) public view virtual returns (address) {
-        require(_exists(tokenId), "LockIdNFT: approved query for nonexistent token");
-
-        return _tokenApprovals[tokenId];
-    }
 
     function _safeTransfer(address from, address to, uint256 tokenId, bytes memory _data) internal virtual {
         _transfer(from, to, tokenId);
@@ -198,102 +670,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         return owner_ != address(0);
     }
 
-    function ownerOf(uint256 tokenId) public view returns (address) {
-        return allLocks[tokenId].owner;
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function increaseUnlockTime(uint256 _lockId, uint256 _unlockWeeks)
-        external
-        override
-    {
-        require(_unlockWeeks > 0, "Unlock period less than a week");
-        cumulativeEpochUnit = cumulativeEpochUnit.add(_unlockWeeks);
-
-        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
-        require(lock.owner == msg.sender, "lockId's owner is not caller");
-
-        uint256 unlockTime = lock.end.add(_unlockWeeks.mul(epochUnit));
-        unlockTime = unlockTime.div(epochUnit).mul(epochUnit);
-        require(
-            unlockTime - block.timestamp < maxTime,
-            "Max unlock time is 3 years"
-        );
-        require(lock.end > block.timestamp, "Lock time already finished");
-        require(lock.end < unlockTime, "New lock time must be greater");
-        require(lock.amount > 0, "No existing locked TOS");
-        _deposit(msg.sender, _lockId, 0, unlockTime, true, false);
-
-        emit LockUnlockTimeIncreased(msg.sender, _lockId, unlockTime);
-    }
-
-    function increaseLock(
-        address _addr,
-        uint256 _lockId,
-        uint256 _value,
-        uint256 _unlockWeeks)
-        external
-    {
-        require(_value > 0 || _unlockWeeks > 0, "Unlock period less than a week");
-        require(_addr == msg.sender, "sender is not addr");
-
-        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
-        require(lock.owner == msg.sender, "lockId's owner is not caller");
-
-        uint256 unlockTime = lock.end.add(_unlockWeeks.mul(epochUnit));
-        unlockTime = unlockTime.div(epochUnit).mul(epochUnit);
-        require(
-            unlockTime - block.timestamp < maxTime,
-            "Max unlock time is 3 years"
-        );
-        require(lock.end > block.timestamp, "Lock time already finished");
-        require(lock.end < unlockTime, "New lock time must be greater");
-        require(lock.amount > 0, "No existing locked TOS");
-
-        if(_unlockWeeks > 0)
-            cumulativeEpochUnit = cumulativeEpochUnit.add(_unlockWeeks);
-
-        _deposit(msg.sender, _lockId, _value, unlockTime, true, true);
-
-        emit LockIncreased(msg.sender, _lockId, _value, unlockTime);
-    }
-
-    function increaseUnlimitedLock(address account, uint256 amount)
-        public nonZero(amount)
-    {
-        // caller 는 무조건 스테이커가 가능하게 하도록 수정되어야 함 .
-        require(msg.sender == account, 'caller is not account');
-        cumulativeTOSAmount = cumulativeTOSAmount.add(amount);
-
-        _increaseUnlimitedAccount(account, amount, true, true);
-        _increaseUnlimitedHistory(amount, true);
-        // checkUniqueUser(account);
-
-        emit IncreasedUnlimitedLock(msg.sender, account, amount);
-    }
-
-    function decreaseUnlimitedLock(address account, uint256 amount)
-        public nonZero(amount)
-    {
-        // caller 는 무조건 스테이커가 가능하게 하도록 수정되어야 함 .
-        require(msg.sender == account, 'caller is not account');
-
-        _increaseUnlimitedAccount(account, amount, false, false);
-        _increaseUnlimitedHistory(amount, false);
-
-        /////////////////////////////////////////////////
-        // 락아이디로 변경
-        uint256 unlockTime = (block.timestamp + ((maxTime / epochUnit) * epochUnit)) / epochUnit * epochUnit;
-        uint256 lockId = ++lockIdCounter;
-
-        _deposit(account, lockId, amount, unlockTime, true, false);
-        userLocksCheck[account][lockId] = true;
-        userLocks[account].push(lockId);
-
-        emit DecreasedUnlimitedLock(msg.sender, account, amount);
-        emit LockCreated(account, lockId, amount, unlockTime);
-    }
-
     function _increaseUnlimitedAccount(address account, uint256 amount, bool increasement, bool boolTransfer)
         internal {
 
@@ -320,23 +696,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
                 "_increaseUnlimitedAccount transferFrom fail"
             );
         }
-    }
-
-    function lastPointOfTimeIndexForUnlimited(uint256 _index) public view returns (LibLockTOSv2.UnlimitedAmount memory) {
-
-        LibLockTOSv2.UnlimitedAmount[] memory points = unlimitedHistoryByWeek[_index];
-
-        if (points.length != 0) {
-            return LibLockTOSv2.UnlimitedAmount({
-                timestamp: points[points.length-1].timestamp,
-                amount: points[points.length-1].amount
-            });
-        }
-
-        return LibLockTOSv2.UnlimitedAmount({
-            timestamp: 0,
-            amount: 0
-        });
     }
 
     function _increaseUnlimitedHistory(uint256 amount, bool increasement) internal {
@@ -371,43 +730,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         }
     }
 
-    function nextTimeIndex(uint256 _stime) public view returns(uint256) {
-        return (_stime +  epochUnit) / epochUnit * epochUnit;
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function withdrawAll() external override ifFree {
-        uint256[] storage locks = userLocks[msg.sender];
-        if (locks.length == 0) {
-            return;
-        }
-
-        for (uint256 i = 0; i < locks.length; i++) {
-            LibLockTOSv2.LockedBalance memory lock = allLocks[locks[i]];
-            if (
-                lock.withdrawalTime == 0 &&
-                locks[i] > 0 &&
-                lock.amount > 0 &&
-                lock.start > 0 &&
-                lock.end > 0 &&
-                lock.end < block.timestamp &&
-                lock.owner == msg.sender
-            ) {
-                _withdraw(locks[i]);
-            }
-        }
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function globalCheckpoint() external override {
-        _recordHistoryPoints();
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function withdraw(uint256 _lockId) public override ifFree {
-        require(_lockId > 0, "_lockId is zero");
-        _withdraw(_lockId);
-    }
 
     /// @dev Send staked amount back to user
     function _withdraw(uint256 _lockId) internal {
@@ -442,385 +764,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         emit LockWithdrawn(msg.sender, _lockId, amount);
     }
 
-    /// @inheritdoc ILockTOSv2
-    function createLock(uint256 _value, uint256 _unlockWeeks)
-        public
-        override
-        returns (uint256 lockId)
-    {
-        require(_value > 0, "Value locked should be non-zero");
-        require(_unlockWeeks > 0, "Unlock period less than a week");
-
-        cumulativeEpochUnit = cumulativeEpochUnit.add(_unlockWeeks);
-        cumulativeTOSAmount = cumulativeTOSAmount.add(_value);
-        uint256 unlockTime = block.timestamp.add(_unlockWeeks.mul(epochUnit));
-        unlockTime = unlockTime.div(epochUnit).mul(epochUnit);
-        require(
-            unlockTime - block.timestamp <= maxTime,
-            "Max unlock time is 3 years"
-        );
-
-        lockId = ++lockIdCounter;
-        // console.log("lockId %s", lockId);
-
-        _deposit(msg.sender, lockId, _value, unlockTime, true, true);
-
-        userLocksCheck[msg.sender][lockId] = true;
-        userLocks[msg.sender].push(lockId);
-        // checkUniqueUser(msg.sender);
-
-        emit LockCreated(msg.sender, lockId, _value, unlockTime);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function depositFor(
-        address _addr,
-        uint256 _lockId,
-        uint256 _value
-    ) public override {
-        require(_value > 0, "Value locked should be non-zero");
-        // require(userLocksCheck[_addr][_lockId], "it is not your lockId");
-        LibLockTOSv2.LockedBalance memory lock = allLocks[_lockId];
-        require(lock.owner == _addr, "lockId's owner is not addr");
-        require(lock.withdrawalTime == 0, "Lock is withdrawn");
-        require(lock.start > 0, "Lock does not exist");
-        require(lock.end > block.timestamp, "Lock time is finished");
-
-        cumulativeTOSAmount = cumulativeTOSAmount.add(_value);
-
-        _deposit(_addr, _lockId, _value, 0, true, true);
-        emit LockDeposited(msg.sender, _lockId, _value);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function totalSupply() external view override returns (uint256) {
-         return totalSupplyBalance() + totalSupplyUnlimited();
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function totalSupplyAt(uint256 _timestamp)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return totalSupplyBalanceAt(_timestamp) + totalSupplyUnlimitedAt(_timestamp);
-    }
-
-    function totalSupplyBalance()
-        public
-        view
-        returns (uint256)
-    {
-        if (pointHistory.length == 0) {
-            return 0;
-        }
-
-        // console.log('-------------------totalSupply timestamp %s', block.timestamp);
-        LibLockTOSv2.Point memory point = _fillRecordGaps(
-            pointHistory[pointHistory.length - 1],
-            block.timestamp
-        );
-        // console.log('totalSupply _fillRecordGaps point.timestamp %s' ,  point.timestamp);
-
-        int256 currentBias =
-            point.slope.mul(block.timestamp.sub(point.timestamp).toInt256());
-        return
-            uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0))
-                .div(MULTIPLIER);
-    }
-
-    function totalSupplyBalanceAt(uint256 _timestamp)
-        public
-        view
-        returns (uint256)
-    {
-        if (pointHistory.length == 0) {
-            return 0;
-        }
-        // console.log('-------------------totalSupplyAt _timestamp %s', _timestamp);
-        (bool success, LibLockTOSv2.Point memory point) =
-            _findClosestPoint(pointHistory, _timestamp);
-        if (!success) {
-            return 0;
-        }
-
-        point = _fillRecordGaps(point, _timestamp);
-        int256 currentBias =
-            point.slope * (_timestamp.sub(point.timestamp).toInt256());
-        return
-            uint256(point.bias > currentBias ? point.bias - currentBias : int256(0))
-                .div(MULTIPLIER);
-    }
-
-    function totalSupplyUnlimited()
-        public
-        view
-        returns (uint256 amount)
-    {
-        // 마지막 포인트
-        LibLockTOSv2.UnlimitedAmount memory pointLast = lastPointOfTimeIndexForUnlimited(
-                        (indexOfTimesetForUnlimited.length != 0 ? indexOfTimesetForUnlimited[indexOfTimesetForUnlimited.length - 1]:0)
-                    );
-       amount = balanceOfUnlimitedAt(pointLast, block.timestamp);
-    }
-
-    function totalSupplyUnlimitedAt(uint256 _timestamp)
-        public
-        view
-        returns (uint256 amount)
-    {
-        // 해당 타임에 맞는 타임인덱스
-        (bool success, uint256 timeindex) = _findClosestUnlimitedTimeindex(_timestamp);
-        if(!success) return 0;
-        (bool success1, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedHistoryByWeek[timeindex], _timestamp);
-        if(!success1) return 0;
-        amount = balanceOfUnlimitedAt(point, _timestamp);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function balanceOfLockAt(uint256 _lockId, uint256 _timestamp)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        (bool success, LibLockTOSv2.Point memory point) =
-            _findClosestPoint(lockPointHistory[_lockId], _timestamp);
-        if (!success) {
-            return 0;
-        }
-        int256 currentBias =
-            point.slope.mul(_timestamp.sub(point.timestamp).toInt256());
-        return
-            uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0))
-                .div(MULTIPLIER);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function balanceOfLock(uint256 _lockId)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        uint256 len = lockPointHistory[_lockId].length;
-        if (len == 0) {
-            return 0;
-        }
-
-        LibLockTOSv2.Point memory point = lockPointHistory[_lockId][len - 1];
-        // console.log('balanceOfLock %s',  _lockId);
-        // console.log('balanceOfLock point.slope');
-        // console.logInt(point.slope);
-        // console.log('balanceOfLock point.bias');
-        // console.logInt(point.bias);
-        // console.log('balanceOfLock point.timestamp');
-        // console.log(point.timestamp);
-        // console.log('block.timestamp %s', block.timestamp);
-
-
-        int256 currentBias =
-            point.slope.mul(block.timestamp.sub(point.timestamp).toInt256());
-
-        // console.log('balanceOfLock currentBias');
-        // console.logInt(currentBias);
-        // uint256 bal = uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0));
-        // console.log('balanceOfLock currentBias %s', bal);
-        return
-            uint256(point.bias > currentBias ? point.bias.sub(currentBias) : int256(0))
-                .div(MULTIPLIER);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function balanceOfAt(address _addr, uint256 _timestamp)
-        public
-        view
-        override
-        returns (uint256 balance)
-    {
-        uint256[] memory locks = userLocks[_addr];
-        if (locks.length == 0) return 0;
-        for (uint256 i = 0; i < locks.length; ++i) {
-            balance = balance.add(balanceOfLockAt(locks[i], _timestamp));
-        }
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function balanceOf(address _addr)
-        public
-        view
-        override
-        returns (uint256 balance)
-    {
-        uint256[] memory locks = userLocks[_addr];
-        if (locks.length == 0) return 0;
-        for (uint256 i = 0; i < locks.length; ++i) {
-            balance = balance.add(balanceOfLock(locks[i]));
-        }
-    }
-
-    function balanceOfUnlimitedAt(address _addr, uint256 _timestamp)
-        public
-        view
-        returns (uint256 balance)
-    {
-        (bool success, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedAmountByAccount[_addr], _timestamp);
-        balance = (!success? 0: balanceOfUnlimitedAt(point, _timestamp));
-    }
-
-    function balanceOfUnlimited(address _addr)
-        public
-        view
-        returns (uint256 balance)
-    {
-        uint256 len = unlimitedAmountByAccount[_addr].length;
-        balance = (len == 0? 0: balanceOfUnlimitedAt(unlimitedAmountByAccount[_addr][len - 1], block.timestamp));
-
-    }
-
-    function balanceOfUnlimitedAt(LibLockTOSv2.UnlimitedAmount memory point, uint256 timestamp)
-        public
-        view
-        returns (uint256)
-    {
-        if(timestamp < point.timestamp || point.amount == 0) return 0;
-        return (point.amount * MULTIPLIER / maxTime * maxTime / MULTIPLIER);
-    }
-
-    function balanceOfUnlimitedAmount(address _addr)
-        public
-        view
-        returns (uint256 amount)
-    {
-        uint256 len = unlimitedAmountByAccount[_addr].length;
-        amount = (len == 0? 0: unlimitedAmountByAccount[_addr][len - 1].amount);
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function totalLockedAmountOf(address _addr) external view override returns (uint256) {
-        uint256 len = userLocks[_addr].length;
-        uint256 stakedAmount = 0;
-        for (uint256 i = 0; i < len; ++i) {
-            uint256 lockId = userLocks[_addr][i];
-            if (userLocksCheck[_addr][lockId]) {
-                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-                stakedAmount = stakedAmount.add(lock.amount);
-            }
-        }
-        return stakedAmount;
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function withdrawableAmountOf(address _addr) external view override returns (uint256) {
-        uint256 len = userLocks[_addr].length;
-        uint256 amount = 0;
-        for(uint i = 0; i < len; i++){
-            uint256 lockId = userLocks[_addr][i];
-            if (userLocksCheck[_addr][lockId]) {
-                LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-                if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
-                    amount = amount.add(lock.amount);
-                }
-            }
-
-        }
-        return amount;
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function locksInfo(uint256 _lockId)
-        public
-        view
-        override
-        returns (
-            uint256 start,
-            uint256 end,
-            uint256 amount
-        )
-    {
-        return (
-            allLocks[_lockId].start,
-            allLocks[_lockId].end,
-            allLocks[_lockId].amount
-        );
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function locksOf(address _addr)
-        public
-        view
-        override
-        returns (uint256[] memory)
-    {
-        return userLocks[_addr];
-    }
-
-    /// @inheritdoc ILockTOSv2
-    function withdrawableLocksOf(address _addr)  external view override returns (uint256[] memory) {
-        uint256 len = userLocks[_addr].length;
-        uint256 size = 0;
-        for(uint i = 0; i < len; i++){
-            uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
-                size++;
-            }
-        }
-
-        uint256[] memory withdrawable = new uint256[](size);
-        size = 0;
-        for(uint i = 0; i < len; i++) {
-            uint256 lockId = userLocks[_addr][i];
-            LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-            if(lock.end <= block.timestamp && lock.amount > 0 && lock.withdrawalTime == 0) {
-                withdrawable[size++] = lockId;
-            }
-        }
-        return withdrawable;
-    }
-
-    /// @inheritdoc ILockTOSv2
-    // function activeLocksOf(address _addr)
-    //     public
-    //     view
-    //     override
-    //     returns (uint256[] memory)
-    // {
-    //     uint256 len = userLocks[_addr].length;
-    //     uint256 _size = 0;
-    //     for(uint i = 0; i < len; i++){
-    //         uint256 lockId = userLocks[_addr][i];
-
-    //         LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-
-    //         if(lock.end > block.timestamp && lock.withdrawalTime == 0) {
-    //             _size++;
-    //         }
-    //     }
-
-    //     uint256[] memory activeLocks = new uint256[](_size);
-    //     _size = 0;
-    //     for(uint i = 0; i < len; i++) {
-    //         uint256 lockId = userLocks[_addr][i];
-
-    //         LibLockTOSv2.LockedBalance memory lock = allLocks[lockId];
-    //         if(lock.end > block.timestamp && lock.withdrawalTime == 0) {
-    //             activeLocks[_size++] = lockId;
-    //         }
-    //     }
-    //     return activeLocks;
-    // }
-
-    /// @inheritdoc ILockTOSv2
-    function pointHistoryOf(uint256 _lockId)
-        public
-        view
-        override
-        returns (LibLockTOSv2.Point[] memory)
-    {
-        return lockPointHistory[_lockId];
-    }
 
     /// @dev Finds closest point
     function _findClosestPoint(
@@ -834,7 +777,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         uint256 left = 0;
         uint256 right = _history.length;
         while (left + 1 < right) {
-            uint256 mid = left.add(right).div(2);
+            uint256 mid = (left + right) / 2;
             if (_history[mid].timestamp <= _timestamp) {
                 left = mid;
             } else {
@@ -884,10 +827,8 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         allLocks[_lockId] = lockedNew;
 
         // Save user point,
-        int256 userSlope =
-            lockedNew.amount.mul(MULTIPLIER).div(maxTime).toInt256();
-        int256 userBias =
-            userSlope.mul(lockedNew.end.sub(block.timestamp).toInt256());
+        int256 userSlope =int256(lockedNew.amount * MULTIPLIER / maxTime);
+        int256 userBias =userSlope * int256(lockedNew.end-block.timestamp);
         LibLockTOSv2.Point memory userPoint =
             LibLockTOSv2.Point({
                 timestamp: block.timestamp,
@@ -917,34 +858,20 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
 
         // Initialize slope changes
         if (lockedNew.end > timestamp && lockedNew.amount > 0) {
-            changeNew.slope = lockedNew
-                .amount
-                .mul(MULTIPLIER)
-                .div(maxTime)
-                .toInt256();
-            changeNew.bias = changeNew.slope
-                .mul(lockedNew.end.sub(timestamp).toInt256());
+            changeNew.slope = int256(lockedNew.amount * MULTIPLIER / maxTime);
+            changeNew.bias = changeNew.slope * int256(lockedNew.end - timestamp);
             changeNew.changeTime = lockedNew.end;
         }
         if (lockedOld.end > timestamp && lockedOld.amount > 0) {
-            changeOld.slope = lockedOld
-                .amount
-                .mul(MULTIPLIER)
-                .div(maxTime)
-                .toInt256();
-            changeOld.bias = changeOld.slope
-                .mul(lockedOld.end.sub(timestamp).toInt256());
+            changeOld.slope = int256(lockedOld.amount * MULTIPLIER / maxTime);
+            changeOld.bias = changeOld.slope * int256(lockedOld.end - timestamp);
             changeOld.changeTime = lockedOld.end;
         }
 
         // Record history gaps
         LibLockTOSv2.Point memory currentWeekPoint = _recordHistoryPoints();
-        currentWeekPoint.bias = currentWeekPoint.bias.add(
-            changeNew.bias.sub(changeOld.bias)
-        );
-        currentWeekPoint.slope = currentWeekPoint.slope.add(
-            changeNew.slope.sub(changeOld.slope)
-        );
+        currentWeekPoint.bias = currentWeekPoint.bias + (changeNew.bias - changeOld.bias);
+        currentWeekPoint.slope = currentWeekPoint.slope + (changeNew.slope - changeOld.slope);
         currentWeekPoint.bias = currentWeekPoint.bias > int256(0)
             ? currentWeekPoint.bias
             : int256(0);
@@ -952,12 +879,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
             ? currentWeekPoint.slope
             : int256(0);
         pointHistory[pointHistory.length - 1] = currentWeekPoint;
-        // console.log("pointHistory  index %s", pointHistory.length - 1);
-        // console.log("bias");
-        // console.logInt(currentWeekPoint.bias);
-        // console.log("slope");
-        // console.logInt(currentWeekPoint.slope);
-        // console.log("pointHistory.timestamp %s", currentWeekPoint.timestamp);
 
         // Update slope changes
         _updateSlopeChanges(changeNew, changeOld);
@@ -982,22 +903,17 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         // console.log('_recordHistoryPoints pointHistory.length %s', pointHistory.length );
 
         // Iterate through all past unrecoreded weeks and record
-        uint256 pointTimestampIterator =
-            lastWeek.timestamp.div(epochUnit).mul(epochUnit);
+        uint256 pointTimestampIterator = lastWeek.timestamp / epochUnit * epochUnit;
 
         // console.log('pointTimestampIterator %s', pointTimestampIterator );
 
         while (pointTimestampIterator != timestamp) {
-            pointTimestampIterator = Math.min(
-                pointTimestampIterator.add(epochUnit),
-                timestamp
-            );
+            pointTimestampIterator = Math.min(pointTimestampIterator + epochUnit, timestamp);
             // console.log('pointTimestampIterator Math.min(timestamp) %s', pointTimestampIterator );
             int256 deltaSlope = slopeChanges[pointTimestampIterator];
-            int256 deltaTime =
-                Math.min(pointTimestampIterator.sub(lastWeek.timestamp), epochUnit).toInt256();
-            lastWeek.bias = lastWeek.bias.sub(lastWeek.slope.mul(deltaTime));
-            lastWeek.slope = lastWeek.slope.add(deltaSlope);
+            int256 deltaTime = int256(Math.min(pointTimestampIterator - lastWeek.timestamp, epochUnit));
+            lastWeek.bias = lastWeek.bias - (lastWeek.slope * deltaTime);
+            lastWeek.slope = lastWeek.slope + deltaSlope;
             lastWeek.bias = lastWeek.bias > 0 ? lastWeek.bias : int256(0);
             lastWeek.slope = lastWeek.slope > 0 ? lastWeek.slope : int256(0);
             lastWeek.timestamp = pointTimestampIterator;
@@ -1020,8 +936,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         // console.log('_fillRecordGaps timestamp %s', timestamp );
 
         // Iterate through all past unrecoreded weeks
-        uint256 pointTimestampIterator =
-            week.timestamp.div(epochUnit).mul(epochUnit);
+        uint256 pointTimestampIterator = week.timestamp / epochUnit * epochUnit;
 
         // console.log('_fillRecordGaps pointTimestampIterator %s', pointTimestampIterator );
 
@@ -1032,27 +947,23 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         // console.log('week.timestamp %s', week.timestamp );
 
         while (pointTimestampIterator != timestamp) {
-            pointTimestampIterator = Math.min(
-                pointTimestampIterator.add(epochUnit),
-                timestamp
-            );
+            pointTimestampIterator = Math.min(pointTimestampIterator + epochUnit, timestamp);
 
             // console.log('_fillRecordGaps min pointTimestampIterator %s', pointTimestampIterator );
 
             int256 deltaSlope = slopeChanges[pointTimestampIterator];
-            int256 deltaTime =
-                Math.min(pointTimestampIterator.sub(week.timestamp), epochUnit).toInt256();
+            int256 deltaTime = int256(Math.min(pointTimestampIterator - week.timestamp, epochUnit));
 
             // console.log('deltaSlope' );
             // console.logInt(deltaSlope );
             // console.log('deltaTime' );
             // console.logInt(deltaTime );
 
-            week.bias = week.bias.sub(week.slope.mul(deltaTime));
+            week.bias = week.bias - (week.slope * deltaTime);
             // console.log('week.bias' );
             // console.logInt(week.bias );
 
-            week.slope = week.slope.add(deltaSlope);
+            week.slope = week.slope + deltaSlope;
             // console.log('week.slope' );
             // console.logInt(week.slope );
 
@@ -1082,9 +993,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
         // console.logInt(deltaSlopeOld);
 
         if (changeOld.changeTime > block.timestamp) {
-            deltaSlopeOld = deltaSlopeOld.add(changeOld.slope);
+            deltaSlopeOld = deltaSlopeOld + (changeOld.slope);
             if (changeOld.changeTime == changeNew.changeTime) {
-                deltaSlopeOld = deltaSlopeOld.sub(changeNew.slope);
+                deltaSlopeOld = deltaSlopeOld - (changeNew.slope);
             }
             slopeChanges[changeOld.changeTime] = deltaSlopeOld;
         }
@@ -1094,20 +1005,13 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, ILockTOSv2 {
             changeNew.changeTime > block.timestamp &&
             changeNew.changeTime > changeOld.changeTime
         ) {
-            deltaSlopeNew = deltaSlopeNew.sub(changeNew.slope);
+            deltaSlopeNew = deltaSlopeNew - (changeNew.slope);
             slopeChanges[changeNew.changeTime] = deltaSlopeNew;
         }
         // console.log('--slopeChanges[changeNew.changeTime]');
         // console.logInt(slopeChanges[changeNew.changeTime]);
     }
 
-    function getCurrentTime() external view returns (uint256) {
-        return block.timestamp;
-    }
-
-    function currentStakedTotalTOS() external view returns (uint256) {
-        return IERC20(tos).balanceOf(address(this));
-    }
 
     function _findClosestUnlimitedPoint(
         LibLockTOSv2.UnlimitedAmount[] storage _history,
