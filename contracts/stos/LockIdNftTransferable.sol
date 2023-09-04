@@ -545,6 +545,7 @@ contract LockIdNftTransferable is ProxyStorage2, LockIdNFTStorage, LockIdStorage
 
         // 기본정보 수정
         LibLockIdTransferable.LockedInfo memory lock = lockIdInfos[tokenId];
+
         require(lock.withdrawalTime == 0, "It is withdrawn already.");
         require(lock.end > block.timestamp, "Lock time is finished");
         lockIdInfos[tokenId].withdrawalTime = uint32(block.timestamp);

@@ -22,11 +22,8 @@ library LibLockTOSv2 {
         uint256 changeTime;
     }
 
-    // struct LockedBalanceInfo {
-    //     uint256 id;
-    //     uint256 start;
-    //     uint256 end;
-    //     uint256 amount;
-    //     uint256 balance;
-    // }
+    struct UnlimitedAmount {
+        uint32 timestamp;
+        uint256 amount;
+    }
 }
