@@ -4,24 +4,23 @@ pragma solidity ^0.8.4;
 import "../libraries/LibLockTOSv2.sol";
 
 contract LockTOSv2Storage {
+    uint256 public constant MULTIPLIER = 1e18;
+
     /// @dev flag for pause proxy
     bool public pauseProxy;
 
-    /// @dev registry
-    address public stakeRegistry;
-    bool public migratedL2;
 
     uint256 public epochUnit;
     uint256 public maxTime;
-
-    uint256 public constant MULTIPLIER = 1e18;
 
     address public tos;
     uint256 public lockIdCounter;
     uint256 public cumulativeEpochUnit;
     uint256 public cumulativeTOSAmount;
-
-    uint256 internal free = 1;
+    string public name;
+    string public symbol;
+    mapping (uint256 => string) public tokenURIs;
+    string public baseURI;
 
     LibLockTOSv2.Point[] public pointHistory;
     mapping(uint256 => LibLockTOSv2.Point[]) public lockPointHistory;
@@ -52,7 +51,7 @@ contract LockTOSv2Storage {
     uint256[] public indexOfTimesetForUnlimited;
     mapping(uint256 => bool) public indexCheckOfTimesetForUnlimited;
 
-
+     uint256 internal free = 1;
     // address[] public uniqueUsers;
     // mapping(address => bool) public boolUniqueUsers;
 

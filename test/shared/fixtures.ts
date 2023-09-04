@@ -245,7 +245,10 @@ export const lockIdFixture = async function (): Promise<LockIdFixture> {
 
   //--
   const LockTOSv2_ = await ethers.getContractFactory('LockTOSv2');
-  const lockTOSv2 = (await LockTOSv2_.connect(deployer).deploy()) as LockTOSv2
+  const lockTOSv2 = (await LockTOSv2_.connect(deployer).deploy(
+    lockIdNFTInfo.name,
+    lockIdNFTInfo.symbol
+  )) as LockTOSv2
 
   await (await lockTOSv2.connect(deployer).initialize(
     tos.address,
