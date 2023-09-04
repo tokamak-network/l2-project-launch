@@ -221,6 +221,10 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         }
     }
 
+    function totalLockedAmountOf(address _addr) external view returns (uint256) {
+        return totalLockedAmountOfLock(_addr) + balanceOfUnlimitedAmount(_addr);
+    }
+
 
     /** public  */
 
@@ -369,20 +373,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         amount = balanceOfUnlimitedAt(point, _timestamp);
     }
 
-    function balanceOfLockAt(uint256 _lockId, uint256 _timestamp)
-        public
-        view
-        returns (uint256)
-    {
-        (bool success, LibLockTOSv2.Point memory point) =
-            _findClosestPoint(lockPointHistory[_lockId], _timestamp);
-        if (!success) {
-            return 0;
-        }
-        int256 currentBias = point.slope * int256(_timestamp-point.timestamp);
-        return  uint256(point.bias > currentBias ? point.bias-currentBias : int256(0)) / MULTIPLIER;
-    }
-
     function balanceOfLock(uint256 _lockId)
         public
         view
@@ -400,6 +390,22 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         return
             uint256(point.bias > currentBias ? point.bias - currentBias : int256(0)) / MULTIPLIER;
     }
+
+    function balanceOfLockAt(uint256 _lockId, uint256 _timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        (bool success, LibLockTOSv2.Point memory point) =
+            _findClosestPoint(lockPointHistory[_lockId], _timestamp);
+        if (!success) {
+            return 0;
+        }
+        int256 currentBias = point.slope * int256(_timestamp-point.timestamp);
+        return  uint256(point.bias > currentBias ? point.bias-currentBias : int256(0)) / MULTIPLIER;
+    }
+
+
 
     function balanceOf(address _addr)
         public
@@ -441,15 +447,6 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         }
     }
 
-    function balanceOfUnlimitedAt(address _addr, uint256 _timestamp)
-        public
-        view
-        returns (uint256 balance)
-    {
-        (bool success, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedAmountByAccount[_addr], _timestamp);
-        balance = (!success? 0: balanceOfUnlimitedAt(point, _timestamp));
-    }
-
     function balanceOfUnlimited(address _addr)
         public
         view
@@ -458,6 +455,15 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         uint256 len = unlimitedAmountByAccount[_addr].length;
         balance = (len == 0? 0: balanceOfUnlimitedAt(unlimitedAmountByAccount[_addr][len - 1], block.timestamp));
 
+    }
+
+    function balanceOfUnlimitedAt(address _addr, uint256 _timestamp)
+        public
+        view
+        returns (uint256 balance)
+    {
+        (bool success, LibLockTOSv2.UnlimitedAmount memory point) = _findClosestUnlimitedPoint(unlimitedAmountByAccount[_addr], _timestamp);
+        balance = (!success? 0: balanceOfUnlimitedAt(point, _timestamp));
     }
 
     function balanceOfUnlimitedAt(LibLockTOSv2.UnlimitedAmount memory point, uint256 timestamp)
@@ -512,7 +518,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         _recordHistoryPoints();
     }
 
-    function totalLockedAmountOf(address _addr) external view returns (uint256) {
+    function totalLockedAmountOfLock(address _addr) public view returns (uint256) {
         uint256 len = userLocks[_addr].length;
         uint256 stakedAmount = 0;
         for (uint256 i = 0; i < len; ++i) {
@@ -544,17 +550,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
     function locksInfo(uint256 _lockId)
         public
         view
-        returns (
-            uint256 start,
-            uint256 end,
-            uint256 amount
-        )
+        returns (LibLockTOSv2.LockedBalance memory   )
     {
-        return (
-            allLocks[_lockId].start,
-            allLocks[_lockId].end,
-            allLocks[_lockId].amount
-        );
+        return allLocks[_lockId];
     }
 
     function locksOf(address _addr)
@@ -601,9 +599,9 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         return block.timestamp;
     }
 
-    function currentStakedTotalTOS() external view returns (uint256) {
-        return IERC20(tos).balanceOf(address(this));
-    }
+    // function currentStakedTotalTOS() external view returns (uint256) {
+    //     return IERC20(tos).balanceOf(address(this));
+    // }
 
 
     /** internal  */
