@@ -65,7 +65,7 @@ interface ILockTOSv2 {
         returns (uint256 balance);
 
     /// @dev Vote weight of a iser
-    function balanceOf(address _addr) external view returns (uint256 balance);
+    // function balanceOf(address _addr) external view returns (uint256 balance);
 
     /// @dev Increase amount
     function increaseAmount(uint256 _lockId, uint256 _value) external;
