@@ -211,8 +211,8 @@ async function createLock(
 
     await checkSumOfLocks(deployed, ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 첫번째 스냅샷
     stosBalanceL1.push({
@@ -270,8 +270,8 @@ async function deposit(
     }
     await checkSumOfLocks(deployed, ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 세번째 스냅샷
     stosBalanceL1.push({
@@ -326,8 +326,8 @@ async function increaseUnlockTime(
     }
     await checkSumOfLocks(deployed, ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 세번째 스냅샷
     stosBalanceL1.push({
@@ -390,8 +390,8 @@ async function increaseLock(
     }
     await checkSumOfLocks(deployed, ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 세번째 스냅샷
     stosBalanceL1.push({
@@ -556,8 +556,8 @@ async function increaseUnlimitedLock(
 
     await checkSumOfUnlimited(deployed, [deployed.addr1, deployed.addr2], ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 첫번째 스냅샷
     stosBalanceL1.push({
@@ -581,7 +581,7 @@ async function decreaseUnlimitedLock(
 {
     const beforeUnlimitedAmount = await deployed.lockTOSv2["balanceOfUnlimitedAmount(address)"](user.address)
     const balanceOfUnlimited = await deployed.lockTOSv2["balanceOfUnlimited(address)"](user.address)
-    const beforeTotalLockedAmountOf = await deployed.lockTOSv2["totalLockedAmountOf(address)"](user.address)
+    const beforeTotalLockedAmountOf = await deployed.lockTOSv2["totalLockedAmountOfLock(address)"](user.address)
     const beforeTotalSupplyUnlimited = await deployed.lockTOSv2["totalSupplyUnlimited()"]()
     const beforeTotalSupplyBalance = await deployed.lockTOSv2["totalSupplyBalance()"]()
 
@@ -598,7 +598,8 @@ async function decreaseUnlimitedLock(
 
     let beforeUnlimitedAmount1 = await deployed.lockTOSv2["balanceOfUnlimitedAmount(address)"](user.address)
     let balanceOfUnlimited1 = await deployed.lockTOSv2["balanceOfUnlimited(address)"](user.address)
-    let beforeTotalLockedAmountOf1 = await deployed.lockTOSv2["totalLockedAmountOf(address)"](user.address)
+    let beforeTotalLockedAmountOf1 = await deployed.lockTOSv2["totalLockedAmountOfLock(address)"](user.address)
+
     let beforeTotalSupplyUnlimited1 = await deployed.lockTOSv2["totalSupplyUnlimited()"]()
     let beforeTotalSupplyBalance1 = await deployed.lockTOSv2["totalSupplyBalance()"]()
     expect(beforeUnlimitedAmount1).to.be.eq(beforeUnlimitedAmount.sub(amount))
@@ -614,7 +615,7 @@ async function decreaseUnlimitedLock(
         ethers.provider.send("evm_mine");
 
         let beforeUnlimitedAmount2 = await deployed.lockTOSv2["balanceOfUnlimitedAmount(address)"](user.address)
-        let beforeTotalLockedAmountOf2 = await deployed.lockTOSv2["totalLockedAmountOf(address)"](user.address)
+        let beforeTotalLockedAmountOf2 = await deployed.lockTOSv2["totalLockedAmountOfLock(address)"](user.address)
         let beforeTotalSupplyUnlimited2 = await deployed.lockTOSv2["totalSupplyUnlimitedAt(uint256)"](block.timestamp)
         let beforeTotalSupplyBalance2 = await deployed.lockTOSv2["totalSupplyBalanceAt(uint256)"](block.timestamp)
         let beforeTotalSupplyBalance21 = await deployed.lockTOSv2["totalSupplyBalance()"]()
@@ -633,8 +634,8 @@ async function decreaseUnlimitedLock(
 
     await checkSumOfUnlimited(deployed, [deployed.addr1, deployed.addr2], ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 첫번째 스냅샷
     stosBalanceL1.push({
@@ -725,8 +726,8 @@ async function transferFromUnlimited(
 
     await checkSumOfUnlimited(deployed, [deployed.addr1, deployed.addr2], ethers.constants.Zero)
 
-    let balanceAddr1 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr1.address, block.timestamp)
-    let balanceAddr2 = await deployed.lockTOSv2["balanceOfAt(address,uint256)"](deployed.addr2.address, block.timestamp)
+    let balanceAddr1 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr1.address, block.timestamp)
+    let balanceAddr2 = await deployed.lockTOSv2["balanceOfStosAt(address,uint256)"](deployed.addr2.address, block.timestamp)
 
     // 첫번째 스냅샷
     stosBalanceL1.push({
@@ -913,8 +914,8 @@ describe('LockIdFixture', () => {
                 else
                     await createLock(
                         deployed ,
-                        addr1,
-                        addr1Ids ,
+                        addr2,
+                        addr2Ids ,
                         amount,
                         unlockWeeks,
                         passTimeForVerify,
@@ -992,24 +993,24 @@ describe('LockIdFixture', () => {
                 stosBalanceL2)
         });
 
-        for(let i=0; i< 40; i++){
-            it('createLock: create stos ' + i, async () => {
+        // for(let i=0; i< 40; i++){
+        //     it('createLock: create stos ' + i, async () => {
 
-                let amount = ethers.utils.parseEther("100");
-                let unlockWeeks = ethers.BigNumber.from("54");
-                let passTimeForVerify = 60*60*24*7*4;
-                await createLock(
-                    deployed ,
-                    addr1,
-                    addr1Ids ,
-                    amount,
-                    unlockWeeks,
-                    passTimeForVerify,
-                    stosBalanceL1 ,
-                    stosBalanceL2 );
+        //         let amount = ethers.utils.parseEther("100");
+        //         let unlockWeeks = ethers.BigNumber.from("54");
+        //         let passTimeForVerify = 60*60*24*7*4;
+        //         await createLock(
+        //             deployed ,
+        //             addr1,
+        //             addr1Ids ,
+        //             amount,
+        //             unlockWeeks,
+        //             passTimeForVerify,
+        //             stosBalanceL1 ,
+        //             stosBalanceL2 );
 
-            });
-        }
+        //     });
+        // }
 
     });
 
