@@ -34,7 +34,6 @@ contract LockTOSv2Storage {
     mapping(uint256 => int256) public slopeChanges;
     mapping(uint256 => bool) public inUse;
 
-
     // Mapping from token ID to approved address
     mapping (uint256 => address) public _tokenApprovals;
 

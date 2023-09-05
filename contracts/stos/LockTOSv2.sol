@@ -305,10 +305,14 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
     }
 
     function totalSupply() external view returns (uint256) {
+         return lockIdCounter;
+    }
+
+    function totalSupplyStos() external view returns (uint256) {
          return totalSupplyBalance() + totalSupplyUnlimited();
     }
 
-    function totalSupplyAt(uint256 _timestamp)
+    function totalSupplyStosAt(uint256 _timestamp)
         public
         view
         returns (uint256)
@@ -405,9 +409,15 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         return  uint256(point.bias > currentBias ? point.bias-currentBias : int256(0)) / MULTIPLIER;
     }
 
-
-
     function balanceOf(address _addr)
+        public
+        view
+        returns (uint256 balance)
+    {
+        return userLocks[_addr].length;
+    }
+
+    function balanceOfStos(address _addr)
         public
         view
         returns (uint256 balance)
@@ -415,7 +425,7 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
         return balanceOfLock(_addr) + balanceOfUnlimited(_addr);
     }
 
-    function balanceOfAt(address _addr, uint256 _timestamp)
+    function balanceOfStosAt(address _addr, uint256 _timestamp)
         public
         view
         returns (uint256 balance)
@@ -454,7 +464,10 @@ contract LockTOSv2 is LockTOSv2Storage, AccessibleCommon, IERC721, ILockTOSv2Eve
     {
         uint256 len = unlimitedAmountByAccount[_addr].length;
         balance = (len == 0? 0: balanceOfUnlimitedAt(unlimitedAmountByAccount[_addr][len - 1], block.timestamp));
-
+        // if (len==0) return 0;
+        // LibLockTOSv2.UnlimitedAmount memory point = unlimitedAmountByAccount[_addr][len - 1];
+        // if(block.timestamp < point.timestamp || point.amount == 0) return 0;
+        // return (point.amount * MULTIPLIER / maxTime * maxTime / MULTIPLIER);
     }
 
     function balanceOfUnlimitedAt(address _addr, uint256 _timestamp)
