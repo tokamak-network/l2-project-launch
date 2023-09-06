@@ -732,7 +732,7 @@ describe('L2TokenFactory', () => {
                 l2vaultAdminAddress
             )
             expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(erc20Atoken.address)).to.eq(l2vaultAdminAddress)
-            expect(await deployed.l2VestingFundProxy.isVaultAdmin(erc20Atoken.address,l2vaultAdminAddress)).to.be.equal(true)
+            expect(await deployed.l2VestingFund.isVaultAdmin(erc20Atoken.address,l2vaultAdminAddress)).to.be.equal(true)
         })
 
         it('cannot be changed to the same value', async () => {
