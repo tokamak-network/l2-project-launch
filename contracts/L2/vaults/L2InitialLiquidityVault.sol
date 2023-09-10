@@ -8,6 +8,7 @@ import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
 import "./L2InitialLiquidityVaultStorage.sol";
 import "../interfaces/INonfungiblePositionManager.sol";
 
+import '../../libraries/LibProject.sol';
 import {IERC20} from "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
 
@@ -122,39 +123,32 @@ contract L2InitialLiquidityVault is
     }
 
     /* ========== only L2ProjectManager ========== */
-
-
-    /* ========== only VaultAdmin Of Token ========== */
-
     function initialize(
         address l2Token,
-        uint256 totalAllocatedAmount,
-        uint256 tosPrice,
-        uint256 tokenPrice,
-        uint160 initSqrtPrice,
-        uint256 startTime,
-        uint24  fee
+        LibProject.InitalParameterInitialLiquidityVault memory params
     )
-        external onlyVaultAdminOfToken(l2Token) afterSetUniswap
+        external onlyL2ProjectManagerOrVaultAdmin(l2Token) afterSetUniswap
     {
         require(poolInfo[l2Token].totalAllocatedAmount == 0, "already initialized");
-        require(totalAllocatedAmount != 0 && tosPrice != 0 && tokenPrice != 0 && initSqrtPrice != 0 && fee != 0,
+        require(params.totalAllocatedAmount != 0 && params.tosPrice != 0 && params.tokenPrice != 0 && params.initSqrtPrice != 0 && params.fee != 0,
             "zero totalAllocatedAmount or tosPrice or tokenPrice or initSqrtPriceX96 or startTime");
-        require(startTime > block.timestamp, "StartTime has passed");
+        require(params.startTime > block.timestamp, "StartTime has passed");
 
-        IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), totalAllocatedAmount);
+        IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
 
         LibInitialLiquidityVault.PoolInfo storage info = poolInfo[l2Token];
-        info.totalAllocatedAmount = totalAllocatedAmount;
-        info.initialTosPrice = tosPrice;
-        info.initialTokenPrice = tokenPrice;
-        info.initSqrtPriceX96 = initSqrtPrice;
-        info.startTime = startTime;
-        info.fee = fee;
+        info.totalAllocatedAmount = params.totalAllocatedAmount;
+        info.initialTosPrice = params.tosPrice;
+        info.initialTokenPrice = params.tokenPrice;
+        info.initSqrtPriceX96 = uint160(params.initSqrtPrice);
+        info.startTime = params.startTime;
+        info.fee = params.fee;
 
-        emit InitializedInitialLiquidityVault(l2Token, totalAllocatedAmount, tosPrice, tokenPrice, startTime, initSqrtPrice, fee);
+        emit InitializedInitialLiquidityVault(
+            l2Token, params.totalAllocatedAmount, params.tosPrice, params.tokenPrice, params.startTime, uint160(params.initSqrtPrice), params.fee);
     }
 
+    /* ========== only VaultAdmin Of Token ========== */
     function setStartTime(address l2Token, uint256 _startTime)
         public onlyVaultAdminOfToken(l2Token)
     {
@@ -165,7 +159,7 @@ contract L2InitialLiquidityVault is
         emit SetStartTime(l2Token, _startTime);
     }
 
-     /* ========== Anyone can  ========== */
+    /* ========== Anyone can  ========== */
 
     function setCreatePool(address l2Token) external beforeSetReadyToCreatePool(l2Token) ifFree
     {

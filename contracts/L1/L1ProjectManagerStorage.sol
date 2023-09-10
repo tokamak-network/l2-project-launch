@@ -12,20 +12,22 @@ contract L1ProjectManagerStorage {
 
     uint256 public projectCount;
 
+    // TOKEN_TYPE - l1TokenFactory
+    mapping(uint8 => address) public l1TokenFactory;
+
     // projectIndex - ProjectInfo
     mapping(uint256 => LibProject.ProjectInfo) public projects;
 
-    // projectIndex - ProjectInfo
+    // l1TokenAddress - projectIndex
     mapping(address => uint256) public projectTokens;
 
     // l2type - l2TokenFactory
-    mapping(uint8 => address) public l2TokenFactory;
+    mapping(uint8 => LibProject.L2Info) public l2Info;
 
-    // l2type - l2ProjectManager
-    mapping(uint8 => address) public l2ProjectManager;
+    // 기본 볼트 주소 번호 및  배포정보 보내기
+    // publicSale, initialLiquidity, daoVault, tosAirdrop, tonAirdrop,
+    // 1,           2,               3,          4,        5
 
-    // TOKEN_TYPE - l1TokenFactory
-    mapping(uint8 => address) public l1TokenFactory;
 
     modifier onlyProjectOwner(uint256 projectid) {
         require(projects[projectid].projectOwner != address(0) &&

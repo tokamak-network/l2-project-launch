@@ -1,0 +1,61 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IL2ScheduleVaultB",
+  "sourceName": "contracts/L2/L2ProjectManager.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "totalAllocatedAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalClaimCount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "firstClaimAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "firstClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "secondClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "roundIntervalTime",
+              "type": "uint32"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterScheduleVault",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

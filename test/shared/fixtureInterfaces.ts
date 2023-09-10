@@ -13,11 +13,12 @@ import { L1ERC20D_TokenFactory } from '../../typechain-types/contracts/L1/factor
 import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager.sol'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
-import { L2ProjectManager } from '../../typechain-types/contracts/L2//L2ProjectManager'
+import { L2ProjectManager } from '../../typechain-types/contracts/L2/L2ProjectManager.sol'
 import { L1ProjectManagerProxy } from '../../typechain-types/contracts/L1/L1ProjectManagerProxy'
+import { L2ProjectManagerProxy } from '../../typechain-types/contracts/L2/L2ProjectManagerProxy'
 
 import { Lib_AddressManager } from '../../typechain-types/contracts/test/Lib_AddressManager'
-import { MockL1Messenger } from '../../typechain-types/contracts/test/MockL1Messenger'
+import { MockL1Messenger } from '../../typechain-types/contracts/test/MockL1Messenger.sol'
 import { MockL2Messenger } from '../../typechain-types/contracts/test/MockL2Messenger'
 import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.sol'
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
@@ -30,8 +31,24 @@ import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
 import { L1StosToL2 } from '../../typechain-types/contracts/L1/L1StosToL2.sol'
 import { L1StosInL2 } from '../../typechain-types/contracts/L2/L1StosInL2.sol'
 import { LockIdNftForRegister } from '../../typechain-types/contracts/stos/LockIdNftForRegister'
-import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable.sol'
+import { LockIdNftTransferable } from '../../typechain-types/contracts/stos/LockIdNftTransferable'
 import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
+
+//L2InitialLiquidityVault
+import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol'
+import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
+// L2ScheduleVaultB ( team, marketing )
+import { L2ScheduleVaultB } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultB'
+import { L2ScheduleVaultBProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultBProxy.sol'
+// L2NonScheduleVaultA (dao)
+import { L2NonScheduleVaultA } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVaultA'
+import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
+
+// LpReward
+// TonAirdrop
+// TosAirDrop
+
+
 
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -57,6 +74,37 @@ interface L2ProjectLaunchFixture  {
     l1toL2Message: L1toL2Message,
     paymasterAddress: string,
     l2PaymasterDeposit: L2PaymasterDeposit
+}
+
+
+interface SetL2ProjectLaunchFixture  {
+    libProject: LibProject,
+    l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
+    l1ERC20B_TokenFactory: L1ERC20B_TokenFactory,
+    l1ERC20C_TokenFactory: L1ERC20C_TokenFactory,
+    l1ERC20D_TokenFactory: L1ERC20D_TokenFactory,
+    l1ProjectManager: L1ProjectManager,
+    l1ProjectManagerProxy: L1ProjectManagerProxy,
+    l2TokenFactory: L2TokenFactory,
+    l2ProjectManager: L2ProjectManager,
+    l2ProjectManagerProxy: L2ProjectManagerProxy,
+    deployer: Signer,
+    addr1: Signer,
+    addr2: Signer,
+    addressManager: Lib_AddressManager,
+    l1Messenger: MockL1Messenger,
+    l2Messenger: MockL2Messenger,
+    l1Bridge: MockL1Bridge,
+    l2Bridge: MockL2Bridge,
+    // publicSaleVault:
+    initialLiquidityVault: L2InitialLiquidityVault,
+    initialLiquidityVaultProxy: L2InitialLiquidityVaultProxy,
+    daoVault: L2NonScheduleVaultA,
+    daoVaultProxy: L2CustomVaultBaseProxy,
+    marketingVault : L2ScheduleVaultB,
+    marketingVaultProxy : L2ScheduleVaultBProxy,
+    teamVault: L2ScheduleVaultB
+    teamVaultProxy : L2ScheduleVaultBProxy
 }
 
 interface ProjectInfo {
@@ -145,6 +193,7 @@ interface SnapshotBalance {
 
 export {
     L2ProjectLaunchFixture,
+    SetL2ProjectLaunchFixture,
     ProjectInfo,
     L1Fixture,
     Point,

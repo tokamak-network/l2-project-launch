@@ -1,0 +1,212 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L2ProjectManagerStorage",
+  "sourceName": "contracts/L2/L2ProjectManagerStorage.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "daoVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "initialLiquidityVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l1ProjectManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2CrossDomainMessenger",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2TokenFactory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "liquidityRewardVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "marketingVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "projects",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "projectOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "l1Token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "projectName",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "publicSaleVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "teamVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "tokenMaps",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tonAirdropVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tosAirdropVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040526000805460ff1916600117905534801561001d57600080fd5b506103dc8061002d6000396000f3fe608060405234801561001057600080fd5b50600436106100df5760003560e01c8063840e78fd1161008c578063c5b53e6811610066578063c5b53e68146101c2578063eca7b836146101eb578063eddd5e82146101fe578063fbef005a1461021157600080fd5b8063840e78fd146101785780638ab5212b1461019c578063c51c773a146101af57600080fd5b80635903bd6c116100bd5780635903bd6c1461013a5780636e53f4271461014d57806374a9f5c11461016057600080fd5b80632966c4dd146100e45780632c8917c8146101145780634c265a1314610127575b600080fd5b6005546100f7906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6003546100f7906001600160a01b031681565b6008546100f7906001600160a01b031681565b600a546100f7906001600160a01b031681565b6006546100f7906001600160a01b031681565b6000546100f79061010090046001600160a01b031681565b61018b6101863660046102eb565b610224565b60405161010b95949392919061031b565b6009546100f7906001600160a01b031681565b6004546100f7906001600160a01b031681565b6100f76101d03660046102eb565b600c602052600090815260409020546001600160a01b031681565b6007546100f7906001600160a01b031681565b6001546100f7906001600160a01b031681565b6002546100f7906001600160a01b031681565b600b602052600090815260409020805460018201546002830154600384015460048501805494956001600160a01b0394851695938516949092169261026890610395565b80601f016020809104026020016040519081016040528092919081815260200182805461029490610395565b80156102e15780601f106102b6576101008083540402835291602001916102e1565b820191906000526020600020905b8154815290600101906020018083116102c457829003601f168201915b5050505050905085565b6000602082840312156102fd57600080fd5b81356001600160a01b038116811461031457600080fd5b9392505050565b858152600060206001600160a01b0380881682850152808716604085015280861660608501525060a0608084015283518060a085015260005b818110156103705785810183015185820160c001528201610354565b50600060c0828601015260c0601f19601f830116850101925050509695505050505050565b600181811c908216806103a957607f821691505b6020821081036103c957634e487b7160e01b600052602260045260246000fd5b5091905056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100df5760003560e01c8063840e78fd1161008c578063c5b53e6811610066578063c5b53e68146101c2578063eca7b836146101eb578063eddd5e82146101fe578063fbef005a1461021157600080fd5b8063840e78fd146101785780638ab5212b1461019c578063c51c773a146101af57600080fd5b80635903bd6c116100bd5780635903bd6c1461013a5780636e53f4271461014d57806374a9f5c11461016057600080fd5b80632966c4dd146100e45780632c8917c8146101145780634c265a1314610127575b600080fd5b6005546100f7906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6003546100f7906001600160a01b031681565b6008546100f7906001600160a01b031681565b600a546100f7906001600160a01b031681565b6006546100f7906001600160a01b031681565b6000546100f79061010090046001600160a01b031681565b61018b6101863660046102eb565b610224565b60405161010b95949392919061031b565b6009546100f7906001600160a01b031681565b6004546100f7906001600160a01b031681565b6100f76101d03660046102eb565b600c602052600090815260409020546001600160a01b031681565b6007546100f7906001600160a01b031681565b6001546100f7906001600160a01b031681565b6002546100f7906001600160a01b031681565b600b602052600090815260409020805460018201546002830154600384015460048501805494956001600160a01b0394851695938516949092169261026890610395565b80601f016020809104026020016040519081016040528092919081815260200182805461029490610395565b80156102e15780601f106102b6576101008083540402835291602001916102e1565b820191906000526020600020905b8154815290600101906020018083116102c457829003601f168201915b5050505050905085565b6000602082840312156102fd57600080fd5b81356001600160a01b038116811461031457600080fd5b9392505050565b858152600060206001600160a01b0380881682850152808716604085015280861660608501525060a0608084015283518060a085015260005b818110156103705785810183015185820160c001528201610354565b50600060c0828601015260c0601f19601f830116850101925050509695505050505050565b600181811c908216806103a957607f821691505b6020821081036103c957634e487b7160e01b600052602260045260246000fd5b5091905056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

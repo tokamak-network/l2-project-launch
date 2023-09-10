@@ -21,6 +21,7 @@ contract L2NonScheduleVaultA is L2CustomVaultBase {
 
     /* ========== only L2ProjectManager ========== */
 
+
     /* ========== Anyone can vault admin of token ========== */
     function claim(address l2Token, uint256 amount)
         external onlyVaultAdminOfToken(l2Token)  nonZeroAddress(l2Token)  nonZero(amount)

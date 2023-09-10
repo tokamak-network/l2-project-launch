@@ -29,6 +29,7 @@ contract MockL1Messenger  {
     constructor() {
     }
 
+
     function setL2messenger(address _l2messagenger) external {
         require(l2messenger == address(0), 'already set');
         l2messenger = _l2messagenger;

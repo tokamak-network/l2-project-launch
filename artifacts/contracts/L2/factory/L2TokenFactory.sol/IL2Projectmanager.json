@@ -26,7 +26,7 @@
           "type": "string"
         }
       ],
-      "name": "addProject",
+      "name": "createL2Project",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

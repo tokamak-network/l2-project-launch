@@ -81,12 +81,12 @@ const config: HardhatUserConfig = {
       //   url: `${process.env.ETH_NODE_URI_GOERLI}`,
       //   blockNumber: 9448400
       // },
-      // forking: {
-      //   url: `${process.env.ETH_NODE_URI_DARIUS}`,
-      //   blockNumber: 21600
-      // },
+      forking: {
+        url: `${process.env.ETH_NODE_URI_DARIUS}`,
+        blockNumber: 21600
+      },
       allowUnlimitedContractSize: false,
-      deploy: ['deploy_l1', 'deploy_l2'],
+      // deploy: ['deploy_l1', 'deploy_l2'],
       companionNetworks: {
         l2: 'hardhat',
       },
