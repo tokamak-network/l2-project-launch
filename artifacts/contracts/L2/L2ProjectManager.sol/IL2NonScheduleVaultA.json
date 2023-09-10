@@ -1,32 +1,27 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IL2Projectmanager",
-  "sourceName": "contracts/stos/factory/LayerLockIdFactory.sol",
+  "contractName": "IL2NonScheduleVaultA",
+  "sourceName": "contracts/L2/L2ProjectManager.sol",
   "abi": [
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "projectOwner",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "l1Token",
-          "type": "address"
-        },
         {
           "internalType": "address",
           "name": "l2Token",
           "type": "address"
         },
         {
-          "internalType": "string",
-          "name": "projectName",
-          "type": "string"
+          "internalType": "address",
+          "name": "_newAdmin",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
         }
       ],
-      "name": "addProject",
+      "name": "allocateTokenAndAdmin",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

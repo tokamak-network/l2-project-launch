@@ -10,7 +10,7 @@ import { Lib_PredeployAddresses } from "../../libraries/constants/Lib_PredeployA
 
 interface IL2Projectmanager {
 
-    function addProject(
+    function createL2Project(
         address projectOwner,
         address l1Token,
         address l2Token,
@@ -79,7 +79,7 @@ contract L2TokenFactory is AccessibleCommon {
 
         require(address(l2Token) != address(0), "zero l2Token");
 
-        IL2Projectmanager(l2ProjectManager).addProject(
+        IL2Projectmanager(l2ProjectManager).createL2Project(
             projectOwner, _l1Token, address(l2Token), projectName
         );
 

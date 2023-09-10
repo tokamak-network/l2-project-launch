@@ -8,10 +8,10 @@ import {IERC20} from "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
 
 /**
- * @title L2CustomVaultBProxy
+ * @title L2ScheduleVaultBProxy
  * @dev Vaults that Vault Admins claim according to a schedule
  */
-contract L2CustomVaultBProxy is L2CustomVaultBaseProxy, L2ScheduleVaultBStorage {
+contract L2ScheduleVaultBProxy is L2CustomVaultBaseProxy, L2ScheduleVaultBStorage {
 
     /* ========== DEPENDENCIES ========== */
 

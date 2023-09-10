@@ -7,24 +7,254 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "l1Token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "l2Token",
           "type": "address"
-        }
-      ],
-      "name": "balanceOf",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
+        },
         {
-          "internalType": "string",
-          "name": "_msg",
-          "type": "string"
+          "internalType": "uint256",
+          "name": "projectId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalAmount",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterPublicSaleVault",
+              "name": "publicSaleParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tosPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tokenPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "initSqrtPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startTime",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint16",
+                  "name": "fee",
+                  "type": "uint16"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterInitialLiquidityVault",
+              "name": "initialVaultParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "poolAddress",
+                  "type": "address"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "totalAllocatedAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "totalClaimCount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "firstClaimAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "firstClaimTime",
+                      "type": "uint32"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "secondClaimTime",
+                      "type": "uint32"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "roundIntervalTime",
+                      "type": "uint32"
+                    }
+                  ],
+                  "internalType": "struct LibProject.InitalParameterScheduleVault",
+                  "name": "params",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterLiquidityRewardVault",
+              "name": "rewardParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "tosAirdropParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "tonAirdropParams",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct LibProject.TokamakVaults[]",
+          "name": "tokamakVaults",
+          "type": "tuple[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "totalAllocatedAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalClaimCount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "firstClaimAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "firstClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "secondClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "roundIntervalTime",
+              "type": "uint32"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterScheduleVault[]",
+          "name": "customScheduleVaults",
+          "type": "tuple[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "totalAllocatedAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterNonScheduleVault[]",
+          "name": "customNonScheduleVaults",
+          "type": "tuple[]"
         }
       ],
-      "name": "hello",
+      "name": "distributes",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

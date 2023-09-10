@@ -8,7 +8,8 @@ import { LibScheduleVaultB } from "../../libraries/LibScheduleVaultB.sol";
  */
 contract L2ScheduleVaultBStorage {
 
-    // l2token - VaultInfo
-    mapping(address => LibScheduleVaultB.VaultInfo) public vaultInfo;
+    // l2token - keccak256 (vault name) - VaultInfo
+    mapping(address => mapping(bytes32 => LibScheduleVaultB.VaultInfo)) public vaultInfo;
+
 
 }
