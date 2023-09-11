@@ -19,9 +19,9 @@ contract L2ProjectManagerStorage {
     address public liquidityRewardVault;
     address public tonAirdropVault;
     address public tosAirdropVault;
-    address public marketingVault; // customScheduleVault
-    address public teamVault; // customScheduleVault
-    address public daoVault;    // customNonScheduleVault
+
+    address public scheduleVault; // customScheduleVault
+    address public nonScheduleVault;    // customNonScheduleVault
 
     // l2token - L2ProjectInfo
     mapping(address => LibProject.L2ProjectInfo) public projects;

@@ -103,8 +103,13 @@ interface SetL2ProjectLaunchFixture  {
     daoVaultProxy: L2CustomVaultBaseProxy,
     marketingVault : L2ScheduleVaultB,
     marketingVaultProxy : L2ScheduleVaultBProxy,
-    teamVault: L2ScheduleVaultB
-    teamVaultProxy : L2ScheduleVaultBProxy
+    teamVault: L2ScheduleVaultB,
+    teamVaultProxy : L2ScheduleVaultBProxy,
+    scheduleVault: L2ScheduleVaultB,
+    scheduleVaultProxy: L2ScheduleVaultBProxy,
+    nonScheduleVaultB: L2NonScheduleVaultA,
+    nonScheduleVaultBProxy: L2CustomVaultBaseProxy,
+    tosAddress: string
 }
 
 interface ProjectInfo {

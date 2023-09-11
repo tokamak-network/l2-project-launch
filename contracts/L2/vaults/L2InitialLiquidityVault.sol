@@ -107,12 +107,10 @@ contract L2InitialLiquidityVault is
     /* ========== onlyOwner ========== */
     function setUniswapInfo(address _poolfactory, address _npm, address _ton, address _tos)
         external
-        onlyOwner
+        onlyOwner nonZeroAddress(_poolfactory) nonZeroAddress(_npm) nonZeroAddress(_ton) nonZeroAddress(_tos)
     {
-        require(_poolfactory != address(0) && _poolfactory != uniswapV3Factory, "zero or same UniswapV3Factory");
-        require(_npm != address(0) && _npm != nonfungiblePositionManager, "zero or same npm");
-        require(_ton != address(0) && ton != _ton, "zero or same ton");
-        require(_tos != address(0) && tos != _tos, "zero or same tos");
+        require(_poolfactory != uniswapV3Factory ||  _npm != nonfungiblePositionManager ||
+             ton != _ton || tos != _tos, "same");
 
         uniswapV3Factory = _poolfactory;
         nonfungiblePositionManager = _npm;
@@ -121,6 +119,28 @@ contract L2InitialLiquidityVault is
 
         emit SetUniswapInfo(_poolfactory, _npm, _ton, _tos);
     }
+
+    function setAcceptTickChangeInterval(int24 _interval) external onlyOwner
+    {
+        require(_interval > 0, "zero");
+        require(acceptTickChangeInterval != _interval, "same");
+        acceptTickChangeInterval = _interval;
+    }
+
+    function setAcceptSlippagePrice(int24 _value) external onlyOwner
+    {
+        require(_value > 0, "zero");
+        require(acceptSlippagePrice != _value, "same");
+        acceptSlippagePrice = _value;
+    }
+
+    function setTWAP_PERIOD(uint32 value) external onlyOwner
+    {
+        require(value > 0, "zero");
+        require(TWAP_PERIOD != value, "same");
+        TWAP_PERIOD = value;
+    }
+
 
     /* ========== only L2ProjectManager ========== */
     function initialize(

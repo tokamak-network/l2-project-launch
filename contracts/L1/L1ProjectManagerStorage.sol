@@ -24,10 +24,6 @@ contract L1ProjectManagerStorage {
     // l2type - l2TokenFactory
     mapping(uint8 => LibProject.L2Info) public l2Info;
 
-    // 기본 볼트 주소 번호 및  배포정보 보내기
-    // publicSale, initialLiquidity, daoVault, tosAirdrop, tonAirdrop,
-    // 1,           2,               3,          4,        5
-
 
     modifier onlyProjectOwner(uint256 projectid) {
         require(projects[projectid].projectOwner != address(0) &&

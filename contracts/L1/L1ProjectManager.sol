@@ -54,9 +54,22 @@ interface IIERC20 {
 contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerStorage {
     using SafeERC20 for IERC20;
 
-    event CreatedProject(uint256 projectId, address l1Token, string projectName, address projectOwner, string tokenName, string tokenSymbol, uint256 initialTotalSupply);
+    event CreatedProject(
+        address l1Token,
+        uint256 projectId,
+        address tokenOwner,
+        address projectOwner,
+        address addressManager,
+        uint256 initialTotalSupply,
+        string projectName, string tokenName, string tokenSymbol);
+
     event SetL2Token(uint256 projectId, uint8 l2Type, address addressManager, address l2Token);
     event SetL2Infos(uint8 l2Type, address l2TokenFactory, address l2ProjectManager, uint32 depositMinGasLimit, uint32 sendMsgMinGasLimit);
+    event LaunchedProject(
+        uint256 projectId,
+        address l1Token,
+        address l2Token,
+        uint256 totalAmount);
 
     /* ========== DEPENDENCIES ========== */
 
@@ -117,14 +130,18 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     function createProject(
         address tokenOwner,
         address projectOwner,
+        address addressManager,
         uint256 initialTotalSupply,
         uint8 tokenType,
         string memory projectName,
         string memory tokenName,
         string memory tokenSymbol
     )
-        external returns (uint256)
+        external
+        returns (uint256)
     {
+        require(tokenOwner != address(0) && projectOwner != address(0) && addressManager != address(0),
+            "zero address");
         require(bytes(projectName).length != 0, "projectName is null");
         require(bytes(tokenName).length != 0, "tokenName is null");
         require(bytes(tokenSymbol).length != 0, "tokenSymbol is null");
@@ -137,13 +154,14 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         require(projectToken != address(0), "zero projectToken");
         uint256 projectId = ++projectCount;
+        // address _tokenOwner = tokenOwner;
 
         projects[projectId] = LibProject.ProjectInfo({
             projectOwner: projectOwner,
             tokenOwner : tokenOwner,
             l1Token : projectToken,
             l2Token : address(0),
-            addressManager : address(0),
+            addressManager : addressManager,
             initialTotalSupply : initialTotalSupply,
             tokenType : tokenType,
             l2Type : uint8(0),
@@ -152,7 +170,9 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         projectTokens[projectToken] = projectId;
 
-        emit CreatedProject(projectId, projectToken, projectName, projectOwner, tokenName, tokenSymbol, initialTotalSupply);
+        emit CreatedProject(
+            projectToken, projectId, tokenOwner, projectOwner, addressManager, initialTotalSupply,
+            projectName,  tokenName, tokenSymbol );
         return projectId;
     }
 
@@ -161,7 +181,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         address l2Token,
         uint256 totalAmount,
         LibProject.TokamakVaults memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     )
         external nonZeroAddress(l2Token) nonZero(totalAmount)
@@ -182,17 +202,17 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
-        if(customScheduleVaults.length != 0){
-            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
-            require(boolValidateCustom1, "customScheduleVaults vaildate fail");
-            totalAllocatedAmount += custom1TotalAmount;
-        }
+        // if(customScheduleVaults.length != 0){
+        //     (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+        //     require(boolValidateCustom1, "customScheduleVaults vaildate fail");
+        //     totalAllocatedAmount += custom1TotalAmount;
+        // }
 
-        if(customScheduleVaults.length != 0){
-            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
-            require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
-            totalAllocatedAmount += custom2TotalAmount;
-        }
+        // if(customScheduleVaults.length != 0){
+        //     (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+        //     require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
+        //     totalAllocatedAmount += custom2TotalAmount;
+        // }
         require(totalAllocatedAmount == totalAmount, "totalAmount is different from vaults allocated amount");
 
         uint256 id = projectId;
@@ -200,16 +220,22 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 1. L2토큰 정보를 저장한다.
         projects[id].l2Token = l2Token;
         info.l2Token = l2Token;
+        // bytes memory functionParams = abi.encode(
+        //     info.l1Token,
+        //     info.l2Token,
+        //     id,
+        //     totalAmount,
+        //     tokamakVaults,
+        //     customScheduleVaults,
+        //     customNonScheduleVaults
+        // );
         bytes memory functionParams = abi.encode(
             info.l1Token,
             info.l2Token,
             id,
             totalAmount,
-            tokamakVaults,
-            customScheduleVaults,
-            customNonScheduleVaults
+            tokamakVaults
         );
-
         uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
 
         // 2. L1 토큰 발행하고,
@@ -241,6 +267,8 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
                 abi.encodeWithSelector(L2ProjectManagerI.distributes.selector, functionParams),
                 _l2Info.sendMsgMinGasLimit
             );
+
+        emit LaunchedProject(id, info.l1Token, info.l2Token, info.initialTotalSupply);
     }
 
     /* ========== VIEW ========== */

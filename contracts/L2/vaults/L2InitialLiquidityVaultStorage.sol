@@ -12,7 +12,7 @@ contract L2InitialLiquidityVaultStorage {
     address public uniswapV3Factory;
     address public nonfungiblePositionManager;
     uint32 public TWAP_PERIOD;
-    int24 public tickIntervalMinimum;
+    // int24 public tickIntervalMinimum;
     int24 public acceptTickChangeInterval;
     int24 public acceptSlippagePrice;
     int24 public tickSpacings ;

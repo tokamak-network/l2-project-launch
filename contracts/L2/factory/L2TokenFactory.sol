@@ -6,7 +6,7 @@ import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
 
 import { L2StandardERC20 } from "../../standards/L2StandardERC20.sol";
 import { Lib_PredeployAddresses } from "../../libraries/constants/Lib_PredeployAddresses.sol";
-
+import 'hardhat/console.sol';
 
 interface IL2Projectmanager {
 
@@ -78,7 +78,6 @@ contract L2TokenFactory is AccessibleCommon {
         );
 
         require(address(l2Token) != address(0), "zero l2Token");
-
         IL2Projectmanager(l2ProjectManager).createL2Project(
             projectOwner, _l1Token, address(l2Token), projectName
         );

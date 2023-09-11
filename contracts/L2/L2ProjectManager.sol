@@ -23,6 +23,14 @@ interface IL2CustomVaultBase {
     ) external;
 }
 
+interface IL2PublicSaleVault {
+    function vaultInitialize(
+        address l2Token,
+        LibProject.InitalParameterPublicSaleVault memory vaultParams,
+        LibProject.InitalParameterPublicSaleClaim memory claimParams
+    ) external;
+}
+
 interface IL2InitialLiquidityVault {
     function initialize(
         address l2Token,
@@ -93,18 +101,11 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
-        LibProject.TokamakVaults tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] customScheduleVaults,
-        LibProject.InitalParameterNonScheduleVault[] customNonScheduleVaults
-        );
-    event TokamakAllocatedAmount(
-            uint256 projectId,
-            address l2Token,
-            uint256 publicSaleTotalAllocatedAmount,
-            uint256 initialVaultTotalAllocatedAmount,
-            uint256 rewardTotalAllocatedAmount,
-            uint256 tosAirdropTotalAllocatedAmount,
-            uint256 tonAirdropTotalAllocatedAmount
+        uint256 publicSaleTotalAllocatedAmount,
+        uint256 initialVaultTotalAllocatedAmount,
+        uint256 rewardTotalAllocatedAmount,
+        uint256 tosAirdropTotalAllocatedAmount,
+        uint256 tonAirdropTotalAllocatedAmount
         );
 
     /* ========== DEPENDENCIES ========== */
@@ -146,28 +147,35 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address initialLiquidity,
         address liquidityReward,
         address tonAirdrop,
-        address tosAirdrop
+        address tosAirdrop,
+        address _scheduleVault,
+        address _nonScheduleVault
         )
         external onlyOwner
-        nonZeroAddress(publicSale)
+        // nonZeroAddress(publicSale)
         nonZeroAddress(initialLiquidity)
-        nonZeroAddress(liquidityReward)
-        nonZeroAddress(tosAirdrop)
-        nonZeroAddress(tonAirdrop)
+        // nonZeroAddress(liquidityReward)
+        // nonZeroAddress(tosAirdrop)
+        // nonZeroAddress(tonAirdrop)
+        nonZeroAddress(_scheduleVault)
+        nonZeroAddress(_nonScheduleVault)
     {
-        require(
-            publicSaleVault != publicSale ||
-            initialLiquidityVault != initialLiquidity ||
-            liquidityRewardVault != liquidityReward ||
-            tonAirdropVault != tonAirdrop ||
-            tosAirdropVault != tosAirdrop
-            , "same");
+        require(scheduleVault == address(0), "already set");
+        // require(
+        //     publicSaleVault != publicSale ||
+        //     initialLiquidityVault != initialLiquidity ||
+        //     liquidityRewardVault != liquidityReward ||
+        //     tonAirdropVault != tonAirdrop ||
+        //     tosAirdropVault != tosAirdrop
+        //     , "same");
 
         publicSaleVault = publicSale;
         initialLiquidityVault = initialLiquidity;
         liquidityReward = liquidityReward;
         tonAirdropVault = tonAirdrop;
         tosAirdropVault = tosAirdrop;
+        scheduleVault = _scheduleVault;
+        nonScheduleVault = _nonScheduleVault;
     }
 
     /* ========== only L2TokenFactory ========== */
@@ -196,13 +204,20 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
     /* ========== only L2CrossDomainMessengerAndL1ProjectManager ========== */
 
+    function _approveVaults(address l2Token, address vault, uint256 amount) internal {
+        if (
+            vault != address(0) &&
+            amount != 0 &&
+            amount < IERC20(l2Token).allowance(address(this), vault)) IERC20(l2Token).approve(vault, amount);
+    }
+
     function distributesL2Token(
         address l1Token,
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
         LibProject.TokamakVaults memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     )
         external onlyMessengerAndL1ProjectManager
@@ -214,24 +229,36 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         require(info.l1Token == l1Token, "not matched l1Token");
         require(info.l2Token == l2Token, "not matched l2Token");
 
-        uint256 total = tokamakVaults.publicSaleParams.totalAllocatedAmount +
+        uint256 publicTotal = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount
+            + tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount;
+
+        uint256 total = publicTotal +
             tokamakVaults.initialVaultParams.totalAllocatedAmount +
             tokamakVaults.rewardParams.params.totalAllocatedAmount +
             tokamakVaults.tosAirdropParams.totalAllocatedAmount +
             tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
+
         require(total == totalAmount, "not matched totalAmount");
 
         projects[l2Token].projectId = projectId;
+        _approveVaults(l2Token, publicSaleVault, publicTotal);
+        _approveVaults(l2Token, initialLiquidityVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
+        _approveVaults(l2Token, liquidityRewardVault, tokamakVaults.rewardParams.params.totalAllocatedAmount);
+        _approveVaults(l2Token, tonAirdropVault, tokamakVaults.tonAirdropParams.totalAllocatedAmount);
+        _approveVaults(l2Token, tosAirdropVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
 
-        // 이벤트 확인만 먼저 한다.
-        // public sale
-        //publicSaleVault
+        IL2CustomVaultBase(publicSaleVault).setVaultAdmin(l2Token, info.projectOwner);
+        IL2PublicSaleVault(publicSaleVault).vaultInitialize(
+            l2Token,
+            tokamakVaults.publicSaleParams.vaultParams,
+            tokamakVaults.publicSaleParams.claimParams
+        );
 
-        // // initial liquidity
-        // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
-        // IL2InitialLiquidityVault(initialLiquidityVault).initialize(
-        //     l2Token,
-        //     tokamakVaults.initialVaultParams );
+        // initial liquidity
+        IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, info.projectOwner);
+        IL2InitialLiquidityVault(initialLiquidityVault).initialize(
+            l2Token,
+            tokamakVaults.initialVaultParams );
 
         // // liquidity reward
         // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
@@ -251,17 +278,18 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         //     address _newAdmin,
         //     uint256 amount
         // )
+        uint256 initialTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
+        uint256 rewardTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
+        uint256 tosAirdropTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
+        uint256 tonAirdropTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
 
-        emit TokamakAllocatedAmount(
-            projectId, l2Token,
-            tokamakVaults.publicSaleParams.totalAllocatedAmount,
-            tokamakVaults.initialVaultParams.totalAllocatedAmount,
-            tokamakVaults.rewardParams.params.totalAllocatedAmount,
-            tokamakVaults.tosAirdropParams.totalAllocatedAmount,
-            tokamakVaults.tonAirdropParams.totalAllocatedAmount
-        );
+        emit DistributedL2Token(info.l1Token, info.l2Token, info.projectId, total,
+            publicTotal,
+            initialTotal,
+            rewardTotal,
+            tosAirdropTotal,
+            tonAirdropTotal);
 
-        emit DistributedL2Token(l1Token, l2Token, projectId, totalAmount, tokamakVaults, customScheduleVaults, customNonScheduleVaults);
     }
 
     /* ========== Anyone can execute ========== */
