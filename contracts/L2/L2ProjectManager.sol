@@ -316,11 +316,6 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
             }
         }
 
-        for (uint256 i = 0; i < customNonScheduleVaults.length; i++) {
-            // LibProject.InitalParameterNonScheduleVault memory nonSchedule = customNonScheduleVaults[i];
-
-        }
-
         emit DistributedL2Token(info.l1Token, info.l2Token, info.projectId, total);
     }
 
