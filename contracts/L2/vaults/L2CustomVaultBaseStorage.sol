@@ -16,7 +16,6 @@ contract L2CustomVaultBaseStorage {
 
     event SetVaultAdmin(address l2Token, address newAdmin);
     event SetInitializer(address newInitializer);
-    event Claimed(address l2Token, address to, uint256 amount);
 
     modifier onlyL2ProjectManager() {
         require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");

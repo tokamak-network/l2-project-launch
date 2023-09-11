@@ -73,7 +73,7 @@ function getPublicSaleParams (
 }
 
 function getInitialLiquidityParams (
-    totalAmount:number,
+    totalAmount:BigNumber,
     tosPrice:number,
     tokenPrice:number,
     price:string,
@@ -81,7 +81,7 @@ function getInitialLiquidityParams (
     fee:number )
 {
     return  {
-        totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),
+        totalAllocatedAmount: totalAmount,
         tosPrice: ethers.BigNumber.from(""+tosPrice),
         tokenPrice: ethers.BigNumber.from(""+tokenPrice),
         initSqrtPrice: ethers.BigNumber.from(price),
@@ -150,7 +150,7 @@ function getTonAirdropParams (
 
 function getScheduleParams (
     name: string,
-    totalAmount:number,
+    totalAmount:BigNumber,
     totalClaimCount:number,
     firstClaimAmount:number,
     firstClaimTime:number,
@@ -160,7 +160,7 @@ function getScheduleParams (
     return  {
         vaultName: name,
         params: {
-            totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),
+            totalAllocatedAmount: totalAmount,
             totalClaimCount: ethers.BigNumber.from(""+totalClaimCount),
             firstClaimAmount: ethers.BigNumber.from(""+firstClaimAmount),
             firstClaimTime: firstClaimTime,
@@ -172,11 +172,11 @@ function getScheduleParams (
 
 function getNonScheduleParams (
     name: string,
-    totalAmount:number )
+    totalAmount:BigNumber )
 {
     return  {
         vaultName: name,
-        totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount)
+        totalAllocatedAmount: totalAmount
     }
 }
 
@@ -671,6 +671,18 @@ describe('L1ProjectManager', () => {
 
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("4"))
+            let daoAmount = initialLiquidityAmount
+            let teamAmount = initialLiquidityAmount
+            let marketingAmount = initialLiquidityAmount
+            let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
+            let firstClaimTime = sTime
+            let totalClaimCount = 4
+            let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
+            let roundIntervalTime = 60*60*24*7;
+            let secondClaimTime =  firstClaimTime + roundIntervalTime
+
+
             let publicSaleParams =  getPublicSaleParams (
                 [0,0,0,0], //tier
                 [0,0,0,0], // percentage
@@ -684,7 +696,7 @@ describe('L1ProjectManager', () => {
                 [],
                 );
 
-            let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
+
             let tosPrice = 1e18;
             let tokenPrice = 10e18;
 
@@ -700,7 +712,7 @@ describe('L1ProjectManager', () => {
             // const price = univ3prices([18, 18], sqrtPrice).toFixed();
 
             let initialVaultParams = getInitialLiquidityParams(
-                projectInfo.initialTotalSupply,
+                initialLiquidityAmount,
                 tosPrice / 1e18,
                 token1Price / 1e18,
                 sqrtPrice.toString(),
@@ -709,6 +721,26 @@ describe('L1ProjectManager', () => {
             let rewardParams = getLpRewardParams(ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
             let tosAirdropParams =  getTosAirdropParams(0, 0, 0, 0, 0, 0);
             let tonAirdropParams =  getTonAirdropParams(0, 0, 0, 0, 0, 0);
+            let daoParams =  getNonScheduleParams("DAO", daoAmount);
+            let teamParams =  getScheduleParams(
+                "TEAM",
+                teamAmount, //totalAllocatedAmount
+                totalClaimCount, // totalClaimCount
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+                );
+
+            let marketingParams =  getScheduleParams(
+                "MARKETING",
+                marketingAmount, //totalAllocatedAmount
+                totalClaimCount, // totalClaimCount 4
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+                );
 
             let tokamakVaults = {
                 publicSaleParams: publicSaleParams,
@@ -718,19 +750,8 @@ describe('L1ProjectManager', () => {
                 tonAirdropParams: tonAirdropParams
             }
 
-            let customScheduleVaults = [{}]
-            let customNonScheduleVaults = [{}]
-
-            // await expect(
-            //     deployed.l1ProjectManager.connect(addr1).launchProject(
-            //         projectInfo.projectId,
-            //         projectInfo.l2Token,
-            //         projectInfo.initialTotalSupply,
-            //         tokamakVaults,
-            //         customScheduleVaults,
-            //         customNonScheduleVaults
-            //         )
-            //     ).to.be.revertedWith("caller is not projectOwner")
+            let customScheduleVaults = [teamParams, marketingParams]
+            let customNonScheduleVaults = [daoParams]
 
             const topic = deployed.l1ProjectManager.interface.getEventTopic('LaunchedProject');
 
@@ -738,7 +759,9 @@ describe('L1ProjectManager', () => {
                     projectInfo.projectId,
                     projectInfo.l2Token,
                     projectInfo.initialTotalSupply,
-                    tokamakVaults
+                    tokamakVaults,
+                    customScheduleVaults,
+                    customNonScheduleVaults
                     )).wait();
 
             const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
@@ -748,6 +771,9 @@ describe('L1ProjectManager', () => {
             expect(deployedEvent.args.l1Token).to.be.eq(projectInfo.l1Token)
             expect(deployedEvent.args.l2Token).to.be.eq(projectInfo.l2Token)
             expect(deployedEvent.args.totalAmount).to.be.eq(projectInfo.initialTotalSupply)
+
+            // vault check
+
 
         });
 

@@ -1,33 +1,8 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "L2ScheduleVaultBProxy",
-  "sourceName": "contracts/L2/vaults/L2ScheduleVaultBProxy.sol",
+  "contractName": "L2ScheduleVaultProxy",
+  "sourceName": "contracts/L2/vaults/L2ScheduleVaultProxy.sol",
   "abi": [
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "l2Token",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "Claimed",
-      "type": "event"
-    },
     {
       "anonymous": false,
       "inputs": [

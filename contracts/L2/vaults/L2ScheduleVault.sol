@@ -2,20 +2,20 @@
 pragma solidity ^0.8.4;
 
 import "./L2CustomVaultBase.sol";
-import "./L2ScheduleVaultBStorage.sol";
+import "./L2ScheduleVaultStorage.sol";
 
 import {IERC20} from "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
 import "../../libraries/LibProject.sol";
 
 /**
- * @title L2ScheduleVaultB
+ * @title L2ScheduleVault
  * @dev Vaults that Vault Admins claim according to a schedule
  */
-contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
+contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
     using SafeERC20 for IERC20;
 
-    event InitializedL2ScheduleVaultB(
+    event InitializedL2ScheduleVault(
             address l2Token,
             string name,
             uint256 totalAllocatedAmount,
@@ -35,9 +35,6 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
 
     /* ========== only L2ProjectManager ========== */
 
-
-    /* ========== only VaultAdmin Of Token ========== */
-
     function initialize(
         address l2Token,
         string memory vaultName,
@@ -54,7 +51,7 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
 
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
 
-        LibScheduleVaultB.VaultInfo storage info = vaultInfo[l2Token][nameKey];
+        LibScheduleVault.VaultInfo storage info = vaultInfo[l2Token][nameKey];
         info.totalAllocatedAmount = params.totalAllocatedAmount;
         info.totalClaimCount = params.totalClaimCount;
         info.totalClaimedAmount = 0;
@@ -64,7 +61,7 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
         info.roundInterval = params.roundIntervalTime;
         info.latestClaimedRound = 0;
 
-        emit InitializedL2ScheduleVaultB(l2Token, vaultName, params.totalAllocatedAmount, params.totalClaimCount, params.firstClaimAmount, params.firstClaimTime, params.secondClaimTime, params.roundIntervalTime);
+        emit InitializedL2ScheduleVault(l2Token, vaultName, params.totalAllocatedAmount, params.totalClaimCount, params.firstClaimAmount, params.firstClaimTime, params.secondClaimTime, params.roundIntervalTime);
     }
 
     /* ========== Anyone can vault admin of token ========== */
@@ -76,7 +73,7 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
         require(amount <= IERC20(l2Token).balanceOf(address(this)), 'balance is insufficient');
         IERC20(l2Token).safeTransfer(msg.sender, amount);
 
-        emit Claimed(l2Token, msg.sender, amount);
+        // emit Claimed(l2Token, msg.sender, amount);
     }
 
 
@@ -85,7 +82,7 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
 
     function getCurrentRound(address l2Token, string calldata vaultName) public view returns (uint256 round){
         bytes32 nameKey = keccak256(bytes(vaultName));
-        LibScheduleVaultB.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
         if(info.firstClaimTime != 0 && info.firstClaimTime <= block.timestamp && block.timestamp < info.secondClaimTime) {
             round = 1;
         } else if(info.secondClaimTime <= block.timestamp) {
@@ -96,7 +93,7 @@ contract L2ScheduleVaultB is L2CustomVaultBase, L2ScheduleVaultBStorage {
 
     function availableClaimAmount(address l2Token, string calldata vaultName) public view returns (uint256 amount){
         bytes32 nameKey = keccak256(bytes(vaultName));
-        LibScheduleVaultB.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
         uint256 curRound = getCurrentRound(l2Token, vaultName);
 
         if(info.latestClaimedRound < curRound) {

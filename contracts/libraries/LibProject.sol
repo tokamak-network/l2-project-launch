@@ -127,14 +127,6 @@ library LibProject {
         uint256 totalAllocatedAmount;
     }
 
-    // function decodeVautlts(DistributeVault[] memory vaults)
-    //     public pure returns (bytes memory data)
-    // {
-    //     for(uint256 i = 0; i < vaults.length; i++){
-    //         data = abi.encodePacked(data, vaults[i].vaultNumber, vaults[i].amount);
-    //     }
-    // }
-
     function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {
         if (addressManager == address(0)) return address(0);
         try
@@ -208,20 +200,20 @@ library LibProject {
     }
 
     function validateScheduleVault(
-        InitalParameterScheduleVault[] memory customs
+        InitalParameterSchedule[] memory customs
     ) public pure returns (bool boolValidate, uint256 totalAmount) {
 
         if (customs.length != 0) {
             for(uint256 i = 0; i < customs.length; i++){
-                if (customs[i].totalAllocatedAmount == 0 ||
-                    customs[i].totalClaimCount == 0 ||
-                    customs[i].firstClaimAmount == 0 ||
-                    customs[i].firstClaimTime == 0 ||
-                    customs[i].secondClaimTime == 0 ||
-                    customs[i].roundIntervalTime == 0
+                if (customs[i].params.totalAllocatedAmount == 0 ||
+                    customs[i].params.totalClaimCount == 0 ||
+                    customs[i].params.firstClaimAmount == 0 ||
+                    customs[i].params.firstClaimTime == 0 ||
+                    customs[i].params.secondClaimTime == 0 ||
+                    customs[i].params.roundIntervalTime == 0
                     ) return (boolValidate, totalAmount);
 
-                totalAmount += customs[i].totalAllocatedAmount;
+                totalAmount += customs[i].params.totalAllocatedAmount;
             }
             boolValidate = true;
         }

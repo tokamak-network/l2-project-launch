@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "L2ScheduleVaultBStorage",
-  "sourceName": "contracts/L2/vaults/L2ScheduleVaultBStorage.sol",
+  "contractName": "L2ScheduleVaultStorage",
+  "sourceName": "contracts/L2/vaults/L2ScheduleVaultStorage.sol",
   "abi": [
     {
       "inputs": [

@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IL2ScheduleVaultB",
+  "contractName": "IL2ScheduleVault",
   "sourceName": "contracts/L2/L2ProjectManager.sol",
   "abi": [
     {
@@ -9,6 +9,11 @@
           "internalType": "address",
           "name": "l2Token",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "vaultName",
+          "type": "string"
         },
         {
           "components": [

@@ -336,37 +336,49 @@
         {
           "components": [
             {
-              "internalType": "uint256",
-              "name": "totalAllocatedAmount",
-              "type": "uint256"
+              "internalType": "string",
+              "name": "vaultName",
+              "type": "string"
             },
             {
-              "internalType": "uint256",
-              "name": "totalClaimCount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "firstClaimAmount",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint32",
-              "name": "firstClaimTime",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint32",
-              "name": "secondClaimTime",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint32",
-              "name": "roundIntervalTime",
-              "type": "uint32"
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "params",
+              "type": "tuple"
             }
           ],
-          "internalType": "struct LibProject.InitalParameterScheduleVault[]",
+          "internalType": "struct LibProject.InitalParameterSchedule[]",
           "name": "customScheduleVaults",
           "type": "tuple[]"
         },
@@ -388,7 +400,7 @@
           "type": "tuple[]"
         }
       ],
-      "name": "distributes",
+      "name": "distributesL2Token",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

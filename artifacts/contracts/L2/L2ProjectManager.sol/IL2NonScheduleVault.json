@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IL2NonScheduleVaultA",
+  "contractName": "IL2NonScheduleVault",
   "sourceName": "contracts/L2/L2ProjectManager.sol",
   "abi": [
     {
@@ -11,17 +11,17 @@
           "type": "address"
         },
         {
-          "internalType": "address",
-          "name": "_newAdmin",
-          "type": "address"
+          "internalType": "string",
+          "name": "vaultName",
+          "type": "string"
         },
         {
           "internalType": "uint256",
-          "name": "amount",
+          "name": "totalAllocatedAmount",
           "type": "uint256"
         }
       ],
-      "name": "allocateTokenAndAdmin",
+      "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

@@ -44,11 +44,11 @@ import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 //L2InitialLiquidityVault
 import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol'
 import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
-// L2ScheduleVaultB ( team, marketing )
-import { L2ScheduleVaultB } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultB'
-import { L2ScheduleVaultBProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultBProxy.sol'
-// L2NonScheduleVaultA (dao)
-import { L2NonScheduleVaultA } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVaultA'
+// L2ScheduleVault ( team, marketing )
+import { L2ScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVault'
+import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy.sol'
+// L2NonScheduleVault (dao)
+import { L2NonScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVault'
 import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
 
 // LpReward
@@ -58,8 +58,8 @@ import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vault
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2ProjectManagerJson from "../../artifacts/contracts/L2/L2ProjectManager.sol/L2ProjectManager.json";
 import initialLiquidityVaultJson from "../../artifacts/contracts/L2/vaults/L2InitialLiquidityVault.sol/L2InitialLiquidityVault.json";
-import daoVaultJson from "../../artifacts/contracts/L2/vaults/L2NonScheduleVaultA.sol/L2NonScheduleVaultA.json";
-import L2ScheduleVaultBJson from "../../artifacts/contracts/L2/vaults/L2ScheduleVaultB.sol/L2ScheduleVaultB.json";
+import daoVaultJson from "../../artifacts/contracts/L2/vaults/L2NonScheduleVault.sol/L2NonScheduleVault.json";
+import L2ScheduleVaultJson from "../../artifacts/contracts/L2/vaults/L2ScheduleVault.sol/L2ScheduleVault.json";
 
 const tosInfo = {
   name: "TONStarter",
@@ -353,12 +353,12 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
 
   //=================================
   //==== customScheduleVault =================================
-  const customScheduleVaultDeployment = await ethers.getContractFactory("L2ScheduleVaultB")
-  const customScheduleVaultImpl = (await customScheduleVaultDeployment.connect(deployer).deploy()) as L2ScheduleVaultB;
+  const customScheduleVaultDeployment = await ethers.getContractFactory("L2ScheduleVault")
+  const customScheduleVaultImpl = (await customScheduleVaultDeployment.connect(deployer).deploy()) as L2ScheduleVault;
 
   //==== customScheduleVaultProxy =================================
   const customScheduleVaultProxyDeployment = await ethers.getContractFactory("L2CustomVaultBaseProxy")
-  const scheduleVaultProxy = (await customScheduleVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultBProxy;
+  const scheduleVaultProxy = (await customScheduleVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultProxy;
 
   impl = await scheduleVaultProxy.implementation()
   if (impl != customScheduleVaultImpl.address) {
@@ -366,11 +366,11 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const scheduleVault = await ethers.getContractAt(
-    L2ScheduleVaultBJson.abi, scheduleVaultProxy.address, deployer) as L2ScheduleVaultB;
+    L2ScheduleVaultJson.abi, scheduleVaultProxy.address, deployer) as L2ScheduleVault;
 
   //==== nonCustomScheduleVault  =================================
-  const nonCustomScheduleVaultDeployment = await ethers.getContractFactory("L2NonScheduleVaultA")
-  const nonCustomScheduleVaultImpl = (await nonCustomScheduleVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVaultA;
+  const nonCustomScheduleVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")
+  const nonCustomScheduleVaultImpl = (await nonCustomScheduleVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVault;
 
   //==== nonCustomScheduleVaultProxy =================================
   const nonCustomScheduleVaultProxyDeployment = await ethers.getContractFactory("L2CustomVaultBaseProxy")
@@ -382,12 +382,12 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const nonScheduleVaultB = await ethers.getContractAt(
-    L2ScheduleVaultBJson.abi, nonScheduleVaultBProxy.address, deployer) as L2NonScheduleVaultA;
+    L2ScheduleVaultJson.abi, nonScheduleVaultBProxy.address, deployer) as L2NonScheduleVault;
 
 
   //==== daoVault =================================
-  const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVaultA")
-  const daoVaultImpl = (await daoVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVaultA;
+  const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")
+  const daoVaultImpl = (await daoVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVault;
 
   //==== daoVaultProxy =================================
   const daoVaultProxyDeployment = await ethers.getContractFactory("L2CustomVaultBaseProxy")
@@ -399,16 +399,16 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const daoVault = await ethers.getContractAt(
-    daoVaultJson.abi, daoVaultProxy.address, deployer) as L2NonScheduleVaultA;
+    daoVaultJson.abi, daoVaultProxy.address, deployer) as L2NonScheduleVault;
 
   //=================================
   //==== marketingVault =================================
-  const marketingVaultDeployment = await ethers.getContractFactory("L2ScheduleVaultB")
-  const marketingVaultImpl = (await marketingVaultDeployment.connect(deployer).deploy()) as L2ScheduleVaultB;
+  const marketingVaultDeployment = await ethers.getContractFactory("L2ScheduleVault")
+  const marketingVaultImpl = (await marketingVaultDeployment.connect(deployer).deploy()) as L2ScheduleVault;
 
   //==== marketingVaultProxy =================================
-  const marketingVaultProxyDeployment = await ethers.getContractFactory("L2ScheduleVaultBProxy")
-  const marketingVaultProxy = (await marketingVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultBProxy;
+  const marketingVaultProxyDeployment = await ethers.getContractFactory("L2ScheduleVaultProxy")
+  const marketingVaultProxy = (await marketingVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultProxy;
 
   impl = await marketingVaultProxy.implementation()
   if (impl != marketingVaultImpl.address) {
@@ -416,16 +416,16 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const marketingVault = await ethers.getContractAt(
-    L2ScheduleVaultBJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVaultB;
+    L2ScheduleVaultJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVault;
 
   //=================================
   //==== teamVault =================================
-  const teamVaultDeployment = await ethers.getContractFactory("L2ScheduleVaultB")
-  const teamVaultImpl = (await teamVaultDeployment.connect(deployer).deploy()) as L2ScheduleVaultB;
+  const teamVaultDeployment = await ethers.getContractFactory("L2ScheduleVault")
+  const teamVaultImpl = (await teamVaultDeployment.connect(deployer).deploy()) as L2ScheduleVault;
 
   //==== teamVaultProxy =================================
-  const teamVaultProxyDeployment = await ethers.getContractFactory("L2ScheduleVaultBProxy")
-  const teamVaultProxy = (await teamVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultBProxy;
+  const teamVaultProxyDeployment = await ethers.getContractFactory("L2ScheduleVaultProxy")
+  const teamVaultProxy = (await teamVaultProxyDeployment.connect(deployer).deploy()) as L2ScheduleVaultProxy;
 
   impl = await teamVaultProxy.implementation()
   if (impl != teamVaultImpl.address) {
@@ -433,7 +433,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const teamVault = await ethers.getContractAt(
-    L2ScheduleVaultBJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVaultB;
+    L2ScheduleVaultJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVault;
 
 
   return  {

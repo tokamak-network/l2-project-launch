@@ -21,6 +21,8 @@ interface IL2CustomVaultBase {
         address l2Token,
         address _newAdmin
     ) external;
+
+    function isVaultAdmin(address l2Token, address account) external view returns (bool);
 }
 
 interface IL2PublicSaleVault {
@@ -45,18 +47,19 @@ interface IL2LiquidityRewardVault {
     ) external;
 }
 
-interface IL2ScheduleVaultB {
+interface IL2ScheduleVault {
     function initialize(
         address l2Token,
+        string memory vaultName,
         LibProject.InitalParameterScheduleVault memory params
     ) external;
 }
 
-interface IL2NonScheduleVaultA {
-    function allocateTokenAndAdmin(
+interface IL2NonScheduleVault {
+    function initialize(
         address l2Token,
-        address _newAdmin,
-        uint256 amount
+        string memory vaultName,
+        uint256 totalAllocatedAmount
     ) external;
 }
 /**
@@ -100,12 +103,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address l1Token,
         address l2Token,
         uint256 projectId,
-        uint256 totalAmount,
-        uint256 publicSaleTotalAllocatedAmount,
-        uint256 initialVaultTotalAllocatedAmount,
-        uint256 rewardTotalAllocatedAmount,
-        uint256 tosAirdropTotalAllocatedAmount,
-        uint256 tonAirdropTotalAllocatedAmount
+        uint256 totalAmount
         );
 
     /* ========== DEPENDENCIES ========== */
@@ -238,58 +236,92 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
             tokamakVaults.tosAirdropParams.totalAllocatedAmount +
             tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
 
+        uint256 totalCustomSchedule = 0;
+        uint256 totalNonCustomSchedule = 0;
+
+        for (uint256 i = 0; i < customScheduleVaults.length; i++)
+            totalCustomSchedule += customScheduleVaults[i].params.totalAllocatedAmount;
+
+        for (uint256 j = 0; j < customNonScheduleVaults.length; j++)
+            totalNonCustomSchedule += customNonScheduleVaults[j].totalAllocatedAmount;
+
+        total += (totalCustomSchedule + totalNonCustomSchedule);
+
         require(total == totalAmount, "not matched totalAmount");
 
-        projects[l2Token].projectId = projectId;
+        projects[info.l2Token].projectId = projectId;
         _approveVaults(l2Token, publicSaleVault, publicTotal);
         _approveVaults(l2Token, initialLiquidityVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
         _approveVaults(l2Token, liquidityRewardVault, tokamakVaults.rewardParams.params.totalAllocatedAmount);
         _approveVaults(l2Token, tonAirdropVault, tokamakVaults.tonAirdropParams.totalAllocatedAmount);
-        _approveVaults(l2Token, tosAirdropVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
+        _approveVaults(l2Token, tosAirdropVault, tokamakVaults.tosAirdropParams.totalAllocatedAmount);
 
-        IL2CustomVaultBase(publicSaleVault).setVaultAdmin(l2Token, info.projectOwner);
-        IL2PublicSaleVault(publicSaleVault).vaultInitialize(
-            l2Token,
-            tokamakVaults.publicSaleParams.vaultParams,
-            tokamakVaults.publicSaleParams.claimParams
-        );
+        if (publicTotal != 0) {
+            IL2CustomVaultBase(publicSaleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+            IL2PublicSaleVault(publicSaleVault).vaultInitialize(
+                info.l2Token,
+                tokamakVaults.publicSaleParams.vaultParams,
+                tokamakVaults.publicSaleParams.claimParams
+            );
+        }
+        LibProject.InitalParameterInitialLiquidityVault memory initialVaultParams = tokamakVaults.initialVaultParams;
 
-        // initial liquidity
-        IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, info.projectOwner);
-        IL2InitialLiquidityVault(initialLiquidityVault).initialize(
-            l2Token,
-            tokamakVaults.initialVaultParams );
+        if (tokamakVaults.initialVaultParams.totalAllocatedAmount != 0) {
+            IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(info.l2Token, info.projectOwner);
+            IL2InitialLiquidityVault(initialLiquidityVault).initialize(
+                info.l2Token,
+                initialVaultParams);
+        }
 
-        // // liquidity reward
-        // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
-        // IL2LiquidityRewardVault(liquidityRewardVault).initialize(
-        //     l2Token,
-        //     tokamakVaults.rewardParams);
+        if (tokamakVaults.rewardParams.params.totalAllocatedAmount != 0) {
+            // // liquidity reward
+            // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
+            // IL2LiquidityRewardVault(liquidityRewardVault).initialize(
+            //     l2Token,
+            //     tokamakVaults.rewardParams);
+        }
 
-        // ton airdrop
+        if (tokamakVaults.tosAirdropParams.totalAllocatedAmount != 0) {
+            //
+        }
 
-        // tos airdrop
+        if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
+            //
+        }
 
-        // custom schedule
+        if (totalCustomSchedule != 0) {
+            if(!IL2CustomVaultBase(scheduleVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(scheduleVault).setVaultAdmin(info.l2Token, info.projectOwner);
 
-        // custom nonschedule
-        // IL2NonScheduleVaultA().allocateTokenAndAdmin(
-        //     address l2Token,
-        //     address _newAdmin,
-        //     uint256 amount
-        // )
-        uint256 initialTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
-        uint256 rewardTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
-        uint256 tosAirdropTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
-        uint256 tonAirdropTotal = tokamakVaults.initialVaultParams.totalAllocatedAmount;
+            for (uint256 i = 0; i < customScheduleVaults.length; i++){
+                LibProject.InitalParameterSchedule memory params = customScheduleVaults[i];
+                IL2ScheduleVault(initialLiquidityVault).initialize(
+                    info.l2Token,
+                    params.vaultName,
+                    params.params);
+            }
 
-        emit DistributedL2Token(info.l1Token, info.l2Token, info.projectId, total,
-            publicTotal,
-            initialTotal,
-            rewardTotal,
-            tosAirdropTotal,
-            tonAirdropTotal);
+        }
 
+        if (totalNonCustomSchedule != 0) {
+            if(!IL2CustomVaultBase(nonScheduleVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(nonScheduleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            for (uint256 i = 0; i < customNonScheduleVaults.length; i++){
+                LibProject.InitalParameterNonScheduleVault memory params = customNonScheduleVaults[i];
+                IL2NonScheduleVault(nonScheduleVault).initialize(
+                    info.l2Token,
+                    params.vaultName,
+                    params.totalAllocatedAmount );
+            }
+        }
+
+        for (uint256 i = 0; i < customNonScheduleVaults.length; i++) {
+            // LibProject.InitalParameterNonScheduleVault memory nonSchedule = customNonScheduleVaults[i];
+
+        }
+
+        emit DistributedL2Token(info.l1Token, info.l2Token, info.projectId, total);
     }
 
     /* ========== Anyone can execute ========== */

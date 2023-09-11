@@ -2,9 +2,9 @@
 pragma solidity ^0.8.4;
 
 /**
- * @title LibScheduleVaultB
+ * @title LibScheduleVault
  */
-library LibScheduleVaultB {
+library LibScheduleVault {
 
     struct VaultInfo {
         uint256 totalAllocatedAmount;   // Token allocation amount

@@ -13,13 +13,13 @@ import {IERC20} from "../interfaces/IERC20.sol";
 import "hardhat/console.sol";
 
 interface L2ProjectManagerI {
-    function distributes(
+    function distributesL2Token(
         address l1Token,
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
         LibProject.TokamakVaults[] memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     ) external;
 }
@@ -202,17 +202,17 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
-        // if(customScheduleVaults.length != 0){
-        //     (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
-        //     require(boolValidateCustom1, "customScheduleVaults vaildate fail");
-        //     totalAllocatedAmount += custom1TotalAmount;
-        // }
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+            require(boolValidateCustom1, "customScheduleVaults vaildate fail");
+            totalAllocatedAmount += custom1TotalAmount;
+        }
 
-        // if(customScheduleVaults.length != 0){
-        //     (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
-        //     require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
-        //     totalAllocatedAmount += custom2TotalAmount;
-        // }
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+            require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
+            totalAllocatedAmount += custom2TotalAmount;
+        }
         require(totalAllocatedAmount == totalAmount, "totalAmount is different from vaults allocated amount");
 
         uint256 id = projectId;
@@ -220,21 +220,15 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 1. L2토큰 정보를 저장한다.
         projects[id].l2Token = l2Token;
         info.l2Token = l2Token;
-        // bytes memory functionParams = abi.encode(
-        //     info.l1Token,
-        //     info.l2Token,
-        //     id,
-        //     totalAmount,
-        //     tokamakVaults,
-        //     customScheduleVaults,
-        //     customNonScheduleVaults
-        // );
+
         bytes memory functionParams = abi.encode(
             info.l1Token,
             info.l2Token,
             id,
             totalAmount,
-            tokamakVaults
+            tokamakVaults,
+            customScheduleVaults,
+            customNonScheduleVaults
         );
         uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
 
@@ -259,12 +253,12 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             _l2Info.depositMinGasLimit,
             abi.encode(id)
         );
-        // bytes memory callData = abi.encodeWithSelector(L2ProjectManagerI.distributes.selector, functionParams);
+        // bytes memory callData = abi.encodeWithSelector(L2ProjectManagerI.distributesL2Token.selector, functionParams);
 
         // 4. 커스텀 배포정보를 L2에 보낸다.
         L1CrossDomainMessengerI(l1Messenger).sendMessage(
                 _l2Info.l2ProjectManager,
-                abi.encodeWithSelector(L2ProjectManagerI.distributes.selector, functionParams),
+                abi.encodeWithSelector(L2ProjectManagerI.distributesL2Token.selector, functionParams),
                 _l2Info.sendMsgMinGasLimit
             );
 
