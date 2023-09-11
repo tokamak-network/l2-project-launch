@@ -53,6 +53,7 @@ library LibProject {
 
     struct TokamakVaults {
         InitalParameterPublicSaleVault publicSaleParams;
+        InitalParameterPublicSaleClaim publicClaimParams;
         InitalParameterInitialLiquidityVault initialVaultParams;
         InitalParameterLiquidityRewardVault rewardParams;
         InitalParameterScheduleVault tosAirdropParams;
@@ -82,6 +83,9 @@ library LibProject {
         uint256 start2roundTime;
         uint256 end2roundTime;
         uint256 claimCounts;
+    }
+
+    struct InitalParameterPublicSaleClaim {
         uint256[] claimTimes;
         uint256[] claimPercents;
     }

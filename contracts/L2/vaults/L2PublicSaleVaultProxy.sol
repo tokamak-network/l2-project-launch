@@ -128,7 +128,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     function vaultInitialize(
         address _l2token,
         LibProject.InitalParameterPublicSaleVault memory params,
-        LibProject.InitalParameterPublicSaleVault calldata params2
+        LibProject.InitalParameterPublicSaleClaim calldata params2
     ) 
         external
         onlyVaultAdminOfToken(_l2token) 
@@ -250,10 +250,14 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         beforeStartAddWhiteTime(_l2token)
     {
         uint256 balance = IERC20(_l2token).balanceOf(address(this));
+        if(balance == 0) {
+            IERC20(_l2token).safeTransferFrom(l2ProjectManager, address(this), (_totalExpectSaleAmount+_totalExpectOpenSaleAmount) );
+            balance = IERC20(_l2token).balanceOf(address(this));
+        }
         require((_totalExpectSaleAmount + _totalExpectOpenSaleAmount) <= balance && 1 ether <= balance, "not input token");
         require(_changePercent <= maxPer && _changePercent >= minPer,"need to set min,max");
         require((_totalExpectSaleAmount+(_totalExpectOpenSaleAmount)) >= (_hardcapAmount*(_payTokenPrice)/(_saleTokenPrice)), "over hardcap");
-        
+
         LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
         
         if(manageInfos.set1rdTokenAmount != 0) {
