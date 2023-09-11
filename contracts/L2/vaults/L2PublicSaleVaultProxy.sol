@@ -5,6 +5,7 @@ import "../../proxy/Proxy.sol";
 import "./L2PublicSaleVaultStorage.sol";
 
 import "../../libraries/SafeERC20.sol";
+import '../../libraries/LibProject.sol';
 
 import "hardhat/console.sol";
 
@@ -126,62 +127,59 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 
     function vaultInitialize(
         address _l2token,
-        uint256[8] calldata _Tier,
-        uint256[7] calldata _amount,
-        uint256[8] calldata _time,
-        uint256[] calldata _claimTimes,
-        uint256[] calldata _claimPercents
+        LibProject.InitalParameterPublicSaleVault memory params,
+        LibProject.InitalParameterPublicSaleVault calldata params2
     ) 
         external
         onlyVaultAdminOfToken(_l2token) 
     {   
         setTier(
             _l2token, 
-            _Tier[0], 
-            _Tier[1], 
-            _Tier[2], 
-            _Tier[3]
+            params.stosTier1, 
+            params.stosTier2, 
+            params.stosTier3, 
+            params.stosTier4
         );
         
         setTierPercents(
             _l2token, 
-            _Tier[4], 
-            _Tier[5], 
-            _Tier[6], 
-            _Tier[7]
+            params.tier1Percents, 
+            params.tier2Percents, 
+            params.tier3Percents, 
+            params.tier4Percents
         );
 
         setAllAmount(
             _l2token,
-            _amount[0],
-            _amount[1],
-            _amount[2],
-            _amount[3],
-            _amount[4],
-            _amount[5],
-            _amount[6]
+            params.total1roundSaleAmount,
+            params.total2roundSaleAmount,
+            params.saleTokenPrice,
+            params.payTokenPrice,
+            params.hardcapAmount,
+            params.changeTOSPercent,
+            params.changeTOSPercent
         );
 
         set1RoundTime(
             _l2token,
-            _time[1],
-            _time[2],
-            _time[3],
-            _time[4]
+            params.startWhiteTime,
+            params.endWhiteTime,
+            params.start1roundTime,
+            params.end1roundTime
         );
 
         set2RoundTime(
             _l2token,
-            _time[0],
-            _time[5],
-            _time[6] 
+            params.snapshotTime,
+            params.start2roundTime,
+            params.end2roundTime 
         );
 
         setClaimTime(
             _l2token,
-            _time[7],
-            _claimTimes,
-            _claimPercents
+            params.claimCounts,
+            params2.claimTimes,
+            params2.claimPercents
         );
     }
 
