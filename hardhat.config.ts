@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
     },
     l2MessengerAddress: {
       default: 3,
-      darius: '0x4200000000000000000000000000000000000007',
+      titangoerli: '0x4200000000000000000000000000000000000007',
       hardhat: '0x4200000000000000000000000000000000000007',
     },
     l1BridgeAddress: {
@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
     },
     l2BridgeAddress: {
       default: 5,
-      darius: '0x4200000000000000000000000000000000000010',
+      titangoerli: '0x4200000000000000000000000000000000000010',
       hardhat: '0x4200000000000000000000000000000000000010',
     },
     l1AddressManagerAddress: {
@@ -44,11 +44,13 @@ const config: HardhatUserConfig = {
       default: 7,
       goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
       hardhat: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+      titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
     },
     tonAdminAddress: {
       default: 8,
       goerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
       hardhat: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+      titangoerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
     },
     // tonAddress : {
     //   default: 7,
@@ -65,12 +67,19 @@ const config: HardhatUserConfig = {
       default: 10,
       goerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
       hardhat: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+      titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
     },
     tosAddress: {
       default: 11,
       goerli: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
       hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
       titangoerli: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+    },
+    tosAdminAddress: {
+      default: 12,
+      goerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+      hardhat: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+      titangoerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
     },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
@@ -89,7 +98,7 @@ const config: HardhatUserConfig = {
       // },
       forking: {
         url: `${process.env.ETH_NODE_URI_DARIUS}`,
-        blockNumber: 21600
+        blockNumber: 22532
       },
       allowUnlimitedContractSize: false,
       // deploy: ['deploy_l1', 'deploy_l2'],

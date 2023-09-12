@@ -32,15 +32,6 @@ contract L2CustomVaultBase is ProxyStorage, AccessibleCommon, L2CustomVaultBaseS
         l2ProjectManager = _l2ProjectManager;
     }
 
-    function setInitializer(address _initializer)
-        external nonZeroAddress(_initializer) onlyOwner
-    {
-        require(initializer != _initializer, "same");
-        initializer = _initializer;
-
-         emit SetInitializer(_initializer);
-    }
-
     /* ========== only L2ProjectManager ========== */
 
     function setVaultAdmin(
