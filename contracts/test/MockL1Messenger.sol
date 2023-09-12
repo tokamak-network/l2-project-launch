@@ -45,6 +45,8 @@ contract MockL1Messenger  {
         uint32 _gasLimit
     ) public {
 
+        console.log("MockL1Messenger sendMessage _target %s", _target);
+
         emit SentMessage(_target, msg.sender, _message, ++messageNonce, _gasLimit);
 
         L2CrossDomainMessengerI(l2messenger).relayMessage(
@@ -53,6 +55,8 @@ contract MockL1Messenger  {
             _message,
             messageNonce
         );
+
+        console.log("MockL1Messenger sendMessage end  ");
     }
 
 }

@@ -37,11 +37,11 @@ import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 //L2InitialLiquidityVault
 import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol'
 import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
-// L2ScheduleVaultB ( team, marketing )
-import { L2ScheduleVaultB } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultB'
-import { L2ScheduleVaultBProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultBProxy.sol'
-// L2NonScheduleVaultA (dao)
-import { L2NonScheduleVaultA } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVaultA'
+// L2ScheduleVault ( team, marketing )
+import { L2ScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVault'
+import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy.sol'
+// L2NonScheduleVault (dao)
+import { L2NonScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVault'
 import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
 
 // LpReward
@@ -99,12 +99,17 @@ interface SetL2ProjectLaunchFixture  {
     // publicSaleVault:
     initialLiquidityVault: L2InitialLiquidityVault,
     initialLiquidityVaultProxy: L2InitialLiquidityVaultProxy,
-    daoVault: L2NonScheduleVaultA,
+    daoVault: L2NonScheduleVault,
     daoVaultProxy: L2CustomVaultBaseProxy,
-    marketingVault : L2ScheduleVaultB,
-    marketingVaultProxy : L2ScheduleVaultBProxy,
-    teamVault: L2ScheduleVaultB
-    teamVaultProxy : L2ScheduleVaultBProxy
+    marketingVault : L2ScheduleVault,
+    marketingVaultProxy : L2ScheduleVaultProxy,
+    teamVault: L2ScheduleVault,
+    teamVaultProxy : L2ScheduleVaultProxy,
+    scheduleVault: L2ScheduleVault,
+    scheduleVaultProxy: L2ScheduleVaultProxy,
+    nonScheduleVault: L2NonScheduleVault,
+    nonScheduleVaultProxy: L2CustomVaultBaseProxy,
+    tosAddress: string
 }
 
 interface ProjectInfo {

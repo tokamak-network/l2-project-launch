@@ -52,15 +52,46 @@ library LibProject {
     }
 
     struct TokamakVaults {
-        InitalParameterPublicSaleVault publicSaleParams;
+        InitalParameterPublicSale publicSaleParams;
         InitalParameterInitialLiquidityVault initialVaultParams;
         InitalParameterLiquidityRewardVault rewardParams;
         InitalParameterScheduleVault tosAirdropParams;
         InitalParameterScheduleVault tonAirdropParams;
     }
 
+    struct InitalParameterPublicSale {
+        InitalParameterPublicSaleVault vaultParams;
+        InitalParameterPublicSaleClaim claimParams;
+    }
+
     struct InitalParameterPublicSaleVault {
-        uint256 totalAllocatedAmount;
+        uint256 stosTier1;
+        uint256 stosTier2;
+        uint256 stosTier3;
+        uint256 stosTier4;
+        uint256 tier1Percents;
+        uint256 tier2Percents;
+        uint256 tier3Percents;
+        uint256 tier4Percents;
+        uint256 total1roundSaleAmount;
+        uint256 total2roundSaleAmount;
+        uint256 saleTokenPrice;
+        uint256 payTokenPrice;
+        uint256 hardcapAmount;
+        uint256 changeTOSPercent;
+        uint256 startWhiteTime;
+        uint256 endWhiteTime;
+        uint256 start1roundTime;
+        uint256 end1roundTime;
+        uint256 snapshotTime;
+        uint256 start2roundTime;
+        uint256 end2roundTime;
+        uint256 claimCounts;
+    }
+
+    struct InitalParameterPublicSaleClaim {
+        uint256[] claimTimes;
+        uint256[] claimPercents;
     }
 
     struct InitalParameterInitialLiquidityVault {
@@ -68,12 +99,17 @@ library LibProject {
         uint256 tosPrice;
         uint256 tokenPrice;
         uint256 initSqrtPrice;
-        uint256 startTime;
+        uint32 startTime;
         uint16 fee;
     }
 
     struct InitalParameterLiquidityRewardVault {
         address poolAddress;
+        InitalParameterScheduleVault params;
+    }
+
+    struct InitalParameterSchedule {
+        string vaultName;
         InitalParameterScheduleVault params;
     }
 
@@ -87,17 +123,9 @@ library LibProject {
     }
 
     struct InitalParameterNonScheduleVault {
+        string vaultName;
         uint256 totalAllocatedAmount;
     }
-
-
-    // function decodeVautlts(DistributeVault[] memory vaults)
-    //     public pure returns (bytes memory data)
-    // {
-    //     for(uint256 i = 0; i < vaults.length; i++){
-    //         data = abi.encodePacked(data, vaults[i].vaultNumber, vaults[i].amount);
-    //     }
-    // }
 
     function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {
         if (addressManager == address(0)) return address(0);
@@ -122,65 +150,70 @@ library LibProject {
     function validateTokamakVaults(TokamakVaults memory tokamakVaults)
     public pure returns (bool boolValidate, uint256 totalAmount) {
 
-        if (tokamakVaults.publicSaleParams.totalAllocatedAmount == 0 ||
-            tokamakVaults.initialVaultParams.totalAllocatedAmount == 0 ||
-            tokamakVaults.rewardParams.params.totalAllocatedAmount == 0 ||
-            tokamakVaults.tosAirdropParams.totalAllocatedAmount == 0 ||
-            tokamakVaults.tonAirdropParams.totalAllocatedAmount == 0
-        ) return (boolValidate, totalAmount);
+        // if ((tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount
+        //     +tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) == 0 ||
+        //     tokamakVaults.initialVaultParams.totalAllocatedAmount == 0 ||
+        //     tokamakVaults.rewardParams.params.totalAllocatedAmount == 0 ||
+        //     tokamakVaults.tosAirdropParams.totalAllocatedAmount == 0 ||
+        //     tokamakVaults.tonAirdropParams.totalAllocatedAmount == 0
+        // ) return (boolValidate, totalAmount);
 
-        if (tokamakVaults.initialVaultParams.tosPrice == 0 ||
-            tokamakVaults.initialVaultParams.tokenPrice == 0 ||
-            tokamakVaults.initialVaultParams.initSqrtPrice == 0 ||
-            tokamakVaults.initialVaultParams.startTime == 0 ||
-            tokamakVaults.initialVaultParams.fee == 0) return (boolValidate, totalAmount);
+        // if (tokamakVaults.initialVaultParams.tosPrice == 0 ||
+        //     tokamakVaults.initialVaultParams.tokenPrice == 0 ||
+        //     tokamakVaults.initialVaultParams.initSqrtPrice == 0 ||
+        //     tokamakVaults.initialVaultParams.startTime == 0 ||
+        //     tokamakVaults.initialVaultParams.fee == 0) return (boolValidate, totalAmount);
 
-        if (tokamakVaults.rewardParams.poolAddress == address(0) ||
-            tokamakVaults.rewardParams.params.totalClaimCount == 0 ||
-            tokamakVaults.rewardParams.params.firstClaimAmount == 0 ||
-            tokamakVaults.rewardParams.params.firstClaimTime == 0 ||
-            tokamakVaults.rewardParams.params.secondClaimTime == 0 ||
-            tokamakVaults.rewardParams.params.roundIntervalTime == 0
-            ) return (boolValidate, totalAmount);
+        // if (tokamakVaults.rewardParams.poolAddress == address(0) ||
+        //     tokamakVaults.rewardParams.params.totalClaimCount == 0 ||
+        //     tokamakVaults.rewardParams.params.firstClaimAmount == 0 ||
+        //     tokamakVaults.rewardParams.params.firstClaimTime == 0 ||
+        //     tokamakVaults.rewardParams.params.secondClaimTime == 0 ||
+        //     tokamakVaults.rewardParams.params.roundIntervalTime == 0
+        //     ) return (boolValidate, totalAmount);
 
-        if (tokamakVaults.tosAirdropParams.totalClaimCount == 0 ||
-            tokamakVaults.tosAirdropParams.firstClaimAmount == 0 ||
-            tokamakVaults.tosAirdropParams.firstClaimTime == 0 ||
-            tokamakVaults.tosAirdropParams.secondClaimTime == 0 ||
-            tokamakVaults.tosAirdropParams.roundIntervalTime == 0
-            ) return (boolValidate, totalAmount);
+        // if (tokamakVaults.tosAirdropParams.totalClaimCount == 0 ||
+        //     tokamakVaults.tosAirdropParams.firstClaimAmount == 0 ||
+        //     tokamakVaults.tosAirdropParams.firstClaimTime == 0 ||
+        //     tokamakVaults.tosAirdropParams.secondClaimTime == 0 ||
+        //     tokamakVaults.tosAirdropParams.roundIntervalTime == 0
+        //     ) return (boolValidate, totalAmount);
 
-        if (tokamakVaults.tonAirdropParams.totalClaimCount == 0 ||
-            tokamakVaults.tonAirdropParams.firstClaimAmount == 0 ||
-            tokamakVaults.tonAirdropParams.firstClaimTime == 0 ||
-            tokamakVaults.tonAirdropParams.secondClaimTime == 0 ||
-            tokamakVaults.tonAirdropParams.roundIntervalTime == 0
-            ) return (boolValidate, totalAmount);
+        // if (tokamakVaults.tonAirdropParams.totalClaimCount == 0 ||
+        //     tokamakVaults.tonAirdropParams.firstClaimAmount == 0 ||
+        //     tokamakVaults.tonAirdropParams.firstClaimTime == 0 ||
+        //     tokamakVaults.tonAirdropParams.secondClaimTime == 0 ||
+        //     tokamakVaults.tonAirdropParams.roundIntervalTime == 0
+        //     ) return (boolValidate, totalAmount);
 
-        boolValidate = true;
-        totalAmount = tokamakVaults.publicSaleParams.totalAllocatedAmount +
+
+        totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
+                    tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +
                     tokamakVaults.rewardParams.params.totalAllocatedAmount +
                     tokamakVaults.tosAirdropParams.totalAllocatedAmount +
                     tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
 
+        if (totalAmount == 0) return (boolValidate, totalAmount);
+
+        boolValidate = true;
     }
 
     function validateScheduleVault(
-        InitalParameterScheduleVault[] memory customs
+        InitalParameterSchedule[] memory customs
     ) public pure returns (bool boolValidate, uint256 totalAmount) {
 
         if (customs.length != 0) {
             for(uint256 i = 0; i < customs.length; i++){
-                if (customs[i].totalAllocatedAmount == 0 ||
-                    customs[i].totalClaimCount == 0 ||
-                    customs[i].firstClaimAmount == 0 ||
-                    customs[i].firstClaimTime == 0 ||
-                    customs[i].secondClaimTime == 0 ||
-                    customs[i].roundIntervalTime == 0
+                if (customs[i].params.totalAllocatedAmount == 0 ||
+                    customs[i].params.totalClaimCount == 0 ||
+                    customs[i].params.firstClaimAmount == 0 ||
+                    customs[i].params.firstClaimTime == 0 ||
+                    customs[i].params.secondClaimTime == 0 ||
+                    customs[i].params.roundIntervalTime == 0
                     ) return (boolValidate, totalAmount);
 
-                totalAmount += customs[i].totalAllocatedAmount;
+                totalAmount += customs[i].params.totalAllocatedAmount;
             }
             boolValidate = true;
         }

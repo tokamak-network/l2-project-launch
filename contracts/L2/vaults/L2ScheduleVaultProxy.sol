@@ -2,16 +2,16 @@
 pragma solidity ^0.8.4;
 
 import "./L2CustomVaultBaseProxy.sol";
-import "./L2ScheduleVaultBStorage.sol";
+import "./L2ScheduleVaultStorage.sol";
 
 import {IERC20} from "../../interfaces/IERC20.sol";
 import "../../libraries/SafeERC20.sol";
 
 /**
- * @title L2ScheduleVaultBProxy
+ * @title L2ScheduleVaultProxy
  * @dev Vaults that Vault Admins claim according to a schedule
  */
-contract L2ScheduleVaultBProxy is L2CustomVaultBaseProxy, L2ScheduleVaultBStorage {
+contract L2ScheduleVaultProxy is L2CustomVaultBaseProxy, L2ScheduleVaultStorage {
 
     /* ========== DEPENDENCIES ========== */
 

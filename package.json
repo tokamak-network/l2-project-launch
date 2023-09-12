@@ -50,6 +50,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
+    "@thanpolas/univ3prices": "^3.0.2",
     "bluebird": "^3.7.2",
     "chai-ethers": "^0.0.1",
     "web3-eth-abi": "^1.9.0"

@@ -10,16 +10,16 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface L2ProjectManagerI {
-    function distributes(
+    function distributesL2Token(
         address l1Token,
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
-        LibProject.TokamakVaults[] memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     ) external;
 }
@@ -54,9 +54,22 @@ interface IIERC20 {
 contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerStorage {
     using SafeERC20 for IERC20;
 
-    event CreatedProject(uint256 projectId, address l1Token, string projectName, address projectOwner, string tokenName, string tokenSymbol, uint256 initialTotalSupply);
+    event CreatedProject(
+        address l1Token,
+        uint256 projectId,
+        address tokenOwner,
+        address projectOwner,
+        address addressManager,
+        uint256 initialTotalSupply,
+        string projectName, string tokenName, string tokenSymbol);
+
     event SetL2Token(uint256 projectId, uint8 l2Type, address addressManager, address l2Token);
     event SetL2Infos(uint8 l2Type, address l2TokenFactory, address l2ProjectManager, uint32 depositMinGasLimit, uint32 sendMsgMinGasLimit);
+    event LaunchedProject(
+        uint256 projectId,
+        address l1Token,
+        address l2Token,
+        uint256 totalAmount);
 
     /* ========== DEPENDENCIES ========== */
 
@@ -117,14 +130,18 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     function createProject(
         address tokenOwner,
         address projectOwner,
+        address addressManager,
         uint256 initialTotalSupply,
         uint8 tokenType,
         string memory projectName,
         string memory tokenName,
         string memory tokenSymbol
     )
-        external returns (uint256)
+        external
+        returns (uint256)
     {
+        require(tokenOwner != address(0) && projectOwner != address(0) && addressManager != address(0),
+            "zero address");
         require(bytes(projectName).length != 0, "projectName is null");
         require(bytes(tokenName).length != 0, "tokenName is null");
         require(bytes(tokenSymbol).length != 0, "tokenSymbol is null");
@@ -137,13 +154,14 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         require(projectToken != address(0), "zero projectToken");
         uint256 projectId = ++projectCount;
+        // address _tokenOwner = tokenOwner;
 
         projects[projectId] = LibProject.ProjectInfo({
             projectOwner: projectOwner,
             tokenOwner : tokenOwner,
             l1Token : projectToken,
             l2Token : address(0),
-            addressManager : address(0),
+            addressManager : addressManager,
             initialTotalSupply : initialTotalSupply,
             tokenType : tokenType,
             l2Type : uint8(0),
@@ -152,7 +170,9 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         projectTokens[projectToken] = projectId;
 
-        emit CreatedProject(projectId, projectToken, projectName, projectOwner, tokenName, tokenSymbol, initialTotalSupply);
+        emit CreatedProject(
+            projectToken, projectId, tokenOwner, projectOwner, addressManager, initialTotalSupply,
+            projectName,  tokenName, tokenSymbol );
         return projectId;
     }
 
@@ -161,7 +181,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         address l2Token,
         uint256 totalAmount,
         LibProject.TokamakVaults memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     )
         external nonZeroAddress(l2Token) nonZero(totalAmount)
@@ -174,7 +194,16 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         address l1Messenger = LibProject.getL1CommunicationMessenger(info.addressManager);
         require(l1Messenger != address(0), "l1Messenger is ZeroAddress");
-
+        bytes memory  callData = abi.encodeWithSelector(
+                    L2ProjectManagerI.distributesL2Token.selector,
+                    info.l1Token,
+                    l2Token,
+                    projectId,
+                    totalAmount,
+                    tokamakVaults,
+                    customScheduleVaults,
+                    customNonScheduleVaults
+                ) ;
         uint256 totalAllocatedAmount = 0;
 
         // 입력 데이타 검증
@@ -200,15 +229,17 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 1. L2토큰 정보를 저장한다.
         projects[id].l2Token = l2Token;
         info.l2Token = l2Token;
-        bytes memory functionParams = abi.encode(
-            info.l1Token,
-            info.l2Token,
-            id,
-            totalAmount,
-            tokamakVaults,
-            customScheduleVaults,
-            customNonScheduleVaults
-        );
+        // LibProject.TokamakVaults memory tVaults = tokamakVaults;
+        // bytes memory  callData = abi.encodeWithSelector(
+        //             L2ProjectManagerI.distributesL2Token.selector,
+        //             info.l1Token,
+        //             info.l2Token,
+        //             id,
+        //             totalAllocatedAmount,
+        //             tokamakVaults,
+        //             customScheduleVaults,
+        //             customNonScheduleVaults
+        //         ) ;
 
         uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
 
@@ -233,14 +264,16 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             _l2Info.depositMinGasLimit,
             abi.encode(id)
         );
-        // bytes memory callData = abi.encodeWithSelector(L2ProjectManagerI.distributes.selector, functionParams);
+        // bytes memory callData = abi.encodeWithSelector(L2ProjectManagerI.distributesL2Token.selector, functionParams);
 
         // 4. 커스텀 배포정보를 L2에 보낸다.
         L1CrossDomainMessengerI(l1Messenger).sendMessage(
                 _l2Info.l2ProjectManager,
-                abi.encodeWithSelector(L2ProjectManagerI.distributes.selector, functionParams),
+                callData,
                 _l2Info.sendMsgMinGasLimit
             );
+
+        emit LaunchedProject(id, info.l1Token, info.l2Token, info.initialTotalSupply);
     }
 
     /* ========== VIEW ========== */

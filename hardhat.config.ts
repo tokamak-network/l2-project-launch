@@ -66,6 +66,12 @@ const config: HardhatUserConfig = {
       goerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
       hardhat: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
     },
+    tosAddress: {
+      default: 11,
+      goerli: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
+      hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+      titangoerli: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -104,13 +110,13 @@ const config: HardhatUserConfig = {
     },
     goerli: {
       url: `${process.env.ETH_NODE_URI_GOERLI}`,
-      accounts: [`${process.env.DEPLOYER}`],
+      accounts: [`${process.env.PRIVATE_KEY}`],
       // chainId: 5,
       deploy: ['deploy_l1']
     },
     titangoerli: {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
-      accounts: [`${process.env.DEPLOYER}`],
+      accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 5050,
       gasPrice: 250000,
       deploy: ['deploy_l2_proxy']

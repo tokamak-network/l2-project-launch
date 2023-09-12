@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "hardhat/console.sol";
 /**
  * @title L2CustomVaultBaseStorage
  * @dev
@@ -16,9 +17,9 @@ contract L2CustomVaultBaseStorage {
 
     event SetVaultAdmin(address l2Token, address newAdmin);
     event SetInitializer(address newInitializer);
-    event Claimed(address l2Token, address to, uint256 amount);
 
     modifier onlyL2ProjectManager() {
+        console.log('onlyL2ProjectManager %s %s', msg.sender, l2ProjectManager);
         require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
         _;
     }
@@ -36,6 +37,11 @@ contract L2CustomVaultBaseStorage {
     }
 
     modifier onlyL2ProjectManagerOrVaultAdmin(address l2token) {
+        console.log("onlyL2ProjectManagerOrVaultAdmin l2token %s", l2token);
+        console.log("onlyL2ProjectManagerOrVaultAdmin msg.sender %s", msg.sender);
+        console.log("onlyL2ProjectManagerOrVaultAdmin l2ProjectManager %s", l2ProjectManager);
+        console.log("onlyL2ProjectManagerOrVaultAdmin vaultAdminOfToken[l2token] %s", vaultAdminOfToken[l2token]);
+
         require(msg.sender == l2ProjectManager ||
             (vaultAdminOfToken[l2token] != address(0) || msg.sender == vaultAdminOfToken[l2token]),
             "caller is not a vaultAdmin or ProjectManager");

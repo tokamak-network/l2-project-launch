@@ -21,6 +21,16 @@ interface IL2CustomVaultBase {
         address l2Token,
         address _newAdmin
     ) external;
+
+    function isVaultAdmin(address l2Token, address account) external view returns (bool);
+}
+
+interface IL2PublicSaleVault {
+    function vaultInitialize(
+        address l2Token,
+        LibProject.InitalParameterPublicSaleVault memory vaultParams,
+        LibProject.InitalParameterPublicSaleClaim memory claimParams
+    ) external;
 }
 
 interface IL2InitialLiquidityVault {
@@ -37,18 +47,19 @@ interface IL2LiquidityRewardVault {
     ) external;
 }
 
-interface IL2ScheduleVaultB {
+interface IL2ScheduleVault {
     function initialize(
         address l2Token,
+        string memory vaultName,
         LibProject.InitalParameterScheduleVault memory params
     ) external;
 }
 
-interface IL2NonScheduleVaultA {
-    function allocateTokenAndAdmin(
+interface IL2NonScheduleVault {
+    function initialize(
         address l2Token,
-        address _newAdmin,
-        uint256 amount
+        string memory vaultName,
+        uint256 totalAllocatedAmount
     ) external;
 }
 /**
@@ -64,6 +75,11 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
     }
 
     modifier onlyMessengerAndL1ProjectManager() {
+        console.log('onlyMessengerAndL1ProjectManager msg.sender %s', msg.sender);
+        console.log('onlyMessengerAndL1ProjectManager l2CrossDomainMessenger %s', l2CrossDomainMessenger);
+        console.log('onlyMessengerAndL1ProjectManager l1ProjectManager %s', l1ProjectManager);
+        console.log('onlyMessengerAndL1ProjectManager xDomainMessageSender %s', IL2CrossDomainMessenger(l2CrossDomainMessenger).xDomainMessageSender());
+
         require(msg.sender == l2CrossDomainMessenger &&
         IL2CrossDomainMessenger(l2CrossDomainMessenger).xDomainMessageSender() == l1ProjectManager,
         "not onlyMessengerAndL1ProjectManager");
@@ -92,19 +108,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address l1Token,
         address l2Token,
         uint256 projectId,
-        uint256 totalAmount,
-        LibProject.TokamakVaults tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] customScheduleVaults,
-        LibProject.InitalParameterNonScheduleVault[] customNonScheduleVaults
-        );
-    event TokamakAllocatedAmount(
-            uint256 projectId,
-            address l2Token,
-            uint256 publicSaleTotalAllocatedAmount,
-            uint256 initialVaultTotalAllocatedAmount,
-            uint256 rewardTotalAllocatedAmount,
-            uint256 tosAirdropTotalAllocatedAmount,
-            uint256 tonAirdropTotalAllocatedAmount
+        uint256 totalAmount
         );
 
     /* ========== DEPENDENCIES ========== */
@@ -146,28 +150,35 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address initialLiquidity,
         address liquidityReward,
         address tonAirdrop,
-        address tosAirdrop
+        address tosAirdrop,
+        address _scheduleVault,
+        address _nonScheduleVault
         )
         external onlyOwner
-        nonZeroAddress(publicSale)
+        // nonZeroAddress(publicSale)
         nonZeroAddress(initialLiquidity)
-        nonZeroAddress(liquidityReward)
-        nonZeroAddress(tosAirdrop)
-        nonZeroAddress(tonAirdrop)
+        // nonZeroAddress(liquidityReward)
+        // nonZeroAddress(tosAirdrop)
+        // nonZeroAddress(tonAirdrop)
+        nonZeroAddress(_scheduleVault)
+        nonZeroAddress(_nonScheduleVault)
     {
-        require(
-            publicSaleVault != publicSale ||
-            initialLiquidityVault != initialLiquidity ||
-            liquidityRewardVault != liquidityReward ||
-            tonAirdropVault != tonAirdrop ||
-            tosAirdropVault != tosAirdrop
-            , "same");
+        require(scheduleVault == address(0), "already set");
+        // require(
+        //     publicSaleVault != publicSale ||
+        //     initialLiquidityVault != initialLiquidity ||
+        //     liquidityRewardVault != liquidityReward ||
+        //     tonAirdropVault != tonAirdrop ||
+        //     tosAirdropVault != tosAirdrop
+        //     , "same");
 
         publicSaleVault = publicSale;
         initialLiquidityVault = initialLiquidity;
         liquidityReward = liquidityReward;
         tonAirdropVault = tonAirdrop;
         tosAirdropVault = tosAirdrop;
+        scheduleVault = _scheduleVault;
+        nonScheduleVault = _nonScheduleVault;
     }
 
     /* ========== only L2TokenFactory ========== */
@@ -196,13 +207,20 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
     /* ========== only L2CrossDomainMessengerAndL1ProjectManager ========== */
 
+    function _approveVaults(address l2Token, address vault, uint256 amount) internal {
+        if (
+            vault != address(0) &&
+            amount != 0 &&
+            amount < IERC20(l2Token).allowance(address(this), vault)) IERC20(l2Token).approve(vault, amount);
+    }
+
     function distributesL2Token(
         address l1Token,
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
         LibProject.TokamakVaults memory tokamakVaults,
-        LibProject.InitalParameterScheduleVault[] memory customScheduleVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     )
         external onlyMessengerAndL1ProjectManager
@@ -210,58 +228,126 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         nonZeroAddress(l2Token)
         nonZero(projectId) nonZero(totalAmount)
     {
+        console.log("L2ProjectManager distributesL2Token in");
+        console.log("L2ProjectManager l1Token %", l1Token);
+        console.log("L2ProjectManager l2Token %", l2Token);
+        console.log("L2ProjectManager projectId %", projectId);
+        console.log("L2ProjectManager totalAmount %", totalAmount);
+
         LibProject.L2ProjectInfo memory info = projects[l2Token];
+        console.log("L2ProjectManager info.l1Token %", info.l1Token);
+        console.log("L2ProjectManager info.l2Token %", info.l2Token);
+
         require(info.l1Token == l1Token, "not matched l1Token");
         require(info.l2Token == l2Token, "not matched l2Token");
 
-        uint256 total = tokamakVaults.publicSaleParams.totalAllocatedAmount +
+        uint256 publicTotal = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount
+            + tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount;
+        console.log("L2ProjectManager publicTotal %", publicTotal);
+
+        uint256 total = publicTotal +
             tokamakVaults.initialVaultParams.totalAllocatedAmount +
             tokamakVaults.rewardParams.params.totalAllocatedAmount +
             tokamakVaults.tosAirdropParams.totalAllocatedAmount +
             tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
+        console.log("L2ProjectManager total %", total);
+
+        uint256 totalCustomSchedule = 0;
+        uint256 totalNonCustomSchedule = 0;
+
+        for (uint256 i = 0; i < customScheduleVaults.length; i++)
+            totalCustomSchedule += customScheduleVaults[i].params.totalAllocatedAmount;
+
+        for (uint256 j = 0; j < customNonScheduleVaults.length; j++)
+            totalNonCustomSchedule += customNonScheduleVaults[j].totalAllocatedAmount;
+        console.log("L2ProjectManager totalCustomSchedule %", totalCustomSchedule);
+        console.log("L2ProjectManager totalNonCustomSchedule %", totalNonCustomSchedule);
+
+        total += (totalCustomSchedule + totalNonCustomSchedule);
+        console.log("L2ProjectManager total %", total);
+
         require(total == totalAmount, "not matched totalAmount");
 
-        projects[l2Token].projectId = projectId;
+        projects[info.l2Token].projectId = projectId;
+        _approveVaults(l2Token, publicSaleVault, publicTotal);
+        _approveVaults(l2Token, initialLiquidityVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
+        _approveVaults(l2Token, liquidityRewardVault, tokamakVaults.rewardParams.params.totalAllocatedAmount);
+        _approveVaults(l2Token, tonAirdropVault, tokamakVaults.tonAirdropParams.totalAllocatedAmount);
+        _approveVaults(l2Token, tosAirdropVault, tokamakVaults.tosAirdropParams.totalAllocatedAmount);
 
-        // 이벤트 확인만 먼저 한다.
-        // public sale
-        //publicSaleVault
+        if (publicTotal != 0) {
+            IL2CustomVaultBase(publicSaleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+            IL2PublicSaleVault(publicSaleVault).vaultInitialize(
+                info.l2Token,
+                tokamakVaults.publicSaleParams.vaultParams,
+                tokamakVaults.publicSaleParams.claimParams
+            );
+        }
+        LibProject.InitalParameterInitialLiquidityVault memory initialVaultParams = tokamakVaults.initialVaultParams;
+        console.log("initialVaultParams totalAllocatedAmount %s", initialVaultParams.totalAllocatedAmount);
 
-        // // initial liquidity
-        // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
-        // IL2InitialLiquidityVault(initialLiquidityVault).initialize(
-        //     l2Token,
-        //     tokamakVaults.initialVaultParams );
+        if (tokamakVaults.initialVaultParams.totalAllocatedAmount != 0) {
+            console.log("initialVaultParams.totalAllocatedAmount != 0" );
 
-        // // liquidity reward
-        // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
-        // IL2LiquidityRewardVault(liquidityRewardVault).initialize(
-        //     l2Token,
-        //     tokamakVaults.rewardParams);
+            bool isAdmin = IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner);
+            console.logBool(isAdmin);
 
-        // ton airdrop
+            if(isAdmin == false) IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(info.l2Token, info.projectOwner);
+            bool isAdmin1 = IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner);
+            console.logBool(isAdmin1);
 
-        // tos airdrop
 
-        // custom schedule
+            IL2InitialLiquidityVault(initialLiquidityVault).initialize(
+                info.l2Token,
+                initialVaultParams);
+        }
 
-        // custom nonschedule
-        // IL2NonScheduleVaultA().allocateTokenAndAdmin(
-        //     address l2Token,
-        //     address _newAdmin,
-        //     uint256 amount
-        // )
+        if (tokamakVaults.rewardParams.params.totalAllocatedAmount != 0) {
+            // // liquidity reward
+            // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
+            // IL2LiquidityRewardVault(liquidityRewardVault).initialize(
+            //     l2Token,
+            //     tokamakVaults.rewardParams);
+        }
 
-        emit TokamakAllocatedAmount(
-            projectId, l2Token,
-            tokamakVaults.publicSaleParams.totalAllocatedAmount,
-            tokamakVaults.initialVaultParams.totalAllocatedAmount,
-            tokamakVaults.rewardParams.params.totalAllocatedAmount,
-            tokamakVaults.tosAirdropParams.totalAllocatedAmount,
-            tokamakVaults.tonAirdropParams.totalAllocatedAmount
-        );
+        if (tokamakVaults.tosAirdropParams.totalAllocatedAmount != 0) {
+            //
+        }
 
-        emit DistributedL2Token(l1Token, l2Token, projectId, totalAmount, tokamakVaults, customScheduleVaults, customNonScheduleVaults);
+        if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
+            //
+        }
+        console.log("totalCustomSchedule %s", totalCustomSchedule);
+
+        if (totalCustomSchedule != 0) {
+            if(!IL2CustomVaultBase(scheduleVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(scheduleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            for (uint256 i = 0; i < customScheduleVaults.length; i++){
+                LibProject.InitalParameterSchedule memory params = customScheduleVaults[i];
+                IL2ScheduleVault(scheduleVault).initialize(
+                    info.l2Token,
+                    params.vaultName,
+                    params.params);
+            }
+
+        }
+        console.log("totalNonCustomSchedule %s", totalNonCustomSchedule);
+
+        if (totalNonCustomSchedule != 0) {
+            if(!IL2CustomVaultBase(nonScheduleVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(nonScheduleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            for (uint256 i = 0; i < customNonScheduleVaults.length; i++){
+                LibProject.InitalParameterNonScheduleVault memory params = customNonScheduleVaults[i];
+                IL2NonScheduleVault(nonScheduleVault).initialize(
+                    info.l2Token,
+                    params.vaultName,
+                    params.totalAllocatedAmount );
+            }
+        }
+
+        emit DistributedL2Token(info.l1Token, info.l2Token, info.projectId, total);
     }
 
     /* ========== Anyone can execute ========== */

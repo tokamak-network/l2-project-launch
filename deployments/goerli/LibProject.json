@@ -1,5 +1,5 @@
 {
-  "address": "0x9713c208F4F31609c9A014eB1f8CDf7090C5BcA1",
+  "address": "0xF5657e40Ec1F27F0fc04F82a1190095E366D131D",
   "abi": [
     {
       "inputs": [
@@ -38,30 +38,461 @@
       ],
       "stateMutability": "view",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "vaultName",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalAllocatedAmount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterNonScheduleVault[]",
+          "name": "customs",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "validateNonScheduleVault",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "boolValidate",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "vaultName",
+              "type": "string"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "params",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterSchedule[]",
+          "name": "customs",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "validateScheduleVault",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "boolValidate",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "stosTier1",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "stosTier2",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "stosTier3",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "stosTier4",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tier1Percents",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tier2Percents",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tier3Percents",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "tier4Percents",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "total1roundSaleAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "total2roundSaleAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "saleTokenPrice",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "payTokenPrice",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "hardcapAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "changeTOSPercent",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "startWhiteTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "endWhiteTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "start1roundTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "end1roundTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "snapshotTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "start2roundTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "end2roundTime",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "claimCounts",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct LibProject.InitalParameterPublicSaleVault",
+                  "name": "vaultParams",
+                  "type": "tuple"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256[]",
+                      "name": "claimTimes",
+                      "type": "uint256[]"
+                    },
+                    {
+                      "internalType": "uint256[]",
+                      "name": "claimPercents",
+                      "type": "uint256[]"
+                    }
+                  ],
+                  "internalType": "struct LibProject.InitalParameterPublicSaleClaim",
+                  "name": "claimParams",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterPublicSale",
+              "name": "publicSaleParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tosPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "tokenPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "initSqrtPrice",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "startTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint16",
+                  "name": "fee",
+                  "type": "uint16"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterInitialLiquidityVault",
+              "name": "initialVaultParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "poolAddress",
+                  "type": "address"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "totalAllocatedAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "totalClaimCount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "firstClaimAmount",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "firstClaimTime",
+                      "type": "uint32"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "secondClaimTime",
+                      "type": "uint32"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "roundIntervalTime",
+                      "type": "uint32"
+                    }
+                  ],
+                  "internalType": "struct LibProject.InitalParameterScheduleVault",
+                  "name": "params",
+                  "type": "tuple"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterLiquidityRewardVault",
+              "name": "rewardParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "tosAirdropParams",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "totalAllocatedAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalClaimCount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "firstClaimAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "firstClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "secondClaimTime",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "roundIntervalTime",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct LibProject.InitalParameterScheduleVault",
+              "name": "tonAirdropParams",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct LibProject.TokamakVaults",
+          "name": "tokamakVaults",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateTokamakVaults",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "boolValidate",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
     }
   ],
-  "transactionHash": "0xbcf0fd407193a242c0400c4b9ba7b9b83c931aa8d625151bf801ccaa2aba9770",
+  "transactionHash": "0x7f67c49ead3cd6e55d65ddc507d9570a749387eeb1ec73170461c1ff1c06744e",
   "receipt": {
     "to": null,
     "from": "0xc1eba383D94c6021160042491A5dfaF1d82694E6",
-    "contractAddress": "0x9713c208F4F31609c9A014eB1f8CDf7090C5BcA1",
-    "transactionIndex": 17,
-    "gasUsed": "179764",
+    "contractAddress": "0xF5657e40Ec1F27F0fc04F82a1190095E366D131D",
+    "transactionIndex": 28,
+    "gasUsed": "767325",
     "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "blockHash": "0xf68666ccfac3a6037f2bbd056ea28b6b14238411246958dafd86f932a5c7bdf7",
-    "transactionHash": "0xbcf0fd407193a242c0400c4b9ba7b9b83c931aa8d625151bf801ccaa2aba9770",
+    "blockHash": "0xcc0ed8bf3cd58efd8ae3137c9b6292013e439c36c90131ade1c345c8f7796af7",
+    "transactionHash": "0x7f67c49ead3cd6e55d65ddc507d9570a749387eeb1ec73170461c1ff1c06744e",
     "logs": [],
-    "blockNumber": 9020413,
-    "cumulativeGasUsed": "2188680",
+    "blockNumber": 9678807,
+    "cumulativeGasUsed": "3628215",
     "status": 1,
     "byzantium": true
   },
   "args": [],
-  "numDeployments": 1,
-  "solcInputHash": "49d4d6fa1f28c6687a57dc146405b07c",
-  "metadata": "{\"compiler\":{\"version\":\"0.8.18+commit.87f61d96\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1CommunicationMessenger\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"LibProject\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/constants/LibProject.sol\":\"LibProject\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":625},\"remappings\":[]},\"sources\":{\"contracts/libraries/constants/LibProject.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.4;\\n\\ninterface AddressManagerI {\\n    function getAddress(string memory _name) external view returns (address);\\n}\\n\\n/**\\n * @title LibProject\\n */\\nlibrary LibProject {\\n\\n    enum TOKEN_TYPE {\\n        ERC20_A,\\n        ERC20_B,\\n        ERC20_C,\\n        ERC20_D,\\n        NONE\\n    }\\n\\n    enum L2_TYPE {\\n        TOKAMAL_OPTIMISM,\\n        TOKAMAL_ZKEVM,\\n        NONE\\n    }\\n\\n    function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('OVM_L1CrossDomainMessenger') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n\\n    function getL1Bridge(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('Proxy__OVM_L1StandardBridge') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x51ff87e7cf409d11c6c6ef30b88c84bad2fcb70a72bcb8b7b41d08d85af8b85c\",\"license\":\"MIT\"}},\"version\":1}",
-  "bytecode": "0x61024961003a600b82828239805160001a60731461002d57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100405760003560e01c8063507c8bd1146100455780639da3176114610074575b600080fd5b6100586100533660046101fb565b610087565b6040516001600160a01b03909116815260200160405180910390f35b6100586100823660046101fb565b610171565b60006001600160a01b03821661009f57506000919050565b60405163bf40fac160e01b815260206004820152601a60248201527f4f564d5f4c3143726f7373446f6d61696e4d657373656e67657200000000000060448201526001600160a01b0383169063bf40fac1906064015b602060405180830381865afa92505050801561012e575060408051601f3d908101601f1916820190925261012b9181019061021f565b60015b61016b573d80801561015c576040519150601f19603f3d011682016040523d82523d6000602084013e610161565b606091505b5060009392505050565b92915050565b60006001600160a01b03821661018957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac1906064016100f5565b6001600160a01b03811681146101f857600080fd5b50565b60006020828403121561020d57600080fd5b8135610218816101e3565b9392505050565b60006020828403121561023157600080fd5b8151610218816101e356fea164736f6c6343000812000a",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600436106100405760003560e01c8063507c8bd1146100455780639da3176114610074575b600080fd5b6100586100533660046101fb565b610087565b6040516001600160a01b03909116815260200160405180910390f35b6100586100823660046101fb565b610171565b60006001600160a01b03821661009f57506000919050565b60405163bf40fac160e01b815260206004820152601a60248201527f4f564d5f4c3143726f7373446f6d61696e4d657373656e67657200000000000060448201526001600160a01b0383169063bf40fac1906064015b602060405180830381865afa92505050801561012e575060408051601f3d908101601f1916820190925261012b9181019061021f565b60015b61016b573d80801561015c576040519150601f19603f3d011682016040523d82523d6000602084013e610161565b606091505b5060009392505050565b92915050565b60006001600160a01b03821661018957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac1906064016100f5565b6001600160a01b03811681146101f857600080fd5b50565b60006020828403121561020d57600080fd5b8135610218816101e3565b9392505050565b60006020828403121561023157600080fd5b8151610218816101e356fea164736f6c6343000812000a",
+  "numDeployments": 2,
+  "solcInputHash": "7a900ca9daa101f0f01c0489fa26a8d6",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.18+commit.87f61d96\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addressManager\",\"type\":\"address\"}],\"name\":\"getL1CommunicationMessenger\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"vaultName\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"}],\"internalType\":\"struct LibProject.InitalParameterNonScheduleVault[]\",\"name\":\"customs\",\"type\":\"tuple[]\"}],\"name\":\"validateNonScheduleVault\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"boolValidate\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"string\",\"name\":\"vaultName\",\"type\":\"string\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalClaimCount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"firstClaimAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"firstClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"secondClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"roundIntervalTime\",\"type\":\"uint32\"}],\"internalType\":\"struct LibProject.InitalParameterScheduleVault\",\"name\":\"params\",\"type\":\"tuple\"}],\"internalType\":\"struct LibProject.InitalParameterSchedule[]\",\"name\":\"customs\",\"type\":\"tuple[]\"}],\"name\":\"validateScheduleVault\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"boolValidate\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"stosTier1\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stosTier2\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stosTier3\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"stosTier4\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tier1Percents\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tier2Percents\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tier3Percents\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tier4Percents\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"total1roundSaleAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"total2roundSaleAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"saleTokenPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"payTokenPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"hardcapAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"changeTOSPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startWhiteTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endWhiteTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"start1roundTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end1roundTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"snapshotTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"start2roundTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end2roundTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"claimCounts\",\"type\":\"uint256\"}],\"internalType\":\"struct LibProject.InitalParameterPublicSaleVault\",\"name\":\"vaultParams\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint256[]\",\"name\":\"claimTimes\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"claimPercents\",\"type\":\"uint256[]\"}],\"internalType\":\"struct LibProject.InitalParameterPublicSaleClaim\",\"name\":\"claimParams\",\"type\":\"tuple\"}],\"internalType\":\"struct LibProject.InitalParameterPublicSale\",\"name\":\"publicSaleParams\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tosPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"initSqrtPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"startTime\",\"type\":\"uint32\"},{\"internalType\":\"uint16\",\"name\":\"fee\",\"type\":\"uint16\"}],\"internalType\":\"struct LibProject.InitalParameterInitialLiquidityVault\",\"name\":\"initialVaultParams\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"poolAddress\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalClaimCount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"firstClaimAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"firstClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"secondClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"roundIntervalTime\",\"type\":\"uint32\"}],\"internalType\":\"struct LibProject.InitalParameterScheduleVault\",\"name\":\"params\",\"type\":\"tuple\"}],\"internalType\":\"struct LibProject.InitalParameterLiquidityRewardVault\",\"name\":\"rewardParams\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalClaimCount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"firstClaimAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"firstClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"secondClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"roundIntervalTime\",\"type\":\"uint32\"}],\"internalType\":\"struct LibProject.InitalParameterScheduleVault\",\"name\":\"tosAirdropParams\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"totalAllocatedAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalClaimCount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"firstClaimAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint32\",\"name\":\"firstClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"secondClaimTime\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"roundIntervalTime\",\"type\":\"uint32\"}],\"internalType\":\"struct LibProject.InitalParameterScheduleVault\",\"name\":\"tonAirdropParams\",\"type\":\"tuple\"}],\"internalType\":\"struct LibProject.TokamakVaults\",\"name\":\"tokamakVaults\",\"type\":\"tuple\"}],\"name\":\"validateTokamakVaults\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"boolValidate\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"totalAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"LibProject\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/LibProject.sol\":\"LibProject\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":625},\"remappings\":[]},\"sources\":{\"contracts/libraries/LibProject.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.4;\\n\\ninterface AddressManagerI {\\n    function getAddress(string memory _name) external view returns (address);\\n}\\n\\n/**\\n * @title LibProject\\n */\\nlibrary LibProject {\\n\\n    enum TOKEN_TYPE {\\n        ERC20_A,\\n        ERC20_B,\\n        ERC20_C,\\n        ERC20_D,\\n        NONE\\n    }\\n\\n    enum L2_TYPE {\\n        TOKAMAL_OPTIMISM,\\n        TOKAMAL_ZKEVM,\\n        NONE\\n    }\\n\\n    struct ProjectInfo {\\n        address projectOwner;\\n        address tokenOwner;\\n        address l1Token;\\n        address l2Token;\\n        address addressManager;\\n        uint256 initialTotalSupply;\\n        uint8 tokenType;\\n        uint8 l2Type;\\n        string projectName;\\n    }\\n\\n    struct L2Info {\\n        address l2TokenFactory;\\n        address l2ProjectManager;\\n        uint32 depositMinGasLimit;\\n        uint32 sendMsgMinGasLimit;\\n    }\\n\\n    struct L2ProjectInfo {\\n        uint256 projectId;\\n        address projectOwner;\\n        address l1Token;\\n        address l2Token;\\n        string projectName;\\n    }\\n\\n    struct TokamakVaults {\\n        InitalParameterPublicSale publicSaleParams;\\n        InitalParameterInitialLiquidityVault initialVaultParams;\\n        InitalParameterLiquidityRewardVault rewardParams;\\n        InitalParameterScheduleVault tosAirdropParams;\\n        InitalParameterScheduleVault tonAirdropParams;\\n    }\\n\\n    struct InitalParameterPublicSale {\\n        InitalParameterPublicSaleVault vaultParams;\\n        InitalParameterPublicSaleClaim claimParams;\\n    }\\n\\n    struct InitalParameterPublicSaleVault {\\n        uint256 stosTier1;\\n        uint256 stosTier2;\\n        uint256 stosTier3;\\n        uint256 stosTier4;\\n        uint256 tier1Percents;\\n        uint256 tier2Percents;\\n        uint256 tier3Percents;\\n        uint256 tier4Percents;\\n        uint256 total1roundSaleAmount;\\n        uint256 total2roundSaleAmount;\\n        uint256 saleTokenPrice;\\n        uint256 payTokenPrice;\\n        uint256 hardcapAmount;\\n        uint256 changeTOSPercent;\\n        uint256 startWhiteTime;\\n        uint256 endWhiteTime;\\n        uint256 start1roundTime;\\n        uint256 end1roundTime;\\n        uint256 snapshotTime;\\n        uint256 start2roundTime;\\n        uint256 end2roundTime;\\n        uint256 claimCounts;\\n    }\\n\\n    struct InitalParameterPublicSaleClaim {\\n        uint256[] claimTimes;\\n        uint256[] claimPercents;\\n    }\\n\\n    struct InitalParameterInitialLiquidityVault {\\n        uint256 totalAllocatedAmount;\\n        uint256 tosPrice;\\n        uint256 tokenPrice;\\n        uint256 initSqrtPrice;\\n        uint32 startTime;\\n        uint16 fee;\\n    }\\n\\n    struct InitalParameterLiquidityRewardVault {\\n        address poolAddress;\\n        InitalParameterScheduleVault params;\\n    }\\n\\n    struct InitalParameterSchedule {\\n        string vaultName;\\n        InitalParameterScheduleVault params;\\n    }\\n\\n    struct InitalParameterScheduleVault {\\n        uint256 totalAllocatedAmount;\\n        uint256 totalClaimCount;\\n        uint256 firstClaimAmount;\\n        uint32 firstClaimTime;\\n        uint32 secondClaimTime;\\n        uint32 roundIntervalTime;\\n    }\\n\\n    struct InitalParameterNonScheduleVault {\\n        string vaultName;\\n        uint256 totalAllocatedAmount;\\n    }\\n\\n    function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('Proxy__OVM_L1CrossDomainMessenger') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n\\n    function getL1Bridge(address addressManager) external view returns(address _address) {\\n        if (addressManager == address(0)) return address(0);\\n        try\\n            AddressManagerI(addressManager).getAddress('Proxy__OVM_L1StandardBridge') returns (address a) {\\n                _address = a;\\n        } catch (bytes memory ) {\\n            _address = address(0);\\n        }\\n    }\\n\\n    function validateTokamakVaults(TokamakVaults memory tokamakVaults)\\n    public pure returns (bool boolValidate, uint256 totalAmount) {\\n\\n        // if ((tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount\\n        //     +tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) == 0 ||\\n        //     tokamakVaults.initialVaultParams.totalAllocatedAmount == 0 ||\\n        //     tokamakVaults.rewardParams.params.totalAllocatedAmount == 0 ||\\n        //     tokamakVaults.tosAirdropParams.totalAllocatedAmount == 0 ||\\n        //     tokamakVaults.tonAirdropParams.totalAllocatedAmount == 0\\n        // ) return (boolValidate, totalAmount);\\n\\n        // if (tokamakVaults.initialVaultParams.tosPrice == 0 ||\\n        //     tokamakVaults.initialVaultParams.tokenPrice == 0 ||\\n        //     tokamakVaults.initialVaultParams.initSqrtPrice == 0 ||\\n        //     tokamakVaults.initialVaultParams.startTime == 0 ||\\n        //     tokamakVaults.initialVaultParams.fee == 0) return (boolValidate, totalAmount);\\n\\n        // if (tokamakVaults.rewardParams.poolAddress == address(0) ||\\n        //     tokamakVaults.rewardParams.params.totalClaimCount == 0 ||\\n        //     tokamakVaults.rewardParams.params.firstClaimAmount == 0 ||\\n        //     tokamakVaults.rewardParams.params.firstClaimTime == 0 ||\\n        //     tokamakVaults.rewardParams.params.secondClaimTime == 0 ||\\n        //     tokamakVaults.rewardParams.params.roundIntervalTime == 0\\n        //     ) return (boolValidate, totalAmount);\\n\\n        // if (tokamakVaults.tosAirdropParams.totalClaimCount == 0 ||\\n        //     tokamakVaults.tosAirdropParams.firstClaimAmount == 0 ||\\n        //     tokamakVaults.tosAirdropParams.firstClaimTime == 0 ||\\n        //     tokamakVaults.tosAirdropParams.secondClaimTime == 0 ||\\n        //     tokamakVaults.tosAirdropParams.roundIntervalTime == 0\\n        //     ) return (boolValidate, totalAmount);\\n\\n        // if (tokamakVaults.tonAirdropParams.totalClaimCount == 0 ||\\n        //     tokamakVaults.tonAirdropParams.firstClaimAmount == 0 ||\\n        //     tokamakVaults.tonAirdropParams.firstClaimTime == 0 ||\\n        //     tokamakVaults.tonAirdropParams.secondClaimTime == 0 ||\\n        //     tokamakVaults.tonAirdropParams.roundIntervalTime == 0\\n        //     ) return (boolValidate, totalAmount);\\n\\n\\n        totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +\\n                    tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +\\n                    tokamakVaults.initialVaultParams.totalAllocatedAmount +\\n                    tokamakVaults.rewardParams.params.totalAllocatedAmount +\\n                    tokamakVaults.tosAirdropParams.totalAllocatedAmount +\\n                    tokamakVaults.tonAirdropParams.totalAllocatedAmount ;\\n\\n        if (totalAmount == 0) return (boolValidate, totalAmount);\\n\\n        boolValidate = true;\\n    }\\n\\n    function validateScheduleVault(\\n        InitalParameterSchedule[] memory customs\\n    ) public pure returns (bool boolValidate, uint256 totalAmount) {\\n\\n        if (customs.length != 0) {\\n            for(uint256 i = 0; i < customs.length; i++){\\n                if (customs[i].params.totalAllocatedAmount == 0 ||\\n                    customs[i].params.totalClaimCount == 0 ||\\n                    customs[i].params.firstClaimAmount == 0 ||\\n                    customs[i].params.firstClaimTime == 0 ||\\n                    customs[i].params.secondClaimTime == 0 ||\\n                    customs[i].params.roundIntervalTime == 0\\n                    ) return (boolValidate, totalAmount);\\n\\n                totalAmount += customs[i].params.totalAllocatedAmount;\\n            }\\n            boolValidate = true;\\n        }\\n    }\\n\\n    function validateNonScheduleVault(\\n        InitalParameterNonScheduleVault[] memory customs\\n    ) public pure returns (bool boolValidate, uint256 totalAmount) {\\n\\n        if (customs.length != 0) {\\n            for(uint256 i =0 ; i < customs.length; i++){\\n                if (customs[i].totalAllocatedAmount == 0) return (boolValidate, totalAmount);\\n                totalAmount += customs[i].totalAllocatedAmount;\\n            }\\n            boolValidate = true;\\n        }\\n    }\\n\\n}\\n\",\"keccak256\":\"0x69af8b18daad14088489c2e318c4ebae78d84812767c617932a8b09dad3d26bc\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x610cea61003a600b82828239805160001a60731461002d57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100715760003560e01c80639da317611161005a5780639da31761146100d0578063a95614d6146100e3578063f6266b74146100f657600080fd5b806308d8b1ac14610076578063507c8bd1146100a5575b600080fd5b6100896100843660046106e6565b610109565b6040805192151583526020830191909152015b60405180910390f35b6100b86100b33660046107f9565b61028b565b6040516001600160a01b03909116815260200161009c565b6100b86100de3660046107f9565b610381565b6100896100f136600461081d565b6103f3565b610089610104366004610a76565b610473565b60008082516000146102865760005b83518110156102805783818151811061013357610133610c62565b6020026020010151602001516000015160001480610172575083818151811061015e5761015e610c62565b602002602001015160200151602001516000145b8061019e575083818151811061018a5761018a610c62565b602002602001015160200151604001516000145b806101d057508381815181106101b6576101b6610c62565b6020026020010151602001516060015163ffffffff166000145b8061020257508381815181106101e8576101e8610c62565b6020026020010151602001516080015163ffffffff166000145b80610234575083818151811061021a5761021a610c62565b60200260200101516020015160a0015163ffffffff166000145b1561023f5750915091565b83818151811061025157610251610c62565b602002602001015160200151600001518261026c9190610c8e565b91508061027881610ca7565b915050610118565b50600191505b915091565b60006001600160a01b0382166102a357506000919050565b60405163bf40fac160e01b815260206004820152602160248201527f50726f78795f5f4f564d5f4c3143726f7373446f6d61696e4d657373656e67656044820152603960f91b60648201526001600160a01b0383169063bf40fac1906084015b602060405180830381865afa92505050801561033c575060408051601f3d908101601f1916820190925261033991810190610cc0565b60015b610379573d80801561036a576040519150601f19603f3d011682016040523d82523d6000602084013e61036f565b606091505b5060009392505050565b90505b919050565b60006001600160a01b03821661039957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac190606401610303565b60008082516000146102865760005b83518110156102805783818151811061041d5761041d610c62565b6020026020010151602001516000036104365750915091565b83818151811061044857610448610c62565b6020026020010151602001518261045f9190610c8e565b91508061046b81610ca7565b915050610402565b608081015151606082015151604083015160209081015151908401515184515161012081015161010090910151600095869590949093909290916104b79190610c8e565b6104c19190610c8e565b6104cb9190610c8e565b6104d59190610c8e565b6104df9190610c8e565b9050806000036104ee57915091565b60019150915091565b634e487b7160e01b600052604160045260246000fd5b60405160c0810167ffffffffffffffff81118282101715610530576105306104f7565b60405290565b6040805190810167ffffffffffffffff81118282101715610530576105306104f7565b60405160a0810167ffffffffffffffff81118282101715610530576105306104f7565b6040516102c0810167ffffffffffffffff81118282101715610530576105306104f7565b604051601f8201601f1916810167ffffffffffffffff811182821017156105c9576105c96104f7565b604052919050565b600067ffffffffffffffff8211156105eb576105eb6104f7565b5060051b60200190565b600082601f83011261060657600080fd5b813567ffffffffffffffff811115610620576106206104f7565b610633601f8201601f19166020016105a0565b81815284602083860101111561064857600080fd5b816020850160208301376000918101602001919091529392505050565b803563ffffffff8116811461037c57600080fd5b600060c0828403121561068b57600080fd5b61069361050d565b90508135815260208201356020820152604082013560408201526106b960608301610665565b60608201526106ca60808301610665565b60808201526106db60a08301610665565b60a082015292915050565b600060208083850312156106f957600080fd5b823567ffffffffffffffff8082111561071157600080fd5b818501915085601f83011261072557600080fd5b8135610738610733826105d1565b6105a0565b81815260059190911b8301840190848101908883111561075757600080fd5b8585015b838110156107d4578035858111156107735760008081fd5b860160e0818c03601f1901121561078a5760008081fd5b610792610536565b88820135878111156107a45760008081fd5b6107b28d8b838601016105f5565b8252506107c28c60408401610679565b818a015284525091860191860161075b565b5098975050505050505050565b6001600160a01b03811681146107f657600080fd5b50565b60006020828403121561080b57600080fd5b8135610816816107e1565b9392505050565b6000602080838503121561083057600080fd5b823567ffffffffffffffff8082111561084857600080fd5b818501915085601f83011261085c57600080fd5b813561086a610733826105d1565b81815260059190911b8301840190848101908883111561088957600080fd5b8585015b838110156107d4578035858111156108a55760008081fd5b86016040818c03601f19018113156108bd5760008081fd5b6108c5610536565b89830135888111156108d75760008081fd5b6108e58e8c838701016105f5565b82525091013588820152835291860191860161088d565b600082601f83011261090d57600080fd5b8135602061091d610733836105d1565b82815260059290921b8401810191818101908684111561093c57600080fd5b8286015b848110156109575780358352918301918301610940565b509695505050505050565b60006040828403121561097457600080fd5b61097c610536565b9050813567ffffffffffffffff8082111561099657600080fd5b6109a2858386016108fc565b835260208401359150808211156109b857600080fd5b506109c5848285016108fc565b60208301525092915050565b600060c082840312156109e357600080fd5b6109eb61050d565b905081358152602082013560208201526040820135604082015260608201356060820152610a1b60808301610665565b608082015260a082013561ffff811681146106db57600080fd5b600060e08284031215610a4757600080fd5b610a4f610536565b90508135610a5c816107e1565b8152610a6b8360208401610679565b602082015292915050565b60006020808385031215610a8957600080fd5b823567ffffffffffffffff80821115610aa157600080fd5b908401906103408287031215610ab657600080fd5b610abe610559565b823582811115610acd57600080fd5b83018088036102e0811215610ae157600080fd5b610ae9610536565b6102c080831215610af957600080fd5b610b0161057c565b84358152888501358982015260408086013590820152606080860135908201526080808601359082015260a0808601359082015260c0808601359082015260e08086013590820152610100808601359082015261012080860135908201526101408086013590820152610160808601359082015261018080860135908201526101a080860135908201526101c080860135818301526101e08087013590830152610200808701359083015261022080870135908301526102408087013590830152610260808701359083015261028080870135818401526102a080880135908401529184528286013594509087851115610bfa57600080fd5b610c068d868801610962565b8a850152838752610c198d8b8b016109d1565b8a880152610c2a8d60e08b01610a35565b6040880152610c3b8d838b01610679565b6060880152610c4c8d828b01610679565b608088015250949b9a5050505050505050505050565b634e487b7160e01b600052603260045260246000fd5b634e487b7160e01b600052601160045260246000fd5b80820180821115610ca157610ca1610c78565b92915050565b600060018201610cb957610cb9610c78565b5060010190565b600060208284031215610cd257600080fd5b8151610816816107e156fea164736f6c6343000812000a",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600436106100715760003560e01c80639da317611161005a5780639da31761146100d0578063a95614d6146100e3578063f6266b74146100f657600080fd5b806308d8b1ac14610076578063507c8bd1146100a5575b600080fd5b6100896100843660046106e6565b610109565b6040805192151583526020830191909152015b60405180910390f35b6100b86100b33660046107f9565b61028b565b6040516001600160a01b03909116815260200161009c565b6100b86100de3660046107f9565b610381565b6100896100f136600461081d565b6103f3565b610089610104366004610a76565b610473565b60008082516000146102865760005b83518110156102805783818151811061013357610133610c62565b6020026020010151602001516000015160001480610172575083818151811061015e5761015e610c62565b602002602001015160200151602001516000145b8061019e575083818151811061018a5761018a610c62565b602002602001015160200151604001516000145b806101d057508381815181106101b6576101b6610c62565b6020026020010151602001516060015163ffffffff166000145b8061020257508381815181106101e8576101e8610c62565b6020026020010151602001516080015163ffffffff166000145b80610234575083818151811061021a5761021a610c62565b60200260200101516020015160a0015163ffffffff166000145b1561023f5750915091565b83818151811061025157610251610c62565b602002602001015160200151600001518261026c9190610c8e565b91508061027881610ca7565b915050610118565b50600191505b915091565b60006001600160a01b0382166102a357506000919050565b60405163bf40fac160e01b815260206004820152602160248201527f50726f78795f5f4f564d5f4c3143726f7373446f6d61696e4d657373656e67656044820152603960f91b60648201526001600160a01b0383169063bf40fac1906084015b602060405180830381865afa92505050801561033c575060408051601f3d908101601f1916820190925261033991810190610cc0565b60015b610379573d80801561036a576040519150601f19603f3d011682016040523d82523d6000602084013e61036f565b606091505b5060009392505050565b90505b919050565b60006001600160a01b03821661039957506000919050565b60405163bf40fac160e01b815260206004820152601b60248201527f50726f78795f5f4f564d5f4c315374616e64617264427269646765000000000060448201526001600160a01b0383169063bf40fac190606401610303565b60008082516000146102865760005b83518110156102805783818151811061041d5761041d610c62565b6020026020010151602001516000036104365750915091565b83818151811061044857610448610c62565b6020026020010151602001518261045f9190610c8e565b91508061046b81610ca7565b915050610402565b608081015151606082015151604083015160209081015151908401515184515161012081015161010090910151600095869590949093909290916104b79190610c8e565b6104c19190610c8e565b6104cb9190610c8e565b6104d59190610c8e565b6104df9190610c8e565b9050806000036104ee57915091565b60019150915091565b634e487b7160e01b600052604160045260246000fd5b60405160c0810167ffffffffffffffff81118282101715610530576105306104f7565b60405290565b6040805190810167ffffffffffffffff81118282101715610530576105306104f7565b60405160a0810167ffffffffffffffff81118282101715610530576105306104f7565b6040516102c0810167ffffffffffffffff81118282101715610530576105306104f7565b604051601f8201601f1916810167ffffffffffffffff811182821017156105c9576105c96104f7565b604052919050565b600067ffffffffffffffff8211156105eb576105eb6104f7565b5060051b60200190565b600082601f83011261060657600080fd5b813567ffffffffffffffff811115610620576106206104f7565b610633601f8201601f19166020016105a0565b81815284602083860101111561064857600080fd5b816020850160208301376000918101602001919091529392505050565b803563ffffffff8116811461037c57600080fd5b600060c0828403121561068b57600080fd5b61069361050d565b90508135815260208201356020820152604082013560408201526106b960608301610665565b60608201526106ca60808301610665565b60808201526106db60a08301610665565b60a082015292915050565b600060208083850312156106f957600080fd5b823567ffffffffffffffff8082111561071157600080fd5b818501915085601f83011261072557600080fd5b8135610738610733826105d1565b6105a0565b81815260059190911b8301840190848101908883111561075757600080fd5b8585015b838110156107d4578035858111156107735760008081fd5b860160e0818c03601f1901121561078a5760008081fd5b610792610536565b88820135878111156107a45760008081fd5b6107b28d8b838601016105f5565b8252506107c28c60408401610679565b818a015284525091860191860161075b565b5098975050505050505050565b6001600160a01b03811681146107f657600080fd5b50565b60006020828403121561080b57600080fd5b8135610816816107e1565b9392505050565b6000602080838503121561083057600080fd5b823567ffffffffffffffff8082111561084857600080fd5b818501915085601f83011261085c57600080fd5b813561086a610733826105d1565b81815260059190911b8301840190848101908883111561088957600080fd5b8585015b838110156107d4578035858111156108a55760008081fd5b86016040818c03601f19018113156108bd5760008081fd5b6108c5610536565b89830135888111156108d75760008081fd5b6108e58e8c838701016105f5565b82525091013588820152835291860191860161088d565b600082601f83011261090d57600080fd5b8135602061091d610733836105d1565b82815260059290921b8401810191818101908684111561093c57600080fd5b8286015b848110156109575780358352918301918301610940565b509695505050505050565b60006040828403121561097457600080fd5b61097c610536565b9050813567ffffffffffffffff8082111561099657600080fd5b6109a2858386016108fc565b835260208401359150808211156109b857600080fd5b506109c5848285016108fc565b60208301525092915050565b600060c082840312156109e357600080fd5b6109eb61050d565b905081358152602082013560208201526040820135604082015260608201356060820152610a1b60808301610665565b608082015260a082013561ffff811681146106db57600080fd5b600060e08284031215610a4757600080fd5b610a4f610536565b90508135610a5c816107e1565b8152610a6b8360208401610679565b602082015292915050565b60006020808385031215610a8957600080fd5b823567ffffffffffffffff80821115610aa157600080fd5b908401906103408287031215610ab657600080fd5b610abe610559565b823582811115610acd57600080fd5b83018088036102e0811215610ae157600080fd5b610ae9610536565b6102c080831215610af957600080fd5b610b0161057c565b84358152888501358982015260408086013590820152606080860135908201526080808601359082015260a0808601359082015260c0808601359082015260e08086013590820152610100808601359082015261012080860135908201526101408086013590820152610160808601359082015261018080860135908201526101a080860135908201526101c080860135818301526101e08087013590830152610200808701359083015261022080870135908301526102408087013590830152610260808701359083015261028080870135818401526102a080880135908401529184528286013594509087851115610bfa57600080fd5b610c068d868801610962565b8a850152838752610c198d8b8b016109d1565b8a880152610c2a8d60e08b01610a35565b6040880152610c3b8d838b01610679565b6060880152610c4c8d828b01610679565b608088015250949b9a5050505050505050505050565b634e487b7160e01b600052603260045260246000fd5b634e487b7160e01b600052601160045260246000fd5b80820180821115610ca157610ca1610c78565b92915050565b600060018201610cb957610cb9610c78565b5060010190565b600060208284031215610cd257600080fd5b8151610816816107e156fea164736f6c6343000812000a",
   "devdoc": {
     "kind": "dev",
     "methods": {},

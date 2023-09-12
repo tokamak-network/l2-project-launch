@@ -1,11 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
-import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
-import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
+// import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
+// import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
+// import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
 
+import "./L2CustomVaultBase.sol";
 import "./L2InitialLiquidityVaultStorage.sol";
+
 import "../interfaces/INonfungiblePositionManager.sol";
 
 import '../../libraries/LibProject.sol';
@@ -51,8 +53,7 @@ interface IIUniswapV3Pool {
 
 }
 
-contract L2InitialLiquidityVault is
-    ProxyStorage, AccessibleCommon, L2CustomVaultBaseStorage, L2InitialLiquidityVaultStorage
+contract L2InitialLiquidityVault is L2CustomVaultBase, L2InitialLiquidityVaultStorage
 {
     using SafeERC20 for IERC20;
     /* ========== DEPENDENCIES ========== */
@@ -78,7 +79,7 @@ contract L2InitialLiquidityVault is
     }
 
     event SetUniswapInfo(address _factory, address _npm, address _ton, address _tos);
-    event SetStartTime(address l2Token, uint256 startTime);
+    event SetStartTime(address l2Token, uint32 startTime);
     event SetPoolInitialized(address l2Token, address pool, uint160 inSqrtPriceX96);
     event SetCreatedPool(address l2Token, address pool);
     event InitializedInitialLiquidityVault(
@@ -86,7 +87,7 @@ contract L2InitialLiquidityVault is
         uint256 totalAllocatedAmount,
         uint256 initialTosPrice,
         uint256 initialTokenPrice,
-        uint256 startTime,
+        uint32 startTime,
         uint160 initSqrtPriceX96,
         uint24 fee
     );
@@ -107,12 +108,10 @@ contract L2InitialLiquidityVault is
     /* ========== onlyOwner ========== */
     function setUniswapInfo(address _poolfactory, address _npm, address _ton, address _tos)
         external
-        onlyOwner
+        onlyOwner nonZeroAddress(_poolfactory) nonZeroAddress(_npm) nonZeroAddress(_ton) nonZeroAddress(_tos)
     {
-        require(_poolfactory != address(0) && _poolfactory != uniswapV3Factory, "zero or same UniswapV3Factory");
-        require(_npm != address(0) && _npm != nonfungiblePositionManager, "zero or same npm");
-        require(_ton != address(0) && ton != _ton, "zero or same ton");
-        require(_tos != address(0) && tos != _tos, "zero or same tos");
+        require(_poolfactory != uniswapV3Factory ||  _npm != nonfungiblePositionManager ||
+             ton != _ton || tos != _tos, "same");
 
         uniswapV3Factory = _poolfactory;
         nonfungiblePositionManager = _npm;
@@ -122,6 +121,28 @@ contract L2InitialLiquidityVault is
         emit SetUniswapInfo(_poolfactory, _npm, _ton, _tos);
     }
 
+    function setAcceptTickChangeInterval(int24 _interval) external onlyOwner
+    {
+        require(_interval > 0, "zero");
+        require(acceptTickChangeInterval != _interval, "same");
+        acceptTickChangeInterval = _interval;
+    }
+
+    function setAcceptSlippagePrice(int24 _value) external onlyOwner
+    {
+        require(_value > 0, "zero");
+        require(acceptSlippagePrice != _value, "same");
+        acceptSlippagePrice = _value;
+    }
+
+    function setTWAP_PERIOD(uint32 value) external onlyOwner
+    {
+        require(value > 0, "zero");
+        require(TWAP_PERIOD != value, "same");
+        TWAP_PERIOD = value;
+    }
+
+
     /* ========== only L2ProjectManager ========== */
     function initialize(
         address l2Token,
@@ -129,12 +150,16 @@ contract L2InitialLiquidityVault is
     )
         external onlyL2ProjectManagerOrVaultAdmin(l2Token) afterSetUniswap
     {
+        console.log('initialize in l2Token %s', l2Token);
+
         require(poolInfo[l2Token].totalAllocatedAmount == 0, "already initialized");
         require(params.totalAllocatedAmount != 0 && params.tosPrice != 0 && params.tokenPrice != 0 && params.initSqrtPrice != 0 && params.fee != 0,
             "zero totalAllocatedAmount or tosPrice or tokenPrice or initSqrtPriceX96 or startTime");
-        require(params.startTime > block.timestamp, "StartTime has passed");
+        require(params.startTime > uint32(block.timestamp), "StartTime has passed");
 
+        console.log('initialize iparams.totalAllocatedAmount %s', params.totalAllocatedAmount);
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
+        console.log('initialize safeTransferFrom ');
 
         LibInitialLiquidityVault.PoolInfo storage info = poolInfo[l2Token];
         info.totalAllocatedAmount = params.totalAllocatedAmount;
@@ -149,7 +174,7 @@ contract L2InitialLiquidityVault is
     }
 
     /* ========== only VaultAdmin Of Token ========== */
-    function setStartTime(address l2Token, uint256 _startTime)
+    function setStartTime(address l2Token, uint32 _startTime)
         public onlyVaultAdminOfToken(l2Token)
     {
         LibInitialLiquidityVault.PoolInfo storage info = poolInfo[l2Token];
@@ -164,7 +189,7 @@ contract L2InitialLiquidityVault is
     function setCreatePool(address l2Token) external beforeSetReadyToCreatePool(l2Token) ifFree
     {
         LibInitialLiquidityVault.PoolInfo storage info = poolInfo[l2Token];
-        require(info.startTime > 0 && info.startTime < block.timestamp, "StartTime has not passed.");
+        require(info.startTime > 0 && info.startTime < uint32(block.timestamp), "StartTime has not passed.");
         require(info.pool == address(0), "already created");
         require(info.initSqrtPriceX96 > 0, "zero initSqrtPriceX96");
         address pool = IIUniswapV3Factory(uniswapV3Factory).getPool(tos, l2Token, info.fee);
@@ -351,6 +376,12 @@ contract L2InitialLiquidityVault is
         if(tokenBalance > IERC20(l2Token).allowance(address(this), nonfungiblePositionManager) ) {
             require(IERC20(l2Token).approve(nonfungiblePositionManager, IERC20(l2Token).totalSupply()),"token approve fail");
         }
+    }
+
+    function viewVaultInfo(address l2Token) external view returns(LibInitialLiquidityVault.PoolInfo memory){
+
+        return poolInfo[l2Token];
+
     }
 
 }
