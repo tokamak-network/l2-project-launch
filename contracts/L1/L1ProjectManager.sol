@@ -10,7 +10,7 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface L2ProjectManagerI {
     function distributesL2Token(
@@ -18,7 +18,7 @@ interface L2ProjectManagerI {
         address l2Token,
         uint256 projectId,
         uint256 totalAmount,
-        LibProject.TokamakVaults[] memory tokamakVaults,
+        LibProject.TokamakVaults memory tokamakVaults,
         LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     ) external;
@@ -194,7 +194,16 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         address l1Messenger = LibProject.getL1CommunicationMessenger(info.addressManager);
         require(l1Messenger != address(0), "l1Messenger is ZeroAddress");
-
+        bytes memory  callData = abi.encodeWithSelector(
+                    L2ProjectManagerI.distributesL2Token.selector,
+                    info.l1Token,
+                    l2Token,
+                    projectId,
+                    totalAmount,
+                    tokamakVaults,
+                    customScheduleVaults,
+                    customNonScheduleVaults
+                ) ;
         uint256 totalAllocatedAmount = 0;
 
         // 입력 데이타 검증
@@ -220,16 +229,18 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 1. L2토큰 정보를 저장한다.
         projects[id].l2Token = l2Token;
         info.l2Token = l2Token;
+        // LibProject.TokamakVaults memory tVaults = tokamakVaults;
+        // bytes memory  callData = abi.encodeWithSelector(
+        //             L2ProjectManagerI.distributesL2Token.selector,
+        //             info.l1Token,
+        //             info.l2Token,
+        //             id,
+        //             totalAllocatedAmount,
+        //             tokamakVaults,
+        //             customScheduleVaults,
+        //             customNonScheduleVaults
+        //         ) ;
 
-        bytes memory functionParams = abi.encode(
-            info.l1Token,
-            info.l2Token,
-            id,
-            totalAmount,
-            tokamakVaults,
-            customScheduleVaults,
-            customNonScheduleVaults
-        );
         uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
 
         // 2. L1 토큰 발행하고,
@@ -258,7 +269,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 4. 커스텀 배포정보를 L2에 보낸다.
         L1CrossDomainMessengerI(l1Messenger).sendMessage(
                 _l2Info.l2ProjectManager,
-                abi.encodeWithSelector(L2ProjectManagerI.distributesL2Token.selector, functionParams),
+                callData,
                 _l2Info.sendMsgMinGasLimit
             );
 

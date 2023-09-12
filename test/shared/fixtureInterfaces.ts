@@ -107,8 +107,8 @@ interface SetL2ProjectLaunchFixture  {
     teamVaultProxy : L2ScheduleVaultProxy,
     scheduleVault: L2ScheduleVault,
     scheduleVaultProxy: L2ScheduleVaultProxy,
-    nonScheduleVaultB: L2NonScheduleVault,
-    nonScheduleVaultBProxy: L2CustomVaultBaseProxy,
+    nonScheduleVault: L2NonScheduleVault,
+    nonScheduleVaultProxy: L2CustomVaultBaseProxy,
     tosAddress: string
 }
 

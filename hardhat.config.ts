@@ -110,13 +110,13 @@ const config: HardhatUserConfig = {
     },
     goerli: {
       url: `${process.env.ETH_NODE_URI_GOERLI}`,
-      accounts: [`${process.env.DEPLOYER}`],
+      accounts: [`${process.env.PRIVATE_KEY}`],
       // chainId: 5,
       deploy: ['deploy_l1']
     },
     titangoerli: {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
-      accounts: [`${process.env.DEPLOYER}`],
+      accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 5050,
       gasPrice: 250000,
       deploy: ['deploy_l2_proxy']

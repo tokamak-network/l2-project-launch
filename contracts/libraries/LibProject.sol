@@ -99,7 +99,7 @@ library LibProject {
         uint256 tosPrice;
         uint256 tokenPrice;
         uint256 initSqrtPrice;
-        uint256 startTime;
+        uint32 startTime;
         uint16 fee;
     }
 

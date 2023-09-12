@@ -278,7 +278,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   })
   const l1ProjectManagerImpl = (await l1ProjectManagerDeployment.connect(deployer).deploy()) as L1ProjectManager;
 
-  //==== L1ProjectManagerProxy =================================
+  //==== L1ProjectManagerProxy upgradeTo =================================
 
   const L1ProjectManagerProxyDeployment = await ethers.getContractFactory("L1ProjectManagerProxy")
   const l1ProjectManagerProxy = (await L1ProjectManagerProxyDeployment.connect(deployer).deploy()) as L1ProjectManagerProxy;
@@ -309,7 +309,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
     await (await l2ProjectManagerProxy.connect(deployer).upgradeTo(l2ProjectManagerImpl.address)).wait()
   }
   const l2ProjectManager = await ethers.getContractAt(l2ProjectManagerJson.abi, l2ProjectManagerProxy.address, deployer) as L2ProjectManager;
-
+  console.log('l2ProjectManager', l2ProjectManager.address)
   //---- L2
   const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
   const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
@@ -374,16 +374,15 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
 
   //==== nonCustomScheduleVaultProxy =================================
   const nonCustomScheduleVaultProxyDeployment = await ethers.getContractFactory("L2CustomVaultBaseProxy")
-  const nonScheduleVaultBProxy = (await nonCustomScheduleVaultProxyDeployment.connect(deployer).deploy()) as L2CustomVaultBaseProxy;
+  const nonScheduleVaultProxy = (await nonCustomScheduleVaultProxyDeployment.connect(deployer).deploy()) as L2CustomVaultBaseProxy;
 
-  impl = await nonScheduleVaultBProxy.implementation()
+  impl = await nonScheduleVaultProxy.implementation()
   if (impl != nonCustomScheduleVaultImpl.address) {
-    await (await nonScheduleVaultBProxy.connect(deployer).upgradeTo(nonCustomScheduleVaultImpl.address)).wait()
+    await (await nonScheduleVaultProxy.connect(deployer).upgradeTo(nonCustomScheduleVaultImpl.address)).wait()
   }
 
-  const nonScheduleVaultB = await ethers.getContractAt(
-    L2ScheduleVaultJson.abi, nonScheduleVaultBProxy.address, deployer) as L2NonScheduleVault;
-
+  const nonScheduleVault = await ethers.getContractAt(
+    L2ScheduleVaultJson.abi, nonScheduleVaultProxy.address, deployer) as L2NonScheduleVault;
 
   //==== daoVault =================================
   const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")
@@ -416,7 +415,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const marketingVault = await ethers.getContractAt(
-    L2ScheduleVaultJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVault;
+    L2ScheduleVaultJson.abi, marketingVaultProxy.address, deployer) as L2ScheduleVault;
 
   //=================================
   //==== teamVault =================================
@@ -433,8 +432,15 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const teamVault = await ethers.getContractAt(
-    L2ScheduleVaultJson.abi, daoVaultProxy.address, deployer) as L2ScheduleVault;
+    L2ScheduleVaultJson.abi, teamVaultProxy.address, deployer) as L2ScheduleVault;
 
+  //==SET Vault===============================
+  await (await initialLiquidityVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await daoVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await marketingVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await teamVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await scheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
 
   return  {
       libProject: libProject,
@@ -466,8 +472,8 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
       teamVaultProxy : teamVaultProxy,
       scheduleVault: scheduleVault,
       scheduleVaultProxy: scheduleVaultProxy,
-      nonScheduleVaultB: nonScheduleVaultB,
-      nonScheduleVaultBProxy: nonScheduleVaultBProxy,
+      nonScheduleVault: nonScheduleVault,
+      nonScheduleVaultProxy: nonScheduleVaultProxy,
       tosAddress: tosAddress
   }
 }

@@ -85,7 +85,7 @@ function getInitialLiquidityParams (
         tosPrice: ethers.BigNumber.from(""+tosPrice),
         tokenPrice: ethers.BigNumber.from(""+tokenPrice),
         initSqrtPrice: ethers.BigNumber.from(price),
-        startTime:  ethers.BigNumber.from(""+startTime),
+        startTime:  startTime,
         fee: fee
     };
 }
@@ -410,7 +410,7 @@ describe('L1ProjectManager', () => {
                         ethers.constants.AddressZero,
                         ethers.constants.AddressZero,
                         deployed.scheduleVaultProxy.address,
-                        deployed.nonScheduleVaultBProxy.address
+                        deployed.nonScheduleVaultProxy.address
                         )
                     ).to.be.revertedWith("Accessible: Caller is not an admin")
             })
@@ -424,12 +424,12 @@ describe('L1ProjectManager', () => {
                     ethers.constants.AddressZero,
                     ethers.constants.AddressZero,
                     deployed.scheduleVaultProxy.address,
-                    deployed.nonScheduleVaultBProxy.address
+                    deployed.nonScheduleVaultProxy.address
                 )
 
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
-                expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultBProxy.address)
+                expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
 
             })
 
@@ -442,7 +442,7 @@ describe('L1ProjectManager', () => {
                         ethers.constants.AddressZero,
                         ethers.constants.AddressZero,
                         deployed.scheduleVaultProxy.address,
-                        deployed.nonScheduleVaultBProxy.address
+                        deployed.nonScheduleVaultProxy.address
                     )
                 ).to.be.revertedWith("already set")
             })
@@ -617,7 +617,7 @@ describe('L1ProjectManager', () => {
             let daoParams =  getNonScheduleParams("DAO", 0);
             let teamParams =  getScheduleParams(
                 "TEAM",
-                0, //totalAllocatedAmount
+                BigNumber.from("0"), //totalAllocatedAmount
                 0, // totalClaimCount
                 0, //firstClaimAmount
                 0, //firstClaimTime
@@ -627,7 +627,7 @@ describe('L1ProjectManager', () => {
 
             let marketingParams =  getScheduleParams(
                 "MARKETING",
-                0, //totalAllocatedAmount
+                BigNumber.from("0"), //totalAllocatedAmount
                 0, // totalClaimCount
                 0, //firstClaimAmount
                 0, //firstClaimTime
@@ -645,17 +645,6 @@ describe('L1ProjectManager', () => {
 
             let customScheduleVaults = [teamParams, marketingParams]
             let customNonScheduleVaults = [daoParams]
-
-            // await expect(
-            //     deployed.l1ProjectManager.connect(addr1).launchProject(
-            //         projectInfo.projectId,
-            //         projectInfo.l2Token,
-            //         projectInfo.initialTotalSupply,
-            //         tokamakVaults,
-            //         customScheduleVaults,
-            //         customNonScheduleVaults
-            //         )
-            //     ).to.be.revertedWith("caller is not projectOwner")
 
             await expect(
                 deployed.l1ProjectManager.connect(addr1).launchProject(
@@ -753,7 +742,6 @@ describe('L1ProjectManager', () => {
             let customScheduleVaults = [teamParams, marketingParams]
             let customNonScheduleVaults = [daoParams]
 
-            const topic = deployed.l1ProjectManager.interface.getEventTopic('LaunchedProject');
 
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
@@ -764,6 +752,8 @@ describe('L1ProjectManager', () => {
                     customNonScheduleVaults
                     )).wait();
 
+            //--------------------------
+            const topic = deployed.l1ProjectManager.interface.getEventTopic('LaunchedProject');
             const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
             const deployedEvent = deployed.l1ProjectManager.interface.parseLog(log);
 
@@ -772,8 +762,27 @@ describe('L1ProjectManager', () => {
             expect(deployedEvent.args.l2Token).to.be.eq(projectInfo.l2Token)
             expect(deployedEvent.args.totalAmount).to.be.eq(projectInfo.initialTotalSupply)
 
-            // vault check
+            //--------------------------
 
+            const topic1 = deployed.l2ProjectManager.interface.getEventTopic('DistributedL2Token');
+            const log1 = receipt.logs.find(x => x.topics.indexOf(topic1) >= 0);
+            const deployedEvent1 = deployed.l2ProjectManager.interface.parseLog(log1);
+
+            expect(deployedEvent1.args.projectId).to.be.eq(projectInfo.projectId)
+            expect(deployedEvent1.args.l1Token).to.be.eq(projectInfo.l1Token)
+            expect(deployedEvent1.args.l2Token).to.be.eq(projectInfo.l2Token)
+            expect(deployedEvent1.args.totalAmount).to.be.eq(projectInfo.initialTotalSupply)
+
+            //-----------------------------
+            // vault check
+            let initialLiquidityVault = await deployed.initialLiquidityVault.viewVaultInfo(projectInfo.l2Token)
+            expect(initialLiquidityVault.totalAllocatedAmount).to.be.eq(initialLiquidityAmount)
+            expect(initialLiquidityVault.initialTosPrice).to.be.eq(BigNumber.from(""+tosPrice))
+            expect(initialLiquidityVault.initialTokenPrice).to.be.eq(BigNumber.from(""+tokenPrice))
+            expect(initialLiquidityVault.startTime).to.be.eq(sTime)
+            expect(initialLiquidityVault.initSqrtPriceX96.toString()).to.be.eq(sqrtPrice.toString())
+            expect(initialLiquidityVault.fee).to.be.eq(3000)
+            expect(initialLiquidityVault.boolReadyToCreatePool).to.be.eq(false)
 
         });
 

@@ -39,11 +39,13 @@ contract MockL2Messenger  {
         bytes memory _message,
         uint256 _messageNonce
     ) public {
+        console.log("MockL2Messenger relayMessage _target %s", _target);
 
         xDomainMsgSender = _sender;
         // slither-disable-next-line reentrancy-no-eth, reentrancy-events, reentrancy-benign
         (bool success, ) = _target.call(_message);
         // slither-disable-next-line reentrancy-benign
+        console.logBool(success);
 
         xDomainMsgSender = address(0);
         if(success) {
@@ -51,6 +53,7 @@ contract MockL2Messenger  {
         } else {
             emit FailedRelayedMessage(_target, _sender, _message, _messageNonce);
         }
+        console.log("MockL2Messenger relayMessage end ");
 
     }
 

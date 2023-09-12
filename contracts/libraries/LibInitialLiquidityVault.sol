@@ -12,7 +12,7 @@ library LibInitialLiquidityVault {
         uint256 initialTosPrice;
         uint256 initialTokenPrice;
         uint256 lpToken;
-        uint256 startTime;
+        uint32 startTime;
         uint160 initSqrtPriceX96;
         uint24  fee;
         bool boolReadyToCreatePool;
