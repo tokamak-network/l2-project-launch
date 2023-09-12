@@ -40,7 +40,7 @@ contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
         string memory vaultName,
         LibProject.InitalParameterScheduleVault memory params
     )
-        external onlyInitializerOrVaultAdmin(l2Token)
+        external onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
         bytes32 nameKey = keccak256(bytes(vaultName));
         require(vaultInfo[l2Token][nameKey].firstClaimTime == 0, "already initialized");

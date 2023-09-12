@@ -109,7 +109,8 @@ interface SetL2ProjectLaunchFixture  {
     scheduleVaultProxy: L2ScheduleVaultProxy,
     nonScheduleVault: L2NonScheduleVault,
     nonScheduleVaultProxy: L2CustomVaultBaseProxy,
-    tosAddress: string
+    tosAddress: string,
+    tosAdminAddress: string
 }
 
 interface ProjectInfo {

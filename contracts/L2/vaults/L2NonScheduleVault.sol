@@ -31,7 +31,7 @@ contract L2NonScheduleVault is L2CustomVaultBase, L2NonScheduleVaultStorage {
         string memory vaultName,
         uint256 totalAllocatedAmount
     )
-        external onlyInitializerOrVaultAdmin(l2Token)
+        external onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
         bytes32 nameKey = keccak256(bytes(vaultName));
         require(totalAllocatedAmount != 0 , "wrong value");

@@ -11,7 +11,6 @@ interface IIIUniswapV3Pool {
         view
         returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
 
-
 }
 
 /// @title Oracle library

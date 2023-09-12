@@ -1,10 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-// import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
-// import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
-// import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
-
 import "./L2CustomVaultBase.sol";
 import "./L2InitialLiquidityVaultStorage.sol";
 
@@ -150,16 +146,14 @@ contract L2InitialLiquidityVault is L2CustomVaultBase, L2InitialLiquidityVaultSt
     )
         external onlyL2ProjectManagerOrVaultAdmin(l2Token) afterSetUniswap
     {
-        console.log('initialize in l2Token %s', l2Token);
-
         require(poolInfo[l2Token].totalAllocatedAmount == 0, "already initialized");
         require(params.totalAllocatedAmount != 0 && params.tosPrice != 0 && params.tokenPrice != 0 && params.initSqrtPrice != 0 && params.fee != 0,
             "zero totalAllocatedAmount or tosPrice or tokenPrice or initSqrtPriceX96 or startTime");
         require(params.startTime > uint32(block.timestamp), "StartTime has passed");
 
-        console.log('initialize iparams.totalAllocatedAmount %s', params.totalAllocatedAmount);
+        // console.log('initialize iparams.totalAllocatedAmount %s', params.totalAllocatedAmount);
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
-        console.log('initialize safeTransferFrom ');
+        // console.log('initialize safeTransferFrom ');
 
         LibInitialLiquidityVault.PoolInfo storage info = poolInfo[l2Token];
         info.totalAllocatedAmount = params.totalAllocatedAmount;
@@ -228,10 +222,10 @@ contract L2InitialLiquidityVault is L2CustomVaultBase, L2InitialLiquidityVaultSt
         if (TWAP_PERIOD == 0) TWAP_PERIOD = 120;
 
         LibInitialLiquidityVault.PoolInfo memory info = poolInfo[l2Token];
-        (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(info.pool).slot0();
+        (uint160 sqrtPriceX96, int24 tick,,uint16 observationCardinality,,,) =  IIUniswapV3Pool(info.pool).slot0();
         require(sqrtPriceX96 > 0, "pool is not initialized");
 
-        //if (lpToken > 0)
+        if (observationCardinality > 1)
         {
             int24 timeWeightedAverageTick = OracleLibrary.consult(info.pool, TWAP_PERIOD);
             require(
@@ -244,35 +238,35 @@ contract L2InitialLiquidityVault is L2CustomVaultBase, L2InitialLiquidityVaultSt
         uint256 amount0Desired = 0;
         uint256 amount1Desired = 0;
         address token0 = IIUniswapV3Pool(info.pool).token0();
-
+        address _l2Token = l2Token;
         if(token0 != tos){
             amount0Desired = getQuoteAtTick(
                 tick,
                 uint128(tosAmount),
                 tos,
-                l2Token
+                _l2Token
                 );
             amount1Desired = tosAmount;
             require(amount0Desired <= tokenBalance, "tokenBalance is insufficient");
-            checkBalance(l2Token, amount1Desired, amount0Desired);
+            checkBalance(_l2Token, amount1Desired, amount0Desired);
         } else {
             amount0Desired = tosAmount;
             amount1Desired = getQuoteAtTick(
                 tick,
                 uint128(tosAmount),
                 tos,
-                l2Token
+                _l2Token
                 );
 
             require(amount1Desired <= tokenBalance, "tokenBalance is insufficient");
-            checkBalance(l2Token, amount0Desired, amount1Desired);
+            checkBalance(_l2Token, amount0Desired, amount1Desired);
         }
 
         uint256 amount0Min = amount0Desired * (100 - uint256(int256(acceptSlippagePrice))) / 100;
         uint256 amount1Min = amount1Desired * (100 - uint256(int256(acceptSlippagePrice))) / 100;
 
-        if(poolInfo[l2Token].lpToken == 0)  initialMint(l2Token, amount0Desired, amount1Desired, amount0Min, amount1Min);
-        else increaseLiquidity(l2Token, amount0Desired, amount1Desired, amount0Min, amount1Min);
+        if(poolInfo[_l2Token].lpToken == 0)  initialMint(_l2Token, amount0Desired, amount1Desired, amount0Min, amount1Min);
+        else increaseLiquidity(_l2Token, amount0Desired, amount1Desired, amount0Min, amount1Min);
     }
 
 
