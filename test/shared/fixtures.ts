@@ -60,6 +60,7 @@ import l2ProjectManagerJson from "../../artifacts/contracts/L2/L2ProjectManager.
 import initialLiquidityVaultJson from "../../artifacts/contracts/L2/vaults/L2InitialLiquidityVault.sol/L2InitialLiquidityVault.json";
 import daoVaultJson from "../../artifacts/contracts/L2/vaults/L2NonScheduleVault.sol/L2NonScheduleVault.json";
 import L2ScheduleVaultJson from "../../artifacts/contracts/L2/vaults/L2ScheduleVault.sol/L2ScheduleVault.json";
+import L2NonScheduleVaultJson from "../../artifacts/contracts/L2/vaults/L2NonScheduleVault.sol/L2NonScheduleVault.json";
 
 const tosInfo = {
   name: "TONStarter",
@@ -382,7 +383,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   }
 
   const nonScheduleVault = await ethers.getContractAt(
-    L2ScheduleVaultJson.abi, nonScheduleVaultProxy.address, deployer) as L2NonScheduleVault;
+    L2NonScheduleVaultJson.abi, nonScheduleVaultProxy.address, deployer) as L2NonScheduleVault;
 
   //==== daoVault =================================
   const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")

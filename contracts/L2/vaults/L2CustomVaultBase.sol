@@ -19,8 +19,6 @@ contract L2CustomVaultBase is ProxyStorage, AccessibleCommon, L2CustomVaultBaseS
 
     /* ========== DEPENDENCIES ========== */
 
-    // event AllocatedTokenAndAdminInVault(address l2Token, address newAdmin, uint256 amount);
-
     /* ========== CONSTRUCTOR ========== */
 
     /* ========== onlyOwner ========== */
@@ -45,19 +43,18 @@ contract L2CustomVaultBase is ProxyStorage, AccessibleCommon, L2CustomVaultBaseS
         emit SetVaultAdmin(l2Token, _newAdmin);
     }
 
-    // function allocateTokenAndAdmin(address l2Token, address _newAdmin, uint256 amount)
-    //     external  onlyL2ProjectManager
-    //     nonZeroAddress(l2Token)  nonZeroAddress(_newAdmin) nonZero(amount)
-    // {
-    //     require(vaultAdminOfToken[l2Token] != _newAdmin, "same admin");
-    //     require(amount <= IERC20(l2Token).balanceOf(l2ProjectManager), "balance is insufficient.");
-
-    //     vaultAdminOfToken[l2Token] = _newAdmin;
-    //     IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), amount);
-    //     emit AllocatedTokenAndAdminInVault(l2Token, _newAdmin, amount);
-    // }
-
     /* ========== only VaultAdmin Of Token ========== */
+
+    function transferVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external nonZeroAddress(l2Token) nonZeroAddress(_newAdmin) onlyVaultAdminOfToken(l2Token)
+    {
+        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
+        vaultAdminOfToken[l2Token] = _newAdmin;
+        emit SetVaultAdmin(l2Token, _newAdmin);
+    }
 
     /* ========== Anyone can vault admin of token ========== */
 

@@ -27,7 +27,6 @@ contract L2CustomVaultBaseStorage {
     }
 
     modifier onlyL2ProjectManagerOrVaultAdmin(address l2token) {
-
         require(msg.sender == l2ProjectManager ||
             (vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token]),
             "caller is not a vaultAdmin or ProjectManager");

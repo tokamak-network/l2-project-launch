@@ -19,6 +19,8 @@ contract L2NonScheduleVault is L2CustomVaultBase, L2NonScheduleVaultStorage {
             string name,
             uint256 totalAllocatedAmount
         );
+
+    event ClaimedInVault(address l2Token, string name, address to, uint256 amount);
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
@@ -26,22 +28,25 @@ contract L2NonScheduleVault is L2CustomVaultBase, L2NonScheduleVaultStorage {
     /* ========== onlyOwner ========== */
 
     /* ========== only L2ProjectManager ========== */
-    function initialize(
+    function initialize (
         address l2Token,
         string memory vaultName,
-        uint256 totalAllocatedAmount
+        uint256 _totalAllocatedAmount
     )
-        external onlyL2ProjectManagerOrVaultAdmin(l2Token)
+        external
+        onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
+
         bytes32 nameKey = keccak256(bytes(vaultName));
-        require(totalAllocatedAmount != 0 , "wrong value");
+        require(_totalAllocatedAmount != 0 , "zero totalAllocatedAmount");
 
-        IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), totalAllocatedAmount);
+        LibNonScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        require(info.totalAllocatedAmount == 0, "already initialized");
+        vaultInfo[l2Token][nameKey].totalAllocatedAmount = _totalAllocatedAmount;
 
-        LibNonScheduleVault.VaultInfo storage info = vaultInfo[l2Token][nameKey];
-        info.totalAllocatedAmount = totalAllocatedAmount;
+        IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), _totalAllocatedAmount);
 
-        emit InitializedL2NonScheduleVault(l2Token, vaultName, totalAllocatedAmount);
+        emit InitializedL2NonScheduleVault(l2Token, vaultName, _totalAllocatedAmount);
     }
 
     /* ========== Anyone can vault admin of token ========== */
@@ -51,14 +56,19 @@ contract L2NonScheduleVault is L2CustomVaultBase, L2NonScheduleVaultStorage {
         bytes32 nameKey = keccak256(bytes(vaultName));
         LibNonScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
         require(amount <= (info.totalAllocatedAmount - info.totalClaimedAmount)
-            && amount <= IERC20(l2Token).balanceOf(address(this)), "insufficient.");
+            && amount <= IERC20(l2Token).balanceOf(address(this)), "insufficient balance");
         vaultInfo[l2Token][nameKey].totalClaimedAmount += amount;
         IERC20(l2Token).safeTransfer(msg.sender, amount);
-        // emit Claimed(l2Token, msg.sender, amount);
+        emit ClaimedInVault(l2Token, vaultName, msg.sender, amount);
     }
 
     /* ========== VIEW ========== */
 
+    function viewVaultInfo(address l2Token, string memory vaultName) external view returns (LibNonScheduleVault.VaultInfo  memory){
+
+        return vaultInfo[l2Token][keccak256(bytes(vaultName))];
+
+    }
     /* === ======= internal ========== */
 
 }
