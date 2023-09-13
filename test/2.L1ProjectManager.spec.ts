@@ -453,9 +453,10 @@ describe('L1ProjectManager', () => {
             let daoParams =  getNonScheduleParams("DAO", 0);
             let teamParams =  getScheduleParams(
                 "TEAM",
+                addr1.address,
                 BigNumber.from("0"), //totalAllocatedAmount
                 0, // totalClaimCount
-                0, //firstClaimAmount
+                BigNumber.from("0"), //firstClaimAmount
                 0, //firstClaimTime
                 0, //secondClaimTime
                 0 //roundIntervalTime
@@ -463,9 +464,10 @@ describe('L1ProjectManager', () => {
 
             let marketingParams =  getScheduleParams(
                 "MARKETING",
+                addr1.address,
                 BigNumber.from("0"), //totalAllocatedAmount
                 0, // totalClaimCount
-                0, //firstClaimAmount
+                BigNumber.from("0"), //firstClaimAmount
                 0, //firstClaimTime
                 0, //secondClaimTime
                 0 //roundIntervalTime
@@ -549,6 +551,7 @@ describe('L1ProjectManager', () => {
             let daoParams =  getNonScheduleParams("DAO", daoAmount);
             let teamParams =  getScheduleParams(
                 "TEAM",
+                addr1.address,
                 teamAmount, //totalAllocatedAmount
                 totalClaimCount, // totalClaimCount
                 firstClaimAmount, //firstClaimAmount
@@ -559,6 +562,7 @@ describe('L1ProjectManager', () => {
 
             let marketingParams =  getScheduleParams(
                 "MARKETING",
+                addr1.address,
                 marketingAmount, //totalAllocatedAmount
                 totalClaimCount, // totalClaimCount 4
                 firstClaimAmount, //firstClaimAmount

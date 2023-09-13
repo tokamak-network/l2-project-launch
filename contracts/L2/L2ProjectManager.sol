@@ -59,6 +59,7 @@ interface IL2NonScheduleVault {
     function initialize(
         address l2Token,
         string memory vaultName,
+        address claimer,
         uint256 totalAllocatedAmount
     ) external;
 }
@@ -330,7 +331,6 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                     params.vaultName,
                     params.params);
             }
-
         }
         console.log("totalNonCustomSchedule %s", totalNonCustomSchedule);
 
@@ -343,6 +343,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 IL2NonScheduleVault(nonScheduleVault).initialize(
                     info.l2Token,
                     params.vaultName,
+                    params.claimer,
                     params.totalAllocatedAmount );
             }
         }

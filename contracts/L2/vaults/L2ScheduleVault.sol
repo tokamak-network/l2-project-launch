@@ -18,13 +18,10 @@ contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
     event InitializedL2ScheduleVault(
             address l2Token,
             string name,
-            uint256 totalAllocatedAmount,
-            uint256 totalClaimCount,
-            uint256 firstClaimAmount,
-            uint32 firstClaimTime,
-            uint32 secondClaimTime,
-            uint32 roundInterval
+            LibProject.InitalParameterScheduleVault parmas
         );
+    event ClaimedInVault(address l2Token, string name, address to, uint256 amount);
+    event ChangedClaimer(address l2Token, string name, address newClaimer);
 
     /* ========== DEPENDENCIES ========== */
 
@@ -43,45 +40,91 @@ contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
         external onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
         bytes32 nameKey = keccak256(bytes(vaultName));
-        require(vaultInfo[l2Token][nameKey].firstClaimTime == 0, "already initialized");
         require(params.firstClaimTime > block.number, "first claim time passed");
         require(params.totalAllocatedAmount != 0 && params.totalClaimCount != 0 && params.roundIntervalTime != 0, "wrong value");
         if (params.totalClaimCount > 1) require(params.secondClaimTime > params.firstClaimTime, "wrong the second claim time");
         require(params.totalAllocatedAmount > params.firstClaimAmount, "wrong the first claim amount");
 
+        LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        require(info.totalAllocatedAmount == 0, "already initialized");
+
+        LibScheduleVault.VaultInfo memory data = LibScheduleVault.VaultInfo({
+            claimer: params.claimer,
+            totalAllocatedAmount: params.totalAllocatedAmount,
+            totalClaimCount: params.totalClaimCount,
+            totalClaimedAmount: 0,
+            firstClaimAmount: params.firstClaimAmount,
+            firstClaimTime: params.firstClaimTime,
+            secondClaimTime: params.secondClaimTime,
+            roundInterval: params.roundIntervalTime,
+            latestClaimedRound: 0
+        });
+        vaultInfo[l2Token][nameKey] = data;
+
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
 
-        LibScheduleVault.VaultInfo storage info = vaultInfo[l2Token][nameKey];
-        info.totalAllocatedAmount = params.totalAllocatedAmount;
-        info.totalClaimCount = params.totalClaimCount;
-        info.totalClaimedAmount = 0;
-        info.firstClaimAmount = params.firstClaimAmount;
-        info.firstClaimTime = params.firstClaimTime;
-        info.secondClaimTime = params.secondClaimTime;
-        info.roundInterval = params.roundIntervalTime;
-        info.latestClaimedRound = 0;
+        emit InitializedL2ScheduleVault(l2Token, vaultName, params);
 
-        emit InitializedL2ScheduleVault(l2Token, vaultName, params.totalAllocatedAmount, params.totalClaimCount, params.firstClaimAmount, params.firstClaimTime, params.secondClaimTime, params.roundIntervalTime);
+    }
+
+    function changeClaimer(
+        address l2Token,
+        string memory vaultName,
+        address _newClaimer
+    ) external onlyL2ProjectManagerOrVaultAdmin(l2Token) nonZeroAddress(l2Token) nonZeroAddress(_newClaimer)
+    {
+        bytes32 nameKey = keccak256(bytes(vaultName));
+        LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        require(info.totalAllocatedAmount != 0, "not initialized");
+
+        require(info.claimer != _newClaimer, "same");
+        vaultInfo[l2Token][nameKey].claimer = _newClaimer;
+
+        emit ChangedClaimer(l2Token, vaultName, _newClaimer);
     }
 
     /* ========== Anyone can vault admin of token ========== */
 
     function claim(address l2Token, string calldata vaultName)
-        external nonZeroAddress(l2Token) onlyVaultAdminOfToken(l2Token)
+        external nonZeroAddress(l2Token)
     {
-        uint256 amount = availableClaimAmount(l2Token, vaultName);
-        require(amount <= IERC20(l2Token).balanceOf(address(this)), 'balance is insufficient');
-        IERC20(l2Token).safeTransfer(msg.sender, amount);
+        bytes32 nameKey = keccak256(bytes(vaultName));
+        LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
+        require(info.claimer != address(0), "no claimer");
 
-        // emit Claimed(l2Token, msg.sender, amount);
+        uint256 amount = _availableClaimAmount(l2Token, nameKey);
+        require(amount != 0, "no claimable amount");
+        require(amount <= IERC20(l2Token).balanceOf(address(this)), 'insufficient balance');
+
+        vaultInfo[l2Token][nameKey].totalClaimedAmount += amount;
+
+        IERC20(l2Token).safeTransfer(info.claimer, amount);
+
+        emit ClaimedInVault(l2Token, vaultName, info.claimer, amount);
     }
 
 
     /* ========== VIEW ========== */
 
+    function viewVaultInfo(address l2Token, string memory vaultName) external view returns (LibScheduleVault.VaultInfo  memory){
+
+        return vaultInfo[l2Token][keccak256(bytes(vaultName))];
+
+    }
 
     function getCurrentRound(address l2Token, string calldata vaultName) public view returns (uint256 round){
-        bytes32 nameKey = keccak256(bytes(vaultName));
+
+        return _getCurrentRound(l2Token, keccak256(bytes(vaultName)));
+    }
+
+    function availableClaimAmount(address l2Token, string calldata vaultName) public view returns (uint256 amount){
+
+        return _availableClaimAmount(l2Token, keccak256(bytes(vaultName)));
+    }
+
+    /* === ======= internal ========== */
+
+    function _getCurrentRound(address l2Token, bytes32 nameKey) internal view returns (uint256 round){
         LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
         if(info.firstClaimTime != 0 && info.firstClaimTime <= block.timestamp && block.timestamp < info.secondClaimTime) {
             round = 1;
@@ -91,10 +134,10 @@ contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
         if (round > info.totalClaimCount) round = info.totalClaimCount;
     }
 
-    function availableClaimAmount(address l2Token, string calldata vaultName) public view returns (uint256 amount){
-        bytes32 nameKey = keccak256(bytes(vaultName));
+    function _availableClaimAmount(address l2Token, bytes32 nameKey) internal view returns (uint256 amount){
+
         LibScheduleVault.VaultInfo memory info = vaultInfo[l2Token][nameKey];
-        uint256 curRound = getCurrentRound(l2Token, vaultName);
+        uint256 curRound = _getCurrentRound(l2Token, nameKey);
 
         if(info.latestClaimedRound < curRound) {
             if (curRound == 1) {
@@ -107,6 +150,5 @@ contract L2ScheduleVault is L2CustomVaultBase, L2ScheduleVaultStorage {
         }
     }
 
-    /* === ======= internal ========== */
 
 }

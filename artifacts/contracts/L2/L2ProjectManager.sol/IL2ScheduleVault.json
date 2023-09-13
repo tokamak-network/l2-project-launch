@@ -18,6 +18,11 @@
         {
           "components": [
             {
+              "internalType": "address",
+              "name": "claimer",
+              "type": "address"
+            },
+            {
               "internalType": "uint256",
               "name": "totalAllocatedAmount",
               "type": "uint256"

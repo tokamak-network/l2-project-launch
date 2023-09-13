@@ -215,6 +215,11 @@
                 {
                   "components": [
                     {
+                      "internalType": "address",
+                      "name": "claimer",
+                      "type": "address"
+                    },
+                    {
                       "internalType": "uint256",
                       "name": "totalAllocatedAmount",
                       "type": "uint256"
@@ -257,6 +262,11 @@
             {
               "components": [
                 {
+                  "internalType": "address",
+                  "name": "claimer",
+                  "type": "address"
+                },
+                {
                   "internalType": "uint256",
                   "name": "totalAllocatedAmount",
                   "type": "uint256"
@@ -293,6 +303,11 @@
             },
             {
               "components": [
+                {
+                  "internalType": "address",
+                  "name": "claimer",
+                  "type": "address"
+                },
                 {
                   "internalType": "uint256",
                   "name": "totalAllocatedAmount",
@@ -343,6 +358,11 @@
             {
               "components": [
                 {
+                  "internalType": "address",
+                  "name": "claimer",
+                  "type": "address"
+                },
+                {
                   "internalType": "uint256",
                   "name": "totalAllocatedAmount",
                   "type": "uint256"
@@ -388,6 +408,11 @@
               "internalType": "string",
               "name": "vaultName",
               "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "claimer",
+              "type": "address"
             },
             {
               "internalType": "uint256",

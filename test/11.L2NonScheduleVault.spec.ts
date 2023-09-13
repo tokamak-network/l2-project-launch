@@ -191,10 +191,13 @@ describe('L2NonScheduleVault', () => {
         it('initialize can not be executed by not project owner or vault admin', async () => {
             let amount = ethers.utils.parseEther("100");
             let name = "DAO"
+            let claimer = addr2.address
+
             await expect(
                     deployed.nonScheduleVault.connect(deployer).initialize(
                         tokenInfo.tokenAddress,
                         name,
+                        claimer,
                         amount
                         )
                 ).to.be.revertedWith("caller is not a vaultAdmin or ProjectManager")
@@ -203,9 +206,11 @@ describe('L2NonScheduleVault', () => {
         it('initialize can be executed by only project owner or vault admin ', async () => {
             let amount = ethers.utils.parseEther("100");
             let name = "DAO"
+            let claimer = addr2.address
             const receipt = await (await deployed.nonScheduleVault.connect(addr2).initialize(
                 tokenInfo.tokenAddress,
                 name,
+                claimer,
                 amount
                 )).wait()
 
@@ -215,21 +220,25 @@ describe('L2NonScheduleVault', () => {
 
             expect(deployedEvent.args.l2Token).to.be.eq(tokenInfo.tokenAddress)
             expect(deployedEvent.args.name).to.be.eq(name)
+            expect(deployedEvent.args.claimer).to.be.eq(claimer)
             expect(deployedEvent.args.totalAllocatedAmount).to.be.eq(amount)
 
             let viewVaultInfo = await deployed.nonScheduleVault.viewVaultInfo(tokenInfo.tokenAddress, name)
             expect(viewVaultInfo.totalAllocatedAmount).to.be.eq(amount)
             expect(viewVaultInfo.totalClaimedAmount).to.be.eq(ethers.constants.Zero)
+            expect(viewVaultInfo.claimer).to.be.eq(claimer)
 
         })
 
         it('initialize can execute just once', async () => {
             let amount = ethers.utils.parseEther("100");
             let name = "DAO"
+            let claimer = addr2.address
             await expect(
                 deployed.nonScheduleVault.connect(addr2).initialize(
                     tokenInfo.tokenAddress,
                     name,
+                    claimer,
                     amount
                     )
                 ).to.be.revertedWith("already initialized")
@@ -254,6 +263,12 @@ describe('L2NonScheduleVault', () => {
 
             let amount = ethers.utils.parseEther("10");
             let name = "DAO"
+
+            let viewVaultInfo0 = await deployed.nonScheduleVault.viewVaultInfo(tokenInfo.tokenAddress, name)
+
+            let tokenContract = await ethers.getContractAt(ERC20A.abi, tokenInfo.tokenAddress,addr1)
+            let balancePrev = await tokenContract.balanceOf(viewVaultInfo0.claimer)
+
             const receipt = await (await deployed.nonScheduleVault.connect(addr1).claim(
                 tokenInfo.tokenAddress,
                 name,
@@ -270,6 +285,10 @@ describe('L2NonScheduleVault', () => {
 
             let viewVaultInfo = await deployed.nonScheduleVault.viewVaultInfo(tokenInfo.tokenAddress, name)
             expect(viewVaultInfo.totalClaimedAmount).to.be.eq(amount)
+
+            let balanceAfter = await tokenContract.balanceOf(viewVaultInfo.claimer)
+            expect(balanceAfter).to.be.eq(balancePrev.add(amount))
+
         })
 
         it('claim can not execute when remained amount to claim  is insufficient', async () => {

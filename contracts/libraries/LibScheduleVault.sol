@@ -7,6 +7,7 @@ pragma solidity ^0.8.4;
 library LibScheduleVault {
 
     struct VaultInfo {
+        address claimer;
         uint256 totalAllocatedAmount;   // Token allocation amount
         uint256 totalClaimCount;        // total number of claims
         uint256 totalClaimedAmount;     // Total amount claimed

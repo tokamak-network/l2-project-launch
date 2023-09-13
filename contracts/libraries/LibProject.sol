@@ -114,6 +114,7 @@ library LibProject {
     }
 
     struct InitalParameterScheduleVault {
+        address claimer;
         uint256 totalAllocatedAmount;
         uint256 totalClaimCount;
         uint256 firstClaimAmount;
@@ -124,6 +125,7 @@ library LibProject {
 
     struct InitalParameterNonScheduleVault {
         string vaultName;
+        address claimer;
         uint256 totalAllocatedAmount;
     }
 

@@ -140,9 +140,10 @@ export const getTonAirdropParams = (
 
 export const getScheduleParams = (
     name: string,
+    claimer: string,
     totalAmount:BigNumber,
     totalClaimCount:number,
-    firstClaimAmount:number,
+    firstClaimAmount:BigNumber,
     firstClaimTime:number,
     secondClaimTime:number,
     roundIntervalTime:number ) =>
@@ -150,9 +151,10 @@ export const getScheduleParams = (
     return  {
         vaultName: name,
         params: {
+            claimer: claimer,
             totalAllocatedAmount: totalAmount,
             totalClaimCount: ethers.BigNumber.from(""+totalClaimCount),
-            firstClaimAmount: ethers.BigNumber.from(""+firstClaimAmount),
+            firstClaimAmount: firstClaimAmount,
             firstClaimTime: firstClaimTime,
             secondClaimTime: secondClaimTime,
             roundIntervalTime: roundIntervalTime
