@@ -22,7 +22,8 @@ contract L2CustomVaultBaseStorage {
     }
 
     modifier onlyVaultAdminOfToken(address l2token) {
-        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token], "caller is not a vaultAdmin Of l2Token");
+        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token],
+        "caller is not a vaultAdmin Of l2Token");
         _;
     }
 
