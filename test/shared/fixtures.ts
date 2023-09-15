@@ -209,7 +209,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l2Messenger = (await MockL2Messenger.connect(deployer).deploy()) as MockL2Messenger
     const MockL1Bridge = await ethers.getContractFactory('MockL1Bridge')
     const l1Bridge = (await MockL1Bridge.connect(deployer).deploy()) as MockL1Bridge
-    const MockL2Bridge = await ethers.getContractFactory('MockL1Bridge')
+    const MockL2Bridge = await ethers.getContractFactory('MockL2Bridge')
     const l2Bridge = (await MockL2Bridge.connect(deployer).deploy()) as MockL2Bridge
 
     await l1Bridge.connect(deployer).setAddress(l1Messenger.address, l2Bridge.address);
@@ -323,7 +323,7 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   const l2Messenger = (await MockL2Messenger.connect(deployer).deploy()) as MockL2Messenger
   const MockL1Bridge = await ethers.getContractFactory('MockL1Bridge')
   const l1Bridge = (await MockL1Bridge.connect(deployer).deploy()) as MockL1Bridge
-  const MockL2Bridge = await ethers.getContractFactory('MockL1Bridge')
+  const MockL2Bridge = await ethers.getContractFactory('MockL2Bridge')
   const l2Bridge = (await MockL2Bridge.connect(deployer).deploy()) as MockL2Bridge
 
   await l1Bridge.connect(deployer).setAddress(l1Messenger.address, l2Bridge.address);
@@ -442,6 +442,11 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   await (await teamVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await scheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+
+  await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
+  await (await l2TokenFactory.connect(deployer).setL1Bridge(l1Bridge.address)).wait()
+  await (await l2Bridge.connect(deployer).setAddress(
+    l2Messenger.address, l1Bridge.address)).wait()
 
   return  {
       libProject: libProject,

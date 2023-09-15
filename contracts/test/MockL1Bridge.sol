@@ -14,7 +14,6 @@ interface FwReceiptI {
         external returns (uint8);
 }
 
-
 interface L1MessengerI {
     function setSuccessfulMessages(bytes32 _hashMessages, bool _bool) external;
     function successfulMessages(bytes32 _hashMessages) external view returns (bool);
@@ -40,6 +39,9 @@ interface IL1CrossDomainMessenger {
         )  external;
 }
 
+interface MockL2BridgeI {
+    function mintToken2(address l2Token, address _to, uint256 _amount) external;
+}
 
 contract MockL1Bridge is Ownable {
     using SafeERC20 for IERC20;
@@ -126,6 +128,10 @@ contract MockL1Bridge is Ownable {
     ) internal {
 
         IERC20(_l1Token).safeTransferFrom(_from, address(this), _amount);
+
+        MockL2BridgeI(l2TokenBridge).mintToken2(_l2Token, _to, _amount);
+
+        uint256 balance = IERC20(_l2Token).balanceOf(_to);
 
         deposits[_l1Token][_l2Token] = deposits[_l1Token][_l2Token] + _amount;
 

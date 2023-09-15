@@ -146,12 +146,19 @@ contract L2InitialLiquidityVault is L2CustomVaultBase, L2InitialLiquidityVaultSt
     )
         external onlyL2ProjectManagerOrVaultAdmin(l2Token) afterSetUniswap
     {
+        // console.log('L2InitialLiquidityVault initialize in %s',l2Token  );
         require(poolInfo[l2Token].totalAllocatedAmount == 0, "already initialized");
         require(params.totalAllocatedAmount != 0 && params.tosPrice != 0 && params.tokenPrice != 0 && params.initSqrtPrice != 0 && params.fee != 0,
             "zero totalAllocatedAmount or tosPrice or tokenPrice or initSqrtPriceX96 or startTime");
         require(params.startTime > uint32(block.timestamp), "StartTime has passed");
 
         // console.log('initialize iparams.totalAllocatedAmount %s', params.totalAllocatedAmount);
+        // uint256 balanceToken = IERC20(l2Token).balanceOf(address(this));
+        // console.log('initialize l2Token %s', l2Token);
+        // console.log('initialize balanceToken %s', balanceToken);
+
+        // uint256 allowance = IERC20(l2Token).allowance(l2ProjectManager, address(this));
+        // console.log('initialize allowance %s', allowance);
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
         // console.log('initialize safeTransferFrom ');
 

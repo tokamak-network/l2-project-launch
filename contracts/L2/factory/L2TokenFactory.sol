@@ -27,6 +27,10 @@ contract L2TokenFactory is AccessibleCommon {
 
     address public l2ProjectManager;
 
+    // for test
+    address public l2Bridge;
+    address public l1Bridge;
+
     event StandardL2TokenCreated(address indexed l1Token, address indexed l2Token);
 
     modifier nonZeroAddress(address account) {
@@ -49,6 +53,19 @@ contract L2TokenFactory is AccessibleCommon {
         l2ProjectManager = _l2ProjectManager;
     }
 
+    function setL1Bridge(address _l1Bridge)
+        external nonZeroAddress(_l1Bridge) onlyOwner
+    {
+        require(l1Bridge != _l1Bridge, "same");
+        l1Bridge = _l1Bridge;
+    }
+
+    function setL2Bridge(address _l2Bridge)
+        external nonZeroAddress(_l2Bridge) onlyOwner
+    {
+        require(l2Bridge != _l2Bridge, "same");
+        l2Bridge = _l2Bridge;
+    }
     /* ========== Anyone can execute ========== */
 
     /**
@@ -71,13 +88,18 @@ contract L2TokenFactory is AccessibleCommon {
         require(bytes(_symbol).length != 0, "symbol is null");
 
         L2StandardERC20 l2Token = new L2StandardERC20(
-            Lib_PredeployAddresses.L2_STANDARD_BRIDGE,
+            // Lib_PredeployAddresses.L2_STANDARD_BRIDGE,
+            l2Bridge,
             _l1Token,
             _name,
             _symbol
         );
 
         require(address(l2Token) != address(0), "zero l2Token");
+
+        //for test
+        l2Token.setL1Bridge(l1Bridge);
+
         IL2Projectmanager(l2ProjectManager).createL2Project(
             projectOwner, _l1Token, address(l2Token), projectName
         );

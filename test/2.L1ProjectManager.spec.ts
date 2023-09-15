@@ -8,19 +8,19 @@ import {
     getPublicSaleParams, getInitialLiquidityParams, getLpRewardParams,
     getTosAirdropParams, getTonAirdropParams, getScheduleParams, getNonScheduleParams } from './shared/vaultParameters'
 
+import { ERC20A } from '../typechain-types/contracts/L1/tokens/ERC20A'
 
 import univ3prices from '@thanpolas/univ3prices';
 
-import ERC20A from './abi/ERC20A.json'
-import ERC20B from './abi/ERC20B.json'
-import ERC20C from './abi/ERC20C.json'
-import ERC20D from './abi/ERC20D.json'
+import ERC20AJson from './abi/ERC20A.json'
+import L2StandardERC20Json from './abi/L2StandardERC20.json';
 
 describe('L1ProjectManager', () => {
     let deployer: Signer, addr1: Signer, addr2:Signer;
     let deployed: SetL2ProjectLaunchFixture
     let addr1Address: string, addr2Address: string;
     let projectInfo: any;
+    let l2TokenContract: any;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures2()
@@ -379,9 +379,9 @@ describe('L1ProjectManager', () => {
             expect(projectInfo.projectId).to.gt(ethers.constants.Zero)
             expect(projectInfo.l1Token).to.not.eq(ethers.constants.AddressZero)
 
-            const tokenContract = await ethers.getContractAt(ERC20A.abi, projectInfo.l1Token, addr1);
-            expect(await tokenContract.totalSupply()).to.be.eq(projectInfo.initialTotalSupply)
-            expect(await tokenContract.balanceOf(deployed.l1ProjectManager.address)).to.be.eq(projectInfo.initialTotalSupply)
+            const tokenContract1 = await ethers.getContractAt(ERC20AJson.abi, projectInfo.l1Token, addr1);
+            expect(await tokenContract1.totalSupply()).to.be.eq(projectInfo.initialTotalSupply)
+            expect(await tokenContract1.balanceOf(deployed.l1ProjectManager.address)).to.be.eq(projectInfo.initialTotalSupply)
 
         })
     });
@@ -405,7 +405,15 @@ describe('L1ProjectManager', () => {
             projectInfo.l2Token = deployedEvent.args.l2Token;
 
             expect(deployedEvent.args.l1Token).to.be.eq(projectInfo.l1Token)
+
+            let contract = await ethers.getContractAt(
+                L2StandardERC20Json.abi, projectInfo.l2Token, deployer);
+
+            expect(await contract.l2Bridge()).to.be.eq(deployed.l2Bridge.address);
+            expect(await contract.l1Token()).to.be.eq(projectInfo.l1Token);
+
         })
+
     });
 
     describe('# distributesL2Token', () => {
@@ -446,11 +454,11 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
-            let tosAirdropParams =  getTosAirdropParams(0, 0, 0, 0, 0, 0);
-            let tonAirdropParams =  getTonAirdropParams(0, 0, 0, 0, 0, 0);
+            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+            let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+            let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
 
-            let daoParams =  getNonScheduleParams("DAO", 0);
+            let daoParams =  getNonScheduleParams("DAO", addr1.address, BigNumber.from("0"));
             let teamParams =  getScheduleParams(
                 "TEAM",
                 addr1.address,
@@ -545,10 +553,10 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
-            let tosAirdropParams =  getTosAirdropParams(0, 0, 0, 0, 0, 0);
-            let tonAirdropParams =  getTonAirdropParams(0, 0, 0, 0, 0, 0);
-            let daoParams =  getNonScheduleParams("DAO", daoAmount);
+            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+            let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+            let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+            let daoParams =  getNonScheduleParams("DAO", addr1.address, daoAmount);
             let teamParams =  getScheduleParams(
                 "TEAM",
                 addr1.address,
@@ -578,11 +586,11 @@ describe('L1ProjectManager', () => {
                 tosAirdropParams: tosAirdropParams,
                 tonAirdropParams: tonAirdropParams
             }
-
+            // console.log('tokamakVaults' ,tokamakVaults )
             let customScheduleVaults = [teamParams, marketingParams]
             let customNonScheduleVaults = [daoParams]
-
-
+            // console.log('customScheduleVaults' ,customScheduleVaults )
+            // console.log('customNonScheduleVaults' ,customNonScheduleVaults )
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
                     projectInfo.l2Token,
@@ -607,22 +615,29 @@ describe('L1ProjectManager', () => {
             const topic1 = deployed.l2ProjectManager.interface.getEventTopic('DistributedL2Token');
             const log1 = receipt.logs.find(x => x.topics.indexOf(topic1) >= 0);
             const deployedEvent1 = deployed.l2ProjectManager.interface.parseLog(log1);
-
             expect(deployedEvent1.args.projectId).to.be.eq(projectInfo.projectId)
             expect(deployedEvent1.args.l1Token).to.be.eq(projectInfo.l1Token)
             expect(deployedEvent1.args.l2Token).to.be.eq(projectInfo.l2Token)
             expect(deployedEvent1.args.totalAmount).to.be.eq(projectInfo.initialTotalSupply)
 
+            let project = await deployed.l2ProjectManager.viewProject(projectInfo.l2Token)
+            expect(project.projectId).to.be.eq(projectInfo.projectId)
+            expect(project.l1Token).to.be.eq(projectInfo.l1Token)
+            expect(project.l2Token).to.be.eq(projectInfo.l2Token)
+            expect(project.projectOwner).to.be.eq(projectInfo.projectOwner)
+
             //-----------------------------
             // vault check
             let initialLiquidityVault = await deployed.initialLiquidityVault.viewVaultInfo(projectInfo.l2Token)
+
             expect(initialLiquidityVault.totalAllocatedAmount).to.be.eq(initialLiquidityAmount)
-            expect(initialLiquidityVault.initialTosPrice).to.be.eq(BigNumber.from(""+tosPrice))
-            expect(initialLiquidityVault.initialTokenPrice).to.be.eq(BigNumber.from(""+tokenPrice))
+            expect(initialLiquidityVault.initialTosPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tosPrice))
+            expect(initialLiquidityVault.initialTokenPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tokenPrice))
             expect(initialLiquidityVault.startTime).to.be.eq(sTime)
             expect(initialLiquidityVault.initSqrtPriceX96.toString()).to.be.eq(sqrtPrice.toString())
             expect(initialLiquidityVault.fee).to.be.eq(3000)
             expect(initialLiquidityVault.boolReadyToCreatePool).to.be.eq(false)
+
 
         });
 

@@ -3,11 +3,12 @@ pragma solidity ^0.8.4;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./IL2StandardERC20.sol";
+import "hardhat/console.sol";
 
 contract L2StandardERC20 is IL2StandardERC20, ERC20 {
     address public override l1Token;
     address public l2Bridge;
-
+    address public l1Bridge;
     /**
      * @param _l2Bridge Address of the L2 standard bridge.
      * @param _l1Token Address of the corresponding L1 token.
@@ -29,6 +30,18 @@ contract L2StandardERC20 is IL2StandardERC20, ERC20 {
         _;
     }
 
+    // for test
+    function setL1Bridge(address _l1Bridge)
+        external
+    {
+        require(l1Bridge != _l1Bridge, "same");
+        l1Bridge = _l1Bridge;
+    }
+
+    modifier onlyL2BridgeOrL1Bridge() {
+        require(msg.sender == l1Bridge || msg.sender == l2Bridge, "Only L2 Bridge can mint and burn");
+        _;
+    }
     // slither-disable-next-line external-function
     function supportsInterface(bytes4 _interfaceId) public pure override returns (bool) {
         bytes4 firstSupportedInterface = bytes4(keccak256("supportsInterface(bytes4)")); // ERC165
@@ -40,6 +53,7 @@ contract L2StandardERC20 is IL2StandardERC20, ERC20 {
 
     // slither-disable-next-line external-function
     function mint(address _to, uint256 _amount) public virtual override onlyL2Bridge {
+
         _mint(_to, _amount);
 
         emit Mint(_to, _amount);

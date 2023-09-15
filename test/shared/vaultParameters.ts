@@ -81,6 +81,7 @@ export const  getInitialLiquidityParams = (
 }
 
 export const  getLpRewardParams = (
+    claimer:  string,
     poolAddress: string,
     totalAmount:number,
     totalClaimCount:number,
@@ -92,6 +93,7 @@ export const  getLpRewardParams = (
     return  {
         poolAddress: poolAddress,
         params : {
+            claimer: claimer,
             totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),
             totalClaimCount: ethers.BigNumber.from(""+totalClaimCount),
             firstClaimAmount: ethers.BigNumber.from(""+firstClaimAmount),
@@ -103,6 +105,7 @@ export const  getLpRewardParams = (
 }
 
 export const getTosAirdropParams = (
+    claimer: string,
     totalAmount:number,
     totalClaimCount:number,
     firstClaimAmount:number,
@@ -111,6 +114,7 @@ export const getTosAirdropParams = (
     roundIntervalTime:number ) =>
     {
     return  {
+            claimer: claimer,
             totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),
             totalClaimCount: ethers.BigNumber.from(""+totalClaimCount),
             firstClaimAmount: ethers.BigNumber.from(""+firstClaimAmount),
@@ -121,6 +125,7 @@ export const getTosAirdropParams = (
 }
 
 export const getTonAirdropParams = (
+    claimer: string,
     totalAmount:number,
     totalClaimCount:number,
     firstClaimAmount:number,
@@ -129,6 +134,7 @@ export const getTonAirdropParams = (
     roundIntervalTime:number ) =>
     {
     return  {
+            claimer: claimer,
             totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),
             totalClaimCount: ethers.BigNumber.from(""+totalClaimCount),
             firstClaimAmount: ethers.BigNumber.from(""+firstClaimAmount),
@@ -164,10 +170,12 @@ export const getScheduleParams = (
 
 export const getNonScheduleParams = (
     name: string,
+    claimer: string,
     totalAmount:BigNumber ) =>
     {
     return  {
         vaultName: name,
+        claimer: claimer,
         totalAllocatedAmount: totalAmount
     }
 }

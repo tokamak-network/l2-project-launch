@@ -10,7 +10,7 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface L2ProjectManagerI {
     function distributesL2Token(
@@ -295,6 +295,8 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         uint256 allowance = IERC20(l1Token).allowance(address(this), l1Bridge);
 
         if (allowance < amount) IERC20(l1Token).approve(l1Bridge, type(uint256).max);
+        // console.log('_depositL1TokenToL2 l1Bridge %s', l1Bridge);
+        // console.log('_depositL1TokenToL2 amount %s', amount);
 
         L1BridgeI(l1Bridge).depositERC20To(
             l1Token,
