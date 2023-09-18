@@ -443,7 +443,9 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   await (await scheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
 
-  await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
+  // for test
+  // await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
+
   await (await l2TokenFactory.connect(deployer).setL1Bridge(l1Bridge.address)).wait()
   await (await l2Bridge.connect(deployer).setAddress(
     l2Messenger.address, l1Bridge.address)).wait()

@@ -129,7 +129,8 @@ contract MockL1Bridge is Ownable {
 
         IERC20(_l1Token).safeTransferFrom(_from, address(this), _amount);
 
-        MockL2BridgeI(l2TokenBridge).mintToken2(_l2Token, _to, _amount);
+        // for test
+        // MockL2BridgeI(l2TokenBridge).mintToken2(_l2Token, _to, _amount);
 
         uint256 balance = IERC20(_l2Token).balanceOf(_to);
 
