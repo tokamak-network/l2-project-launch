@@ -81,6 +81,18 @@ const config: HardhatUserConfig = {
       hardhat: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
       titangoerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
     },
+    uniswapFactory: {
+      default: 13,
+      goerli: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
+      hardhat: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
+      titangoerli: '0x8C2351935011CfEccA4Ea08403F127FB782754AC',
+    },
+    npm: {
+      default: 14,
+      goerli: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+      hardhat: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+      titangoerli: '0x324d7015E30e7C231e4aC155546b8AbfEAB00977',
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -127,8 +139,8 @@ const config: HardhatUserConfig = {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
       accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 5050,
-      gasPrice: 250000,
-      deploy: ['deploy_l2_proxy']
+      gasPrice: 1000000,
+      deploy: ['deploy_l2']
     },
   },
   deterministicDeployment: (network: string) => {
