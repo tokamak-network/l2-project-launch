@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
       default: 4,
       goerli: '0x7377F3D0F64d7a54Cf367193eb74a052ff8578FD',
       hardhat: '0x7377F3D0F64d7a54Cf367193eb74a052ff8578FD',
+      titangoerli: '0x7377F3D0F64d7a54Cf367193eb74a052ff8578FD',
     },
     l2BridgeAddress: {
       default: 5,
@@ -93,6 +94,12 @@ const config: HardhatUserConfig = {
       hardhat: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
       titangoerli: '0x324d7015E30e7C231e4aC155546b8AbfEAB00977',
     },
+    addressManager: {
+      default: 15,
+      goerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
+      hardhat: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
+      titangoerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -139,7 +146,7 @@ const config: HardhatUserConfig = {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
       accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 5050,
-      gasPrice: 1000000,
+      gasPrice: 1000000000,
       deploy: ['deploy_l2']
     },
   },
@@ -196,8 +203,8 @@ const config: HardhatUserConfig = {
         network: "titangoerli",
         chainId: 5050,
         urls: {
-          apiURL: "https://goerli.explorer.tokamak.network/api",
-          browserURL: "https://goerli.explorer.tokamak.network"
+          apiURL: "https://explorer.titan-goerli.tokamak.network/api",
+          browserURL: "https://explorer.titan-goerli.tokamak.network/"
         }
       }
     ]

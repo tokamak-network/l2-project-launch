@@ -118,9 +118,23 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     }
 
     //==== L1ProjectManager setL2Infos =================================
+    let l2Info = {
+        l2TokenFactory: '0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A',
+        l2ProjectManager: '0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62',
+        depositMinGasLimit: 300000,
+        sendMsgMinGasLimit: 850000
+    }
+    let viewl2Info = await l1ProjectManager.viewL2Info(0);
 
-
-
+    if (viewl2Info.depositMinGasLimit == 0) {
+        await l1ProjectManager.connect(deploySigner).setL2Infos(
+            0,
+            l2Info.l2TokenFactory,
+            l2Info.l2ProjectManager,
+            l2Info.depositMinGasLimit,
+            l2Info.sendMsgMinGasLimit
+        )
+    }
 
     //==== verify =================================
     if (hre.network.name != "hardhat") {

@@ -159,7 +159,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         nonZeroAddress(_scheduleVault)
         nonZeroAddress(_nonScheduleVault)
     {
-        require(scheduleVault == address(0), "already set");
+        // require(scheduleVault == address(0), "already set");
         // require(
         //     publicSaleVault != publicSale ||
         //     initialLiquidityVault != initialLiquidity ||
@@ -213,6 +213,28 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         }
     }
 
+    function distributesL2TokenOwner(
+        address l1Token,
+        address l2Token,
+        uint256 projectId,
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    )
+        external onlyOwner
+        nonZeroAddress(l1Token)
+        nonZeroAddress(l2Token)
+        nonZero(projectId) nonZero(totalAmount)
+    {
+        require(projects[l2Token].projectOwner == msg.sender, "not projectOwner");
+
+        _distributesL2Token(
+            l1Token, l2Token, projectId, totalAmount,
+            tokamakVaults, customScheduleVaults, customNonScheduleVaults
+        );
+    }
+
     function distributesL2Token(
         address l1Token,
         address l2Token,
@@ -227,6 +249,21 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         nonZeroAddress(l2Token)
         nonZero(projectId) nonZero(totalAmount)
     {
+        _distributesL2Token(
+            l1Token, l2Token, projectId, totalAmount,
+            tokamakVaults, customScheduleVaults, customNonScheduleVaults
+        );
+    }
+
+    function _distributesL2Token(
+        address l1Token,
+        address l2Token,
+        uint256 projectId,
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    ) internal {
         LibProject.L2ProjectInfo memory info = projects[l2Token];
 
         require(info.l1Token == l1Token, "not matched l1Token");
@@ -332,6 +369,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
         emit DistributedL2Token(info.l1Token, info.l2Token, projectId_, total);
     }
+
 
     /* ========== Anyone can execute ========== */
 

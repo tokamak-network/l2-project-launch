@@ -11,6 +11,8 @@ import { L2ScheduleVault } from '../typechain-types/contracts/L2/vaults/L2Schedu
 import { L2ScheduleVaultProxy } from '../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy'
 import { L2CustomVaultBaseProxy } from '../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
 
+let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
+
 /**
  * first
  deploying "L2TokenFactory" (tx: 0xdcc507115302e2f4b20864b60354d9b1ffeb5b4e89caf05ec817cf4acc81f749)...: deployed at 0xBB8e650d9BB5c44E54539851636DEFEF37585E67 with 2025434 gas
@@ -18,10 +20,16 @@ import { L2CustomVaultBaseProxy } from '../typechain-types/contracts/L2/vaults/L
 */
 
 /**
- *
-deploying "L2TokenFactory" (tx: 0xb63c07c2aa223e2eeca0d20b88a13c9e9a2ef3c1a39d845909067ef8e7df4ecc)...: deployed at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A with 2108047 gas
-deploying "L2ProjectManager" (tx: 0xb68edecd66e28ca36532c8bda3a295a80aafd1d7437cc14793bee24571773285)...: deployed at 0xCc6848d160Dd9Cf3D58A5Aa4a5d0b2A116686A65 with 3075109 gas
-deploying "L2ProjectManagerProxy" (tx: 0x4a9e3247dc6194f45c0b69bb7924e342319854d30abad8d1e7974155f5c31d33)...: deployed at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62 with 1670893 gas
+ * 2023.9.18
+reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
+reusing "L2ProjectManager" at 0x8d7fea6E3fBcC90BE1c8080aB0e819DB2A2CCb4f
+reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
+reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
+reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
+reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
+reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
+reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
+reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
 */
 
 const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -75,8 +83,6 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         L2ProjectManagerProxyDeployment.address
     )) as L2ProjectManager;
 
-
-    console.log("-- 1. l2ProjectManager  ")
     //=================================
     //==== L2TokenFactory
     //---- setL2ProjectManager
@@ -90,15 +96,11 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         await (await l2TokenFactory.connect(deploySigner).setL2ProjectManager(l2ProjectManager.address)).wait()
     }
 
-    console.log("-- setL2ProjectManager  ")
-
     //---- setL1Bridge =================================
-    let l1BridgeInTokenFactory = await l2TokenFactory.l1Bridge()
-    if (l1BridgeInTokenFactory != l1BridgeAddress) {
+    let l1Bridge = await l2TokenFactory.l1Bridge()
+    if (l1Bridge != l1BridgeAddress) {
         await (await l2TokenFactory.connect(deploySigner).setL1Bridge(l1BridgeAddress)).wait()
     }
-
-    console.log("-- setL1Bridge  ")
 
     //=================================
     //==== L2ProjectManager
@@ -108,26 +110,19 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         await (await l2ProjectManager.connect(deploySigner).setL2TokenFactory(l2TokenFactory.address)).wait()
     }
 
-
-    console.log("-- setL2TokenFactory  ")
-
-
     //---- setL1ProjectManager
-    let l1ProjectManagerAddress = get("l1ProjectManager");
-    console.log("l1ProjectManagerAddress", l1ProjectManagerAddress)
+    let l1ProjectManagerAddress = L1ProjectManagerProxy;
 
-    console.log('l1ProjectManagerAddress', l1ProjectManagerAddress)
     let l1ProjectManagerInL2ProjectManager = await l2ProjectManager.l1ProjectManager()
     if (l1ProjectManagerInL2ProjectManager != l1ProjectManagerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL1ProjectManager(l1ProjectManagerAddress)).wait()
     }
+
     //---- setL2CrossDomainMessenger
     let l2CrossDomainMessenger = await l2ProjectManager.l2CrossDomainMessenger()
     if (l2CrossDomainMessenger != l2MessengerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL2CrossDomainMessenger(l2MessengerAddress)).wait()
     }
-
-
     //=================================
     //==== initialLiquidityVault
 
@@ -158,7 +153,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     )) as L2InitialLiquidityVault;
 
     let uniswapV3FactoryAddress = await l2InitialLiquidity.uniswapV3Factory()
-    if (uniswapV3FactoryAddress != uniswapFactory.address) {
+    if (uniswapV3FactoryAddress != uniswapFactory) {
         await (await l2InitialLiquidity.connect(deploySigner).setUniswapInfo(
             uniswapFactory,
             npm,
@@ -166,7 +161,12 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             tosAddress
             )).wait()
     }
-
+    let l2ProjectManage1 = await l2InitialLiquidity.l2ProjectManager()
+    if (l2ProjectManage1 != l2ProjectManager.address) {
+        await (await l2InitialLiquidity.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
     //=================================
     //==== schedule Vault
     const L2ScheduleVaultDeployment = await deploy("L2ScheduleVault", {
@@ -195,6 +195,12 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         L2ScheduleVaultProxyDeployment.address
     )) as L2ScheduleVault;
 
+    let l2ProjectManage2 = await l2ScheduleVault.l2ProjectManager()
+    if (l2ProjectManage2 != l2ProjectManager.address) {
+        await (await l2ScheduleVault.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
     //=================================
     //==== nonSchedule Vault
     const L2NonScheduleVaultDeployment = await deploy("L2NonScheduleVault", {
@@ -214,14 +220,20 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     )) as L2CustomVaultBaseProxy;
 
     impl = await l2NonScheduleVaultProxy.implementation()
+
     if (impl != L2NonScheduleVaultDeployment.address) {
         await (await l2NonScheduleVaultProxy.connect(deploySigner).upgradeTo(L2NonScheduleVaultDeployment.address)).wait()
     }
-
     const l2NonScheduleVault = (await hre.ethers.getContractAt(
         L2NonScheduleVaultDeployment.abi,
         L2NonScheduleVaultProxyDeployment.address
     )) as L2NonScheduleVault;
+    let l2ProjectManage3 = await l2NonScheduleVault.l2ProjectManager()
+    if (l2ProjectManage3 != l2ProjectManager.address) {
+        await (await l2NonScheduleVault.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
 
      //---- setTokamakVaults
     /*
@@ -236,6 +248,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     let initialLiquidityVault = await l2ProjectManager.initialLiquidityVault()
     let scheduleVault = await l2ProjectManager.scheduleVault()
     let nonScheduleVault = await l2ProjectManager.initialLiquidityVault()
+
+
     if (initialLiquidityVault != l2InitialLiquidityVaultProxy.address ||
         scheduleVault != l2ScheduleVaultProxy.address ||
         nonScheduleVault != l2NonScheduleVaultProxy.address

@@ -12,7 +12,7 @@ const MessageDirection = {
 }
 
 const l1Url = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`
-const l2Url = `https://goerli.optimism.tokamak.network`
+const l2Url = `https://rpc.titan-goerli.tokamak.network`
 
 const bridge = {
   l1Bridge: "0x7377F3D0F64d7a54Cf367193eb74a052ff8578FD",
@@ -22,7 +22,7 @@ const bridge = {
 // TON
 const tonAddrs = {
   l1Addr: "0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00",
-  l2Addr: "0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2"
+  l2Addr: "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 }
 const addressManager = "0xEFa07e4263D511fC3a7476772e2392efFb1BDb92"
 
