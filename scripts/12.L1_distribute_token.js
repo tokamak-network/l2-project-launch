@@ -33,18 +33,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test3',
-    tokenName: 'Test3',
-    tokenSymbol: 'T3T',
+    projectName: 'Test4',
+    tokenName: 'Test4',
+    tokenSymbol: 'T4T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("3");
+let projectId = ethers.BigNumber.from("5");
 
-const L2Token = "0xF57CA297dBFd6AC25ad0341c2317ad777248d751"
+const L2Token = "0x9668420A4E797e5B823EbeC870b30e4ff91D6dCF"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 
 const setup = async() => {
@@ -159,18 +159,19 @@ async function main() {
     let customScheduleVaults = [teamParams, marketingParams]
     let customNonScheduleVaults = [daoParams]
 
-    // console.log('initialVaultParams' , initialVaultParams)
-    // console.log('customScheduleVaults' , customScheduleVaults)
-    // console.log('customNonScheduleVaults' , customNonScheduleVaults)
-    // const gos = await L1ProjectManager.estimateGas.launchProject(
-    //     projectInfo.projectId,
-    //     projectInfo.l2Token,
-    //     projectInfo.initialTotalSupply,
-    //     tokamakVaults,
-    //     customScheduleVaults,
-    //     customNonScheduleVaults
-    //     )
-    // console.log('gos', gos)
+    console.log('initialVaultParams' , initialVaultParams)
+    console.log('customScheduleVaults' , customScheduleVaults)
+    console.log('customNonScheduleVaults' , customNonScheduleVaults)
+    const gos = await L1ProjectManager.estimateGas.launchProject(
+        projectInfo.projectId,
+        projectInfo.l2Token,
+        projectInfo.initialTotalSupply,
+        tokamakVaults,
+        customScheduleVaults,
+        customNonScheduleVaults
+        )
+    console.log('gos', gos)
+        //===
 
     const receipt = await (await L1ProjectManager.launchProject(
         projectInfo.projectId,

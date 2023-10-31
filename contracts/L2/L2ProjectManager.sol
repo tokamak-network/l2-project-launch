@@ -222,7 +222,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
     )
-        external onlyOwner
+        external
         nonZeroAddress(l1Token)
         nonZeroAddress(l2Token)
         nonZero(projectId) nonZero(totalAmount)
