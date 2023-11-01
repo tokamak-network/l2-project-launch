@@ -2,20 +2,20 @@
 pragma solidity ^0.8.4;
 
 import "./L2CustomVaultBaseProxy.sol";
-import "./L2ScheduleVaultStorage.sol";
+import { L2AirdropStosVaultStorage } from "./L2AirdropStosVaultStorage.sol";
 
 /**
- * @title L2ScheduleVaultProxy
- * @dev Vaults that Vault Admins claim according to a schedule
+ * @title L2AirdropStosVaultProxy
+ * @dev
  */
-contract L2ScheduleVaultProxy is L2CustomVaultBaseProxy, L2ScheduleVaultStorage {
+contract L2AirdropStosVaultProxy is L2CustomVaultBaseProxy, L2AirdropStosVaultStorage {
+
 
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
 
     /* ========== onlyOwner ========== */
-
 
     /* ========== only L2ProjectManager ========== */
 
@@ -24,9 +24,7 @@ contract L2ScheduleVaultProxy is L2CustomVaultBaseProxy, L2ScheduleVaultStorage 
 
     /* ========== Anyone can vault admin of token ========== */
 
-
     /* ========== VIEW ========== */
-
 
 
     /* === ======= internal ========== */
