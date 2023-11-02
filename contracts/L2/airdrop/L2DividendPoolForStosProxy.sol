@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import { LibScheduleVault } from "../../libraries/LibScheduleVault.sol";
+import "../../proxy/Proxy.sol";
+import { L2DividendPoolForStosStorage } from "./L2DividendPoolForStosStorage.sol";
 
 /**
- * @title L2AirdropStosVaultStorage
+ * @title L2DividendPoolForStosProxy
  * @dev
  */
-contract L2AirdropStosVaultStorage {
+contract L2DividendPoolForStosProxy is Proxy, L2DividendPoolForStosStorage {
 
-    // l2token - VaultInfo
-    mapping(address => LibScheduleVault.VaultInfo) public vaultInfo;
-    address public dividendPool;
 }
