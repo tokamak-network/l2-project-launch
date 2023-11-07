@@ -12,7 +12,7 @@ contract L2DividendPoolForStosStorage {
     address public universalStos;
     uint256 public epochUnit;
 
-    // token - start airdrop time  , 토큰마다 에포크 시작 기준이 다르다..
+    // token - start airdrop time  , it must be set at thursdat at 9 o'clock
     mapping(address => uint256) public genesis;
 
     // token - Distribution

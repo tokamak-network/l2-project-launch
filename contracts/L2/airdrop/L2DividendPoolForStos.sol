@@ -209,11 +209,6 @@ contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPool
         return (stime + (weeklyEpoch * epochUnit) + epochUnit);
     }
 
-    function ifDistributionPossible(address _token) public view returns (bool) {
-        uint256 timestamp = getCurrentWeeklyEpochTimestamp(_token);
-        return IUniversalStos(universalStos).totalSupplyAt(timestamp) > 0;
-    }
-
     /* ========== internal  ========== */
 
     function claimableForEpoches(
