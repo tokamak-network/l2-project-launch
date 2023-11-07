@@ -74,7 +74,6 @@ contract L2AirdropStosVault is L2CustomVaultBase, L2AirdropStosVaultStorage {
         IERC20(l2Token).safeTransferFrom(l2ProjectManager, address(this), params.totalAllocatedAmount);
 
         emit InitializedL2AirdropStosVault(l2Token, params);
-
     }
 
     /* ========== Anyone can vault admin of token ========== */
@@ -141,6 +140,4 @@ contract L2AirdropStosVault is L2CustomVaultBase, L2AirdropStosVaultStorage {
             }
         }
     }
-
-
 }
