@@ -1,0 +1,37 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L2UniversalStosStorage",
+  "sourceName": "contracts/L2/stos/L2UniversalStosStorage.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "l2StakeV2",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lockIdNftForRegister",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600f57600080fd5b5060848061001e6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80636b765aa6146037578063e65be2d0146065575b600080fd5b6001546049906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b6000546049906001600160a01b03168156fea164736f6c6343000812000a",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80636b765aa6146037578063e65be2d0146065575b600080fd5b6001546049906001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b6000546049906001600160a01b03168156fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

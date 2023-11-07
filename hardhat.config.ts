@@ -100,6 +100,12 @@ const config: HardhatUserConfig = {
       hardhat: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       titangoerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
     },
+    lockTOSAddress: {
+      default: 16,
+      goerli: '0x770e0d682277A4a9167971073f1Aa6d6403bb315',
+      hardhat: '0x770e0d682277A4a9167971073f1Aa6d6403bb315',
+      titangoerli: '0x770e0d682277A4a9167971073f1Aa6d6403bb315',
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:

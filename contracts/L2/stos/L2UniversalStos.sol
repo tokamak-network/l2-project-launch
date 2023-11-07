@@ -31,46 +31,52 @@ contract L2UniversalStos is ProxyStorage, AccessibleCommon, L2UniversalStosStora
         _;
     }
 
-    event SetAddresses(address _l2StakeV2, address _lockIdNftForRegister);
+    event SetL2StakeV2(address _l2StakeV2);
+    event SetLockIdNftForRegister(address _lockIdNftForRegister);
 
     /* ========== CONSTRUCTOR ========== */
 
     /* ========== onlyOwner ========== */
 
-    function setAddresses(
-        address _l2StakeV2,
-        address _lockIdNftForRegister
-    ) external onlyOwner nonZeroAddress(_l2StakeV2) nonZeroAddress(_lockIdNftForRegister)
+    function setL2Stakev2(
+        address _l2StakeV2
+    ) external onlyOwner
     {
-        require(l2StakeV2 != _l2StakeV2 || lockIdNftForRegister != _lockIdNftForRegister, "same");
-        l2StakeV2 = _l2StakeV2;
-        lockIdNftForRegister = _lockIdNftForRegister;
-        emit SetAddresses(_l2StakeV2, _lockIdNftForRegister);
+        require(l2StakeV2 != _l2StakeV2, "same");
+        emit SetL2StakeV2(_l2StakeV2 );
     }
 
+    function setLockIdNftForRegister(
+        address _lockIdNftForRegister
+    ) external onlyOwner
+    {
+        require(lockIdNftForRegister != _lockIdNftForRegister, "same");
+        lockIdNftForRegister = _lockIdNftForRegister;
+        emit SetLockIdNftForRegister(_lockIdNftForRegister);
+    }
 
     function balanceOf(address account) external view returns (uint256 amount) {
 
-        amount = IL2StakeV2(l2StakeV2).balanceOfLock(account)
-            + ILockIdNftForRegister(lockIdNftForRegister).balanceOfLock(account);
+        if (l2StakeV2 != address(0)) amount += IL2StakeV2(l2StakeV2).balanceOfLock(account);
+        if (lockIdNftForRegister != address(0)) amount += ILockIdNftForRegister(lockIdNftForRegister).balanceOfLock(account);
 
     }
 
     function balanceOfAt(address account, uint256 timestamp) external view returns (uint256 amount) {
-        amount = IL2StakeV2(l2StakeV2).balanceOfLockAt(account, timestamp)
-            + ILockIdNftForRegister(lockIdNftForRegister).balanceOfLockAt(account, uint32(timestamp));
+        if (l2StakeV2 != address(0)) amount += IL2StakeV2(l2StakeV2).balanceOfLockAt(account, timestamp);
+        if (lockIdNftForRegister != address(0)) amount += ILockIdNftForRegister(lockIdNftForRegister).balanceOfLockAt(account, uint32(timestamp));
 
     }
 
     function totalSupply() external view returns (uint256 amount) {
-        amount = IL2StakeV2(l2StakeV2).totalSupplyStos()
-            + ILockIdNftForRegister(lockIdNftForRegister).totalSupplyLocks();
+        if (l2StakeV2 != address(0)) amount += IL2StakeV2(l2StakeV2).totalSupplyStos();
+        if (lockIdNftForRegister != address(0)) amount += ILockIdNftForRegister(lockIdNftForRegister).totalSupplyLocks();
 
     }
 
     function totalSupplyAt(uint256 timestamp) external view returns (uint256 amount) {
-        amount = IL2StakeV2(l2StakeV2).totalSupplyStosAt(timestamp)
-            + ILockIdNftForRegister(lockIdNftForRegister).totalSupplyLocksAt(uint32(timestamp));
+        if (l2StakeV2 != address(0)) amount += IL2StakeV2(l2StakeV2).totalSupplyStosAt(timestamp);
+        if (lockIdNftForRegister != address(0)) amount += ILockIdNftForRegister(lockIdNftForRegister).totalSupplyLocksAt(uint32(timestamp));
 
     }
 
