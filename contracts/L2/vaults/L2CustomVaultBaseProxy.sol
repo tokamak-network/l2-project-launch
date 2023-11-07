@@ -5,7 +5,7 @@ import { Proxy } from "../../proxy/Proxy.sol";
 import { L2CustomVaultBaseStorage } from "./L2CustomVaultBaseStorage.sol";
 
 /**
- * @title L2CustomVaultBase
+ * @title L2CustomVaultBaseProxy
  * @dev
  */
 contract L2CustomVaultBaseProxy is Proxy, L2CustomVaultBaseStorage {
