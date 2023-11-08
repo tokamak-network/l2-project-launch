@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "../proxy/ProxyStorage2.sol";
 import "./LockIdRegisterStorage1.sol";
 import "./LockIdRegisterStorage2.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract LockIdNftForRegister is
     ProxyStorage2,
@@ -30,20 +30,28 @@ contract LockIdNftForRegister is
         _;
     }
 
-    constructor (
-        string memory name_, string memory symbol_, address managerAddress,
+    modifier onlyOwner() {
+        require(_owner == msg.sender, "not owner");
+        _;
+    }
+
+    constructor (){}
+
+    /*** External onlyManager ***/
+
+    function initialize(
+        string memory name_,
+        string memory symbol_,
+        address managerAddress,
         uint256 epochUnit_,
         uint256 maxTime_
-        ) {
-
+    ) external onlyOwner {
         _manager = managerAddress;
         _name = name_;
         _symbol = symbol_;
         epochUnit = epochUnit_;
         maxTime = maxTime_;
     }
-
-    /*** External onlyManager ***/
 
     /*** External ***/
     function register(

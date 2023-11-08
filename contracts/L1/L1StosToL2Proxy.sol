@@ -8,21 +8,8 @@ contract L1StosToL2Proxy is Proxy2, L1StosToL2Storage
 {
     event ManagershipTransferred(address indexed previousManager, address indexed newManager);
 
-    /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
-     */
-    constructor (
-        address managerAddress,
-        address lockTosAddress,
-        address addressManagerAddress,
-        uint256 maxLockCountPerRegister_,
-        uint32 minGasLimitRegister_
-    ) {
-        _manager = managerAddress;
-        lockTos = lockTosAddress;
-        addressManager = addressManagerAddress;
-        maxLockCountPerRegister = maxLockCountPerRegister_;
-        minGasLimitRegister = minGasLimitRegister_;
+    constructor(address manager_) {
+        _manager = manager_;
     }
 
     function setMaxLockCountPerRegister(uint256 maxLockCountPerRegister_) external onlyManager {

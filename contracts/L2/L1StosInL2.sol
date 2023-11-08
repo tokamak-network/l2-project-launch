@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 import "../libraries/BytesLib.sol";
+import "../libraries/LibLockId.sol";
 
-import "../libraries//LibLockId.sol";
-import "hardhat/console.sol";
+import "../proxy/ProxyStorage2.sol";
+import "./L1StosInL2Storage.sol";
+
+// import "hardhat/console.sol";
 
 interface ILockIdNftForRegister {
     function register(
@@ -16,20 +19,8 @@ interface IL2CrossDomainMessenger {
     function xDomainMessageSender() external view returns (address);
 }
 
-contract L1StosInL2  {
+contract L1StosInL2 is ProxyStorage2, L1StosInL2Storage {
     using BytesLib for bytes;
-
-    address public _manager;
-    address public lockIdNftForRegister;
-    address public l2CrossDomainMessenger;
-    address public l1Register;
-
-    event ManagershipTransferred(address indexed previousManager, address indexed newManager);
-
-    modifier onlyManager() {
-        require(_manager == msg.sender, "not manager");
-        _;
-    }
 
     modifier onlyMessengerAndL1Register() {
 
@@ -45,10 +36,15 @@ contract L1StosInL2  {
         _;
     }
 
-    constructor (
+    modifier onlyOwner() {
+        require(_owner == msg.sender, "not owner");
+        _;
+    }
+
+    function initialize (
         address managerAddress,
         address l2messanger_
-    ) {
+    ) external onlyOwner  {
         _manager = managerAddress;
         l2CrossDomainMessenger =l2messanger_;
     }
@@ -61,17 +57,6 @@ contract L1StosInL2  {
     function setLockIdNft(address lockIdNft_) external onlyManager {
         require(lockIdNftForRegister != lockIdNft_, "same");
         lockIdNftForRegister = lockIdNft_;
-    }
-
-    function renounceManagership() external onlyManager {
-        emit ManagershipTransferred(_manager, address(0));
-        _manager = address(0);
-    }
-
-    function transferManagership(address newManager) external onlyManager {
-        require(newManager != address(0), "new manager is the zero address");
-        emit ManagershipTransferred(_manager, newManager);
-        _manager = newManager;
     }
 
     /*** Public ***/

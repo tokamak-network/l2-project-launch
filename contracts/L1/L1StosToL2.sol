@@ -5,7 +5,7 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/LibLockTOS.sol";
 import "../proxy/ProxyStorage2.sol";
 import "./L1StosToL2Storage.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface ILockTos {
     function locksInfo(uint256 _lockId)
@@ -46,15 +46,23 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
 
     /* ========== DEPENDENCIES ========== */
 
-    /* ========== CONSTRUCTOR ========== */
+    modifier onlyOwner() {
+        require(_owner == msg.sender, "not owner");
+        _;
+    }
 
-    constructor (
+    /* ========== CONSTRUCTOR ========== */
+    constructor () {
+
+    }
+
+    function initialize (
         address managerAddress,
         address lockTosAddress,
         address addressManagerAddress,
         uint256 maxLockCountPerRegister_,
         uint32 minGasLimitRegister_
-    ) {
+    ) external onlyOwner {
         _manager = managerAddress;
         lockTos = lockTosAddress;
         addressManager = addressManagerAddress;

@@ -156,18 +156,18 @@ const config: HardhatUserConfig = {
       deploy: ['deploy_l2']
     },
   },
-  deterministicDeployment: (network: string) => {
-    // Skip on hardhat's local network.
-    if (network === "31337") {
-      return undefined;
-    } else {
-      return {
-        factory: "0x4e59b44847b379578588920ca78fbf26c0b4956c",
-        deployer: "0x3fab184622dc19b6109349b94811493bf2a45362",
-        funding: "10000000000000000",
-        signedTx: "0x00",
-      }
-    }
+  // deterministicDeployment: (network: string) => {
+  //   // Skip on hardhat's local network.
+  //   if (network === "31337") {
+  //     return undefined;
+  //   } else {
+  //     return {
+  //       factory: "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+  //       deployer: "0x3fab184622dc19b6109349b94811493bf2a45362",
+  //       funding: "10000000000000000",
+  //       signedTx: "0x00",
+  //     }
+  //   }
     /*
     if (network === "31337") {
         return undefined;
@@ -195,7 +195,7 @@ const config: HardhatUserConfig = {
         signedTx: "0x00",
     };
     */
-  },
+  // },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
