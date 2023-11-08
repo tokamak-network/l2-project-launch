@@ -10,8 +10,14 @@ import { L2NonScheduleVault } from '../typechain-types/contracts/L2/vaults/L2Non
 import { L2ScheduleVault } from '../typechain-types/contracts/L2/vaults/L2ScheduleVault'
 import { L2ScheduleVaultProxy } from '../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy'
 import { L2CustomVaultBaseProxy } from '../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
+import { L1StosInL2Proxy } from '../typechain-types/contracts/L2/L1StosInL2Proxy'
+import { L1StosInL2 } from '../typechain-types/contracts/L2/L1StosInL2.sol'
+import { LockIdNftForRegisterProxy } from '../typechain-types/contracts/stos/LockIdNftForRegisterProxy'
+import { LockIdNftForRegister } from '../typechain-types/contracts/stos/LockIdNftForRegister'
+
 
 let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
+let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
 
 /**
  * first
@@ -32,6 +38,22 @@ reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
 reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
 */
 
+/**
+ * 2023.11.8
+  reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
+reusing "L2ProjectManager" at 0xACfea3d759DeA62ae06a926b19b226E2C7cFe2a3
+reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
+reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
+reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
+reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
+reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
+reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
+reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
+reusing "L1StosInL2" at 0xd83A67290124566Aa900356F77Ca1a86574db578
+reusing "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
+reusing "LockIdNftForRegister" at 0xF8E19c8fE9dABC5B3C5B5A6F7eFD4BcE1d0Aff5B
+reusing "LockIdNftForRegisterProxy" at 0x4b3fB26396C6740341cB36E2D3325b1163421385
+ */
 const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
     console.log('deployL2 hre.network.name', hre.network.name)
@@ -263,6 +285,111 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             l2ScheduleVaultProxy.address,
             l2NonScheduleVaultProxy.address
         )).wait()
+    }
+
+    //==== L1StosInL2 =================================
+    const L1StosInL2Deployment = await deploy("L1StosInL2", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L1StosInL2Proxy =================================
+    const L1StosInL2ProxyProxyDeployment = await deploy("L1StosInL2Proxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l1StosInL2Proxy = (await hre.ethers.getContractAt(
+        L1StosInL2ProxyProxyDeployment.abi,
+        L1StosInL2ProxyProxyDeployment.address
+    )) as L1StosInL2Proxy;
+
+    //==== L1StosInL2Proxy upgradeTo =================================
+    let impl2 = await l1StosInL2Proxy.implementation()
+    if (impl2 != L1StosInL2Deployment.address) {
+        await (await l1StosInL2Proxy.connect(deploySigner).upgradeTo(L1StosInL2Deployment.address)).wait()
+    }
+
+    impl2 = await l1StosInL2Proxy.implementation()
+
+    const l1StosInL2 = (await hre.ethers.getContractAt(
+        L1StosInL2Deployment.abi,
+        l1StosInL2Proxy.address
+    )) as L1StosInL2;
+
+    let l2CrossDomainMessenger_l1StosInL2Proxy = await l1StosInL2Proxy.l2CrossDomainMessenger()
+
+    if (l2CrossDomainMessenger_l1StosInL2Proxy != l2MessengerAddress) {
+        await (await l1StosInL2.connect(deploySigner)["initialize(address,address)"](
+            deployer, l2MessengerAddress)).wait()
+    }
+    l2CrossDomainMessenger_l1StosInL2Proxy = await l1StosInL2Proxy.l2CrossDomainMessenger()
+
+    //---- LockIdNftForRegister
+    const lockIdNFTInfoL1 = {
+        name: "L1 STOS",
+        symbol: "STOS",
+        version: "1.0",
+        epochUnit: 60*60*24*7,
+        maxTime : 60*60*24*365*3
+    }
+
+    //==== LockIdNftForRegister =================================
+    const LockIdNftForRegisterDeployment = await deploy("LockIdNftForRegister", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== LockIdNftForRegisterProxy =================================
+    const LockIdNftForRegisterProxyDeployment = await deploy("LockIdNftForRegisterProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const lockIdNftForRegisterProxy = (await hre.ethers.getContractAt(
+        LockIdNftForRegisterProxyDeployment.abi,
+        LockIdNftForRegisterProxyDeployment.address
+    )) as LockIdNftForRegisterProxy;
+
+
+    //==== L1StosInL2Proxy upgradeTo =================================
+    let impl3 = await lockIdNftForRegisterProxy.implementation()
+    if (impl3 != LockIdNftForRegisterDeployment.address) {
+        await (await lockIdNftForRegisterProxy.connect(deploySigner).upgradeTo(LockIdNftForRegisterDeployment.address)).wait()
+    }
+    const lockIdNftForRegister = (await hre.ethers.getContractAt(
+        LockIdNftForRegisterDeployment.abi,
+        lockIdNftForRegisterProxy.address
+    )) as LockIdNftForRegister;
+
+    // let epochUnit = await lockIdNftForRegister.epochUnit()
+    let manager  = await lockIdNftForRegisterProxy._manager()
+
+    if (l1StosInL2Proxy.address != manager) {
+        await (await lockIdNftForRegister.connect(deploySigner).initialize(
+            lockIdNFTInfoL1.name,
+            lockIdNFTInfoL1.symbol,
+            l1StosInL2Proxy.address,
+            lockIdNFTInfoL1.epochUnit,
+            lockIdNFTInfoL1.maxTime
+        )).wait()
+    }
+
+    let lockIdNftForRegister_l1StosInL2 = await l1StosInL2.lockIdNftForRegister()
+
+    if (lockIdNftForRegister_l1StosInL2 != lockIdNftForRegister.address) {
+        await (await l1StosInL2.connect(deploySigner).setLockIdNft(lockIdNftForRegister.address)).wait()
+    }
+
+    // set L1 register (L1StosToL2)
+    let l1Register_l1StosInL2 = await l1StosInL2.l1Register()
+
+    if (L1StosToL2_Address != null && l1Register_l1StosInL2 != L1StosToL2_Address) {
+        await (await l1StosInL2.connect(deploySigner).setL1Register(L1StosToL2_Address)).wait()
     }
 
     // ==== verify =================================

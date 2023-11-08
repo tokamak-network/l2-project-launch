@@ -7,6 +7,11 @@ import { L1ERC20C_TokenFactory } from '../typechain-types/contracts/L1/factory/L
 import { L1ERC20D_TokenFactory } from '../typechain-types/contracts/L1/factory/L1ERC20D_TokenFactory'
 import { L1ProjectManager } from '../typechain-types/contracts/L1/L1ProjectManager.sol'
 import { L1ProjectManagerProxy } from '../typechain-types/contracts/L1/L1ProjectManagerProxy'
+import { L1StosToL2Proxy } from '../typechain-types/contracts/L1/L1StosToL2Proxy'
+import { L1StosToL2 } from '../typechain-types/contracts/L1/L1StosToL2.sol'
+
+// "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
+const L1StosInL2_Address = "0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF"
 
 /**
  * first
@@ -18,7 +23,7 @@ import { L1ProjectManagerProxy } from '../typechain-types/contracts/L1/L1Project
     deploying "L1ProjectManager" (tx: 0x9a32162229f00ed3f26e84d7f5590ed4a826dcdc19cc5280cdcf5d243e953564)...: deployed at 0xfb0e8707Df36B41E8D443cE7D353B9F9Db1eFA2f with 2447296 gas
  */
 /**
- *  2022.09.12
+ *  2023.09.12
     deploying "LibProject" (tx: 0x7f67c49ead3cd6e55d65ddc507d9570a749387eeb1ec73170461c1ff1c06744e)...: deployed at 0xF5657e40Ec1F27F0fc04F82a1190095E366D131D with 767325 gas
     reusing "L1ERC20A_TokenFactory" at 0x8a664F47338419AA45859aE763dc4EEe61886b21
     reusing "L1ERC20B_TokenFactory" at 0xaDcAf57aD40241E082ce07978c605d8cDfAcC710
@@ -27,11 +32,23 @@ import { L1ProjectManagerProxy } from '../typechain-types/contracts/L1/L1Project
     deploying "L1ProjectManager" (tx: 0xdec74fcd5550d2707b6df3a433ab6ac002a377e17af9060d67d1094e97d71ea8)...: deployed at 0x07328373a5c5c3017bE1Db8992Dd2eBAbe21D629 with 3525081 gas
     deploying "L1ProjectManagerProxy" (tx: 0xb2669c4716af7e6d19c746239a041b0f4a37045a7e5331261c96398cbf68f9f6)...: deployed at 0x3eD0776A8E323a294cd704c02a349ca1B83554da with 1642193 gas
 */
+/**
+ * 2023.11.08
+reusing "LibProject"  0x5d85cD9D3e2864D4a156497083eb6E4394bF8aae
+reusing "L1ERC20A_TokenFactory" at 0x8a664F47338419AA45859aE763dc4EEe61886b21
+reusing "L1ERC20B_TokenFactory" at 0xaDcAf57aD40241E082ce07978c605d8cDfAcC710
+reusing "L1ERC20C_TokenFactory" at 0xAB51c5c5186eC67DB82Cc11601f4a04F46848E45
+reusing "L1ERC20D_TokenFactory" at 0xDbCD784fFd874215D9ee2ac311Dda0F0B4a5509f
+reusing "L1ProjectManager" at 0xc0C1162126d01979b0DBc07c1A10c22f9a1e7678
+reusing "L1ProjectManagerProxy" at 0x3eD0776A8E323a294cd704c02a349ca1B83554da
+reusing "L1StosToL2" at 0xF6340b66a7790e5bd4dE29F4575a6012D4126032
+reusing "L1StosToL2Proxy" at 0x25280A873ef2702fF581260a7e15F246A3c52Efb
+ */
 const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log('deployL1 hre.network.config.chainId', hre.network.config.chainId)
     console.log('deployL1 hre.network.name', hre.network.name)
 
-    const { deployer } = await hre.getNamedAccounts();
+    const { deployer, lockTOSAddress, addressManager} = await hre.getNamedAccounts();
     const { deploy } = hre.deployments;
 
     const deploySigner = await hre.ethers.getSigner(deployer);
@@ -138,6 +155,54 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     //==== L1StosToL2 =================================
 
+    const L1StosToL2Deployment = await deploy("L1StosToL2", {
+        from: deployer,
+        args: [],
+        log: true,
+        libraries: {
+            LibProject: LibProjectDeployment.address
+        }
+    });
+
+    //==== L1StosToL2Proxy =================================
+    const L1StosToL2ProxyProxyDeployment = await deploy("L1StosToL2Proxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l1StosToL2Proxy = (await hre.ethers.getContractAt(
+        L1StosToL2ProxyProxyDeployment.abi,
+        L1StosToL2ProxyProxyDeployment.address
+    )) as L1StosToL2Proxy;
+
+    //==== L1StosToL2Proxy upgradeTo =================================
+    let impl1 = await l1StosToL2Proxy.implementation()
+    if (impl1 != L1StosToL2Deployment.address) {
+        await (await l1StosToL2Proxy.connect(deploySigner).upgradeTo(L1StosToL2Deployment.address)).wait()
+    }
+
+    const l1StosToL2 = (await hre.ethers.getContractAt(
+        L1StosToL2Deployment.abi,
+        L1StosToL2ProxyProxyDeployment.address
+    )) as L1StosToL2;
+
+    let lockTosAddr = await l1StosToL2Proxy.lockTos()
+    if(lockTosAddr != lockTOSAddress) {
+        await (await l1StosToL2.connect(deploySigner).initialize(
+          deployer,
+          lockTOSAddress,
+          addressManager,
+          ethers.BigNumber.from("100"),  // maxLockCountPerRegister
+          1500000    // minGasLimitRegister
+        )).wait()
+    }
+
+    // set L2 register (L1StosInL2)
+    let l2Register_l1StosToL2 = await l1StosToL2.l2Register()
+    if (L1StosInL2_Address != null && l2Register_l1StosToL2 != L1StosInL2_Address) {
+        await (await l1StosToL2.connect(deploySigner).setL2Register(L1StosInL2_Address)).wait()
+    }
 
 
     //==== verify =================================
