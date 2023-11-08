@@ -8,8 +8,8 @@ contract L1StosToL2Proxy is Proxy2, L1StosToL2Storage
 {
     event ManagershipTransferred(address indexed previousManager, address indexed newManager);
 
-    constructor(address manager_) {
-        _manager = manager_;
+    constructor() {
+        _manager = msg.sender;
     }
 
     function setMaxLockCountPerRegister(uint256 maxLockCountPerRegister_) external onlyManager {

@@ -75,6 +75,17 @@ async function deployedContracts(names, abis, provider){
     return deployed;
 }
 
+async function getL1Provider(){
+  const l1RpcProvider = new ethers.providers.JsonRpcProvider(l1Url)
+
+  return l1RpcProvider;
+}
+
+async function getL2Provider(){
+  const l2RpcProvider = new ethers.providers.JsonRpcProvider(l2Url)
+  return l2RpcProvider;
+}
+
 async function getSigners(){
     const l1RpcProvider = new ethers.providers.JsonRpcProvider(l1Url)
     const l2RpcProvider = new ethers.providers.JsonRpcProvider(l2Url)
@@ -170,6 +181,8 @@ module.exports = {
     readContracts,
     deployedContracts,
     getSigners,
+    getL1Provider,
+    getL2Provider,
     bridge,
     messenger,
     addressManager,

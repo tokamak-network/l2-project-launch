@@ -197,6 +197,19 @@ interface SnapshotBalance {
     balance: BigNumber
 }
 
+interface StosFixture {
+    deployer: Signer,
+    addr1: Signer,
+    addr2: Signer,
+    tos: TOS,
+    lockTOS: LockTOS,
+    tonAddress: string,
+    tonAdminAddress: string,
+    tonAdmin: Signer,
+    l1StosToL2: L1StosToL2,
+    l1StosInL2: L1StosInL2,
+    lockIdNftRegisterInL2: LockIdNftForRegister
+}
 export {
     L2ProjectLaunchFixture,
     SetL2ProjectLaunchFixture,
@@ -209,5 +222,6 @@ export {
     LockIdFixture,
     NftTokenInfo,
     SyncInfo,
-    SnapshotBalance
+    SnapshotBalance,
+    StosFixture
 }

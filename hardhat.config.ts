@@ -73,7 +73,8 @@ const config: HardhatUserConfig = {
     tosAddress: {
       default: 11,
       goerli: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
-      hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+      hardhat: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
+      // hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
       titangoerli: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
     },
     tosAdminAddress: {
@@ -117,14 +118,14 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      // forking: {
-      //   url: `${process.env.ETH_NODE_URI_GOERLI}`,
-      //   blockNumber: 9448400
-      // },
       forking: {
-        url: `${process.env.ETH_NODE_URI_DARIUS}`,
-        blockNumber: 22532
+        url: `${process.env.ETH_NODE_URI_GOERLI}`,
+        blockNumber: 10008224
       },
+      // forking: {
+      //   url: `${process.env.ETH_NODE_URI_DARIUS}`,
+      //   blockNumber: 22532
+      // },
       allowUnlimitedContractSize: false,
       // deploy: ['deploy_l1', 'deploy_l2'],
       companionNetworks: {

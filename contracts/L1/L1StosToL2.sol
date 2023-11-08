@@ -41,10 +41,9 @@ interface L1CrossDomainMessengerI {
     ) external;
 }
 
-
 contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
 
-    /* ========== DEPENDENCIES ========== */
+    event Registered(address account, uint256[] lockIds) ;
 
     modifier onlyOwner() {
         require(_owner == msg.sender, "not owner");
@@ -110,17 +109,24 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
 
     /* ========== VIEW ========== */
 
-    function needSyncList(address account) public view returns (uint256[] memory lockIds) {
+    function needSyncList(address account) public view returns (uint256[] memory lockIds, uint256 count) {
         uint256[] memory ids = ILockTos(lockTos).locksOf(account);
 
+        if(ids.length != 0) lockIds = new uint256[](ids.length);
         for(uint256 i = 0; i < ids.length; i++){
             LibLockId.SyncInfo memory curSync = syncInfoOfLockId[ids[i]];
             (, uint256 end, uint256 amount) = ILockTos(lockTos).locksInfo(ids[i]);
+
             if(amount != 0 && block.timestamp < end) {
                 LibLockTOS.Point[] memory history = ILockTos(lockTos).pointHistoryOf(ids[i]);
+
                 if(history.length != 0){
                     LibLockTOS.Point memory point = history[history.length-1];
-                    if(curSync.timestamp < point.timestamp) lockIds[lockIds.length-1] = ids[i];
+
+                    if(uint256(curSync.timestamp) < point.timestamp) {
+                        lockIds[count] = ids[i];
+                        count++;
+                    }
                 }
             }
         }
@@ -155,7 +161,7 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
                 if(history.length != 0){
                     LibLockTOS.Point memory point = history[history.length-1];
 
-                    if(curSync.timestamp < point.timestamp) {
+                    if(uint256(curSync.timestamp) < point.timestamp) {
                         LibLockId.SyncInfo memory newSync = LibLockId.SyncInfo(
                             {
                                 slope: point.slope,
@@ -174,6 +180,7 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
                     }
                 }
             }
+            emit Registered(account, lockIds) ;
         }
 
         require(syncPackets.length > 0, "no register data");

@@ -46,7 +46,7 @@ contract LockIdNftForRegister is
         uint256 epochUnit_,
         uint256 maxTime_
     ) external onlyOwner {
-        _manager = managerAddress;
+        _manager = managerAddress; // manager is L1StosInL2
         _name = name_;
         _symbol = symbol_;
         epochUnit = epochUnit_;
