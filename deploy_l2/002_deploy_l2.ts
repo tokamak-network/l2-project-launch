@@ -14,10 +14,18 @@ import { L1StosInL2Proxy } from '../typechain-types/contracts/L2/L1StosInL2Proxy
 import { L1StosInL2 } from '../typechain-types/contracts/L2/L1StosInL2.sol'
 import { LockIdNftForRegisterProxy } from '../typechain-types/contracts/stos/LockIdNftForRegisterProxy'
 import { LockIdNftForRegister } from '../typechain-types/contracts/stos/LockIdNftForRegister'
+import { L2UniversalStosProxy } from '../typechain-types/contracts/L2/stos/L2UniversalStosProxy'
+import { L2UniversalStos } from '../typechain-types/contracts/L2/stos/L2UniversalStos.sol'
+
+import { L2DividendPoolForStosProxy } from '../typechain-types/contracts/L2/airdrop/L2DividendPoolForStosProxy'
+import { L2DividendPoolForStos } from '../typechain-types/contracts/L2/airdrop/L2DividendPoolForStos.sol'
+import { L2AirdropStosVaultProxy } from '../typechain-types/contracts/L2/vaults/L2AirdropStosVaultProxy'
+import { L2AirdropStosVault } from '../typechain-types/contracts/L2/vaults/L2AirdropStosVault.sol'
 
 
 let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
 let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
+let  l2StakeV2_Address = null
 
 /**
  * first
@@ -390,6 +398,129 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     if (L1StosToL2_Address != null && l1Register_l1StosInL2 != L1StosToL2_Address) {
         await (await l1StosInL2.connect(deploySigner).setL1Register(L1StosToL2_Address)).wait()
+    }
+
+    //==== L2UniversalStos =================================
+    const L2UniversalStosDeployment = await deploy("L2UniversalStos", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L2UniversalStosProxy =================================
+    const L2UniversalStosProxyDeployment = await deploy("L2UniversalStosProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l2UniversalStosProxy = (await hre.ethers.getContractAt(
+        L2UniversalStosProxyDeployment.abi,
+        L2UniversalStosProxyDeployment.address
+    )) as L2UniversalStosProxy;
+
+
+    //==== L2UniversalStosProxy upgradeTo =================================
+    let impl4 = await l2UniversalStosProxy.implementation()
+    if (impl4 != L2UniversalStosDeployment.address) {
+        await (await l2UniversalStosProxy.connect(deploySigner).upgradeTo(L2UniversalStosDeployment.address)).wait()
+    }
+    const l2UniversalStos = (await hre.ethers.getContractAt(
+        L2UniversalStosDeployment.abi,
+        L2UniversalStosProxyDeployment.address
+    )) as L2UniversalStos;
+
+    let l2StakeV2_l2UniversalStos  = await l2UniversalStos.l2StakeV2()
+    if (l2StakeV2_Address != null && l2StakeV2_l2UniversalStos != l2StakeV2_Address) {
+        await (await l2UniversalStos.connect(deploySigner).setL2Stakev2(
+            l2StakeV2_Address
+        )).wait()
+    }
+
+    let lockIdNftForRegister_l2UniversalStos  = await l2UniversalStos.lockIdNftForRegister()
+    if (lockIdNftForRegister_l2UniversalStos != lockIdNftForRegisterProxy.address) {
+        await (await l2UniversalStos.connect(deploySigner).setLockIdNftForRegister(
+            lockIdNftForRegisterProxy.address
+        )).wait()
+    }
+
+    //==== L2DividendPoolForStos =================================
+    const L2DividendPoolForStosDeployment = await deploy("L2DividendPoolForStos", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L2DividendPoolForStosProxy =================================
+    const L2DividendPoolForStosProxyDeployment = await deploy("L2DividendPoolForStosProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l2DividendPoolForStosProxy = (await hre.ethers.getContractAt(
+        L2DividendPoolForStosProxyDeployment.abi,
+        L2DividendPoolForStosProxyDeployment.address
+    )) as L2DividendPoolForStosProxy;
+
+
+    //==== L2DividendPoolForStosProxy upgradeTo =================================
+    let impl5 = await l2DividendPoolForStosProxy.implementation()
+    if (impl5 != L2DividendPoolForStosDeployment.address) {
+        await (await l2DividendPoolForStosProxy.connect(deploySigner).upgradeTo(L2DividendPoolForStosDeployment.address)).wait()
+    }
+
+    const l2DividendPoolForStos = (await hre.ethers.getContractAt(
+        L2DividendPoolForStosDeployment.abi,
+        L2DividendPoolForStosProxyDeployment.address
+    )) as L2DividendPoolForStos;
+
+
+    let universalStos_l2DividendPoolForStos  = await l2DividendPoolForStos.universalStos()
+    if (universalStos_l2DividendPoolForStos != L2UniversalStosProxyDeployment.address) {
+        await (await l2DividendPoolForStos.connect(deploySigner).initialize(
+            L2UniversalStosProxyDeployment.address,
+            lockIdNFTInfoL1.epochUnit
+        )).wait()
+    }
+
+    //==== L2AirdropStosVault =================================
+    const L2AirdropStosVaultDeployment = await deploy("L2AirdropStosVault", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L2AirdropStosVaultProxy =================================
+    const L2AirdropStosVaultProxyDeployment = await deploy("L2AirdropStosVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l2AirdropStosVaultProxy = (await hre.ethers.getContractAt(
+        L2AirdropStosVaultProxyDeployment.abi,
+        L2AirdropStosVaultProxyDeployment.address
+    )) as L2AirdropStosVaultProxy;
+
+
+    //==== L2AirdropStosVaultProxy upgradeTo =================================
+    let impl6 = await l2AirdropStosVaultProxy.implementation()
+    if (impl6 != L2AirdropStosVaultDeployment.address) {
+        await (await l2AirdropStosVaultProxy.connect(deploySigner).upgradeTo(L2AirdropStosVaultDeployment.address)).wait()
+    }
+
+    const l2AirdropStosVault = (await hre.ethers.getContractAt(
+        L2AirdropStosVaultDeployment.abi,
+        L2AirdropStosVaultProxyDeployment.address
+    )) as L2AirdropStosVault;
+
+
+    let dividendPool_l2AirdropStosVault  = await l2AirdropStosVault.dividendPool()
+    if (dividendPool_l2AirdropStosVault != L2DividendPoolForStosProxyDeployment.address) {
+        await (await l2AirdropStosVault.connect(deploySigner).setDividendPool(
+            L2DividendPoolForStosProxyDeployment.address,
+        )).wait()
     }
 
     // ==== verify =================================
