@@ -50,14 +50,15 @@ async function main() {
         projectOwner: ourAddr,
         initialTotalSupply: ethers.utils.parseEther("100000"),
         tokenType: 0, // non-mintable
-        projectName: 'CandyShop',
-        tokenName: 'Candy',
-        tokenSymbol: 'CDY',
+        projectName: 'TokamakBakery',
+        tokenName: 'TokamakBakery',
+        tokenSymbol: 'TKB',
         l1Token: ethers.constants.AddressZero,
         l2Token: ethers.constants.AddressZero,
         l2Type: 0,
         addressManager: addressManager
     }
+
 
     const topic = deployedL1.L1ProjectManager.interface.getEventTopic('CreatedProject');
 

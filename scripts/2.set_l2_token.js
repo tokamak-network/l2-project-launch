@@ -39,22 +39,39 @@ async function main() {
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
+
+    // projectInfo = {
+    //     projectId :  ethers.constants.Zero,
+    //     tokenOwner: ourAddr,
+    //     projectOwner: ourAddr,
+    //     initialTotalSupply: ethers.utils.parseEther("100000"),
+    //     tokenType: 0, // non-mintable
+    //     projectName: 'CandyShop',
+    //     tokenName: 'Candy',
+    //     tokenSymbol: 'CDY',
+    //     l1Token: ethers.constants.AddressZero,
+    //     l2Token: ethers.constants.AddressZero,
+    //     l2Type: 0,
+    //     addressManager: addressManager
+    // }
     projectInfo = {
-        projectId :  ethers.constants.Zero,
-        tokenOwner: ourAddr,
-        projectOwner: ourAddr,
-        initialTotalSupply: ethers.utils.parseEther("100000"),
-        tokenType: 0, // non-mintable
-        projectName: 'CandyShop',
-        tokenName: 'Candy',
-        tokenSymbol: 'CDY',
-        l1Token: ethers.constants.AddressZero,
-        l2Token: ethers.constants.AddressZero,
-        l2Type: 0,
-        addressManager: addressManager
-    }
+      projectId :  ethers.constants.Zero,
+      tokenOwner: ourAddr,
+      projectOwner: ourAddr,
+      initialTotalSupply: ethers.utils.parseEther("100000"),
+      tokenType: 0, // non-mintable
+      projectName: 'TokamakBakery',
+      tokenName: 'TokamakBakery',
+      tokenSymbol: 'TKB',
+      l1Token: ethers.constants.AddressZero,
+      l2Token: ethers.constants.AddressZero,
+      l2Type: 0,
+      addressManager: addressManager
+  }
+
     console.log('ourAddr', ourAddr)
-    projectInfo.projectId = ethers.BigNumber.from("4");
+    projectInfo.projectId = ethers.BigNumber.from("6");
+    // projectInfo.projectId = await deployedL1.L1ProjectManager.projectCount();
 
     let projects = await deployedL1.L1ProjectManager.projects(projectInfo.projectId)
     let l2Token = await deployedL2.L2ProjectManager.tokenMaps(projectInfo.l1Token)

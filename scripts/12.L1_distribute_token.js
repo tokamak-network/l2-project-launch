@@ -33,16 +33,16 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test4',
-    tokenName: 'Test4',
-    tokenSymbol: 'T4T',
+    projectName: 'Test6',
+    tokenName: 'Test6',
+    tokenSymbol: 'T6T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("5");
+let projectId = ethers.BigNumber.from("6");
 
 const L2Token = "0x9668420A4E797e5B823EbeC870b30e4ff91D6dCF"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
@@ -81,14 +81,20 @@ async function main() {
     projectInfo.l2Token = L2Token;
 
     console.log('projectInfo', projectInfo)
-    let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("4"))
+
+    // test vaults : initialLiquidityVault, DAO, Team, Marketing , airdropStos
+    let vaultCount = BigNumber.from("5")
+
+    let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let daoAmount = initialLiquidityAmount
     let teamAmount = initialLiquidityAmount
     let marketingAmount = initialLiquidityAmount
+    let airdropStosAmount = initialLiquidityAmount
+
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
     let firstClaimTime = sTime
-    let totalClaimCount = 4
-    let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
+    let totalClaimCount = BigNumber.from("4")
+    let firstClaimAmount = teamAmount.div(totalClaimCount)
     let roundIntervalTime = 60*60*24*7;
     let secondClaimTime =  firstClaimTime + roundIntervalTime
 
@@ -123,14 +129,23 @@ async function main() {
         sTime,
         3000) ;
     let rewardParams = getLpRewardParams(ourAddr, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
-    let tosAirdropParams =  getTosAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
+    let tosAirdropParams =  getTosAirdropParams(
+        ethers.constants.AddressZero,
+        airdropStosAmount,
+        totalClaimCount.toNumber(),
+        firstClaimAmount,
+        firstClaimTime,
+        secondClaimTime,
+        roundIntervalTime
+        );
+
     let tonAirdropParams =  getTonAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
     let daoParams =  getNonScheduleParams("DAO", ourAddr, daoAmount);
     let teamParams =  getScheduleParams(
         "TEAM",
         ourAddr,
         teamAmount, //totalAllocatedAmount
-        totalClaimCount, // totalClaimCount
+        totalClaimCount.toNumber(), // totalClaimCount
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -141,7 +156,7 @@ async function main() {
         "MARKETING",
         ourAddr,
         marketingAmount, //totalAllocatedAmount
-        totalClaimCount, // totalClaimCount 4
+        totalClaimCount.toNumber(), // totalClaimCount 4
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -156,7 +171,7 @@ async function main() {
         tonAirdropParams: tonAirdropParams
     }
     // console.log('tokamakVaults' ,tokamakVaults )
-    let customScheduleVaults = [teamParams, marketingParams]
+    let customScheduleVaults = [teamParams, marketingParams, teamParams]
     let customNonScheduleVaults = [daoParams]
 
     console.log('initialVaultParams' , initialVaultParams)

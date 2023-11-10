@@ -97,24 +97,41 @@ async function main() {
 
     // return
 
+    // projectInfo = {
+    //     projectId :  ethers.constants.Zero,
+    //     tokenOwner: ourAddr,
+    //     projectOwner: ourAddr,
+    //     initialTotalSupply: ethers.utils.parseEther("100000"),
+    //     tokenType: 0, // non-mintable
+    //     projectName: 'CandyShop',
+    //     tokenName: 'Candy',
+    //     tokenSymbol: 'CDY',
+    //     l1Token: ethers.constants.AddressZero,
+    //     l2Token: ethers.constants.AddressZero,
+    //     l2Type: 0,
+    //     addressManager: addressManager
+    // }
+
     projectInfo = {
         projectId :  ethers.constants.Zero,
         tokenOwner: ourAddr,
         projectOwner: ourAddr,
         initialTotalSupply: ethers.utils.parseEther("100000"),
         tokenType: 0, // non-mintable
-        projectName: 'CandyShop',
-        tokenName: 'Candy',
-        tokenSymbol: 'CDY',
+        projectName: 'TokamakBakery',
+        tokenName: 'TokamakBakery',
+        tokenSymbol: 'TKB',
         l1Token: ethers.constants.AddressZero,
         l2Token: ethers.constants.AddressZero,
         l2Type: 0,
         addressManager: addressManager
     }
+
     console.log('ourAddr', ourAddr)
 
     // change with the project id of you want to know
-    projectInfo.projectId = ethers.BigNumber.from("4");
+    projectInfo.projectId = ethers.BigNumber.from("6");
+    // projectInfo.projectId = await deployedL1.L1ProjectManager.projectCount();
 
     let projects = await deployedL1.L1ProjectManager.projects(projectInfo.projectId)
     console.log(projects)
