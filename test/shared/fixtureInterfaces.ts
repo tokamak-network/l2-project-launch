@@ -38,6 +38,9 @@ import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2P
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
 
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
 interface L2ProjectLaunchFixture  {
     libProject: LibProject,
     l1ERC20A_TokenFactory: L1ERC20A_TokenFactory,
@@ -67,9 +70,11 @@ interface L2ProjectLaunchFixture  {
     l2PublicProxyLogic: L2PublicSaleVault,
     l2ProjectManagerAddr: Signer,
     l2VaultAdmin: Signer,
-    l2LiquidityProxy: L2InitialLiquidityVaultProxy
+    l2LiquidityProxy: L2InitialLiquidityVaultProxy,
     l2Liquidity: L2InitialLiquidityVault,
-    vestingFundAddr: Signer
+    vestingFundAddr: Signer,
+    l2VestingFundProxy: L2VestingFundVaultProxy,
+    l2VestingFund: L2VestingFundVault
 }
 
 interface ProjectInfo {
