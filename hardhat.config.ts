@@ -65,6 +65,10 @@ const config: HardhatUserConfig = {
         url: `${process.env.ETH_NODE_URI_MAINNET}`,
         blockNumber: 15927883
       },
+      // forking: {
+      //   url: `${process.env.ETH_NODE_URI_TITAN}`,
+      //   blockNumber: 1200
+      // },
       allowUnlimitedContractSize: false,
       deploy: ['deploy_l1', 'deploy_l2'],
       companionNetworks: {
