@@ -13,6 +13,7 @@ import { L1ERC20D_TokenFactory } from '../../typechain-types/contracts/L1/factor
 import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectManager.sol'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
+import { MockL2TokenFactory } from '../../typechain-types/contracts/test/MockL2TokenFactory.sol'
 import { L2ProjectManager } from '../../typechain-types/contracts/L2/L2ProjectManager.sol'
 import { L1ProjectManagerProxy } from '../../typechain-types/contracts/L1/L1ProjectManagerProxy'
 import { L2ProjectManagerProxy } from '../../typechain-types/contracts/L2/L2ProjectManagerProxy'
@@ -39,10 +40,17 @@ import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaul
 import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
 // L2ScheduleVault ( team, marketing )
 import { L2ScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVault'
-import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy.sol'
+import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy'
 // L2NonScheduleVault (dao)
 import { L2NonScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2NonScheduleVault'
 import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vaults/L2CustomVaultBaseProxy'
+
+import { L2AirdropStosVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropStosVault.sol'
+import { L2AirdropStosVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropStosVaultProxy'
+import { L2DividendPoolForStos } from '../../typechain-types/contracts/L2/airdrop/L2DividendPoolForStos.sol'
+import { L2DividendPoolForStosProxy } from '../../typechain-types/contracts/L2/airdrop/L2DividendPoolForStosProxy'
+import { L2UniversalStos } from '../../typechain-types/contracts/L2/stos/L2UniversalStos.sol'
+import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2UniversalStosProxy'
 
 // LpReward
 // TonAirdrop
@@ -85,7 +93,7 @@ interface SetL2ProjectLaunchFixture  {
     l1ERC20D_TokenFactory: L1ERC20D_TokenFactory,
     l1ProjectManager: L1ProjectManager,
     l1ProjectManagerProxy: L1ProjectManagerProxy,
-    l2TokenFactory: L2TokenFactory,
+    l2TokenFactory: MockL2TokenFactory,
     l2ProjectManager: L2ProjectManager,
     l2ProjectManagerProxy: L2ProjectManagerProxy,
     deployer: Signer,
@@ -109,6 +117,12 @@ interface SetL2ProjectLaunchFixture  {
     scheduleVaultProxy: L2ScheduleVaultProxy,
     nonScheduleVault: L2NonScheduleVault,
     nonScheduleVaultProxy: L2CustomVaultBaseProxy,
+    airdropStosVault: L2AirdropStosVault,
+    airdropStosVaultProxy: L2AirdropStosVaultProxy,
+    l2DividendPoolForStos: L2DividendPoolForStos,
+    l2DividendPoolForStosProxy: L2DividendPoolForStosProxy,
+    l2UniversalStos: L2UniversalStos,
+    l2UniversalStosProxy: L2UniversalStosProxy,
     tosAddress: string,
     tosAdminAddress: string
 }

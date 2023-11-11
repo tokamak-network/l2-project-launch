@@ -20,6 +20,8 @@ import { L1ProjectManager } from '../../typechain-types/contracts/L1/L1ProjectMa
 import { L1ProjectManagerProxy } from '../../typechain-types/contracts/L1/L1ProjectManagerProxy'
 
 import { L2TokenFactory } from '../../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
+import { MockL2TokenFactory } from '../../typechain-types/contracts/test/MockL2TokenFactory.sol'
+
 import { L2ProjectManager } from '../../typechain-types/contracts/L2/L2ProjectManager.sol'
 import { L2ProjectManagerProxy } from '../../typechain-types/contracts/L2/L2ProjectManagerProxy'
 
@@ -60,6 +62,12 @@ import { L2CustomVaultBaseProxy } from '../../typechain-types/contracts/L2/vault
 // LpReward
 // TonAirdrop
 // TosAirDrop
+import { L2AirdropStosVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropStosVault.sol'
+import { L2AirdropStosVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropStosVaultProxy'
+import { L2DividendPoolForStos } from '../../typechain-types/contracts/L2/airdrop/L2DividendPoolForStos.sol'
+import { L2DividendPoolForStosProxy } from '../../typechain-types/contracts/L2/airdrop/L2DividendPoolForStosProxy'
+import { L2UniversalStos } from '../../typechain-types/contracts/L2/stos/L2UniversalStos.sol'
+import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2UniversalStosProxy'
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2ProjectManagerJson from "../../artifacts/contracts/L2/L2ProjectManager.sol/L2ProjectManager.json";
@@ -70,6 +78,9 @@ import L2NonScheduleVaultJson from "../../artifacts/contracts/L2/vaults/L2NonSch
 import L1StosToL2Json from "../../artifacts/contracts/L1/L1StosToL2.sol/L1StosToL2.json";
 import L1StosInL2Json from "../../artifacts/contracts/L2/L1StosInL2.sol/L1StosInL2.json";
 import LockIdNftForRegisterJson from "../../artifacts/contracts/stos/LockIdNftForRegister.sol/LockIdNftForRegister.json";
+import L2AirdropStosVaultJson from "../../artifacts/contracts/L2/vaults/L2AirdropStosVault.sol/L2AirdropStosVault.json";
+import L2DividendPoolForStosJson from "../../artifacts/contracts/L2/airdrop/L2DividendPoolForStos.sol/L2DividendPoolForStos.json";
+import L2UniversalStosJson from "../../artifacts/contracts/L2/stos/L2UniversalStos.sol/L2UniversalStos.json";
 
 
 const tosInfo = {
@@ -139,14 +150,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
     const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-    const { paymasterAddress, l1AddressManagerAddress } = await hre.getNamedAccounts();
-
-    // const create2Signer = await hre.ethers.getSigner(accountForCreate2Deployer);
-
-    //
-    // const Create2Deployer_ = await ethers.getContractFactory('Create2Deployer');
-    // const factory = (await Create2Deployer_.connect(create2Signer).deploy()) as Create2Deployer
-    // console.log("factory", factory.address);
+    const { paymasterAddress, l1AddressManagerAddress, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
 
     //==== LibProject =================================
     const LibProject_ = await ethers.getContractFactory('LibProject');
@@ -258,7 +262,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
   }
 }
 
-export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectLaunchFixture> {
+export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boolean): Promise<SetL2ProjectLaunchFixture> {
 
   const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
   const { paymasterAddress, l1AddressManagerAddress, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
@@ -301,9 +305,16 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   const l1ProjectManager = await ethers.getContractAt(l1ProjectManagerJson.abi, l1ProjectManagerProxy.address, deployer) as L1ProjectManager;
 
   //==== L2TokenFactory =================================
+  let l2TokenFactoryDeployment ;
+  let l2TokenFactory;
 
-  const l2TokenFactoryDeployment = await ethers.getContractFactory("L2TokenFactory");
-  const l2TokenFactory = (await l2TokenFactoryDeployment.connect(deployer).deploy()) as L2TokenFactory;
+  if (mockL2FactoryFlag) {
+    l2TokenFactoryDeployment = await ethers.getContractFactory("MockL2TokenFactory");
+    l2TokenFactory = (await l2TokenFactoryDeployment.connect(deployer).deploy()) as MockL2TokenFactory;
+  } else {
+    l2TokenFactoryDeployment = await ethers.getContractFactory("L2TokenFactory");
+    l2TokenFactory = (await l2TokenFactoryDeployment.connect(deployer).deploy()) as MockL2TokenFactory;
+  }
 
   //==== L2ProjectManager =================================
 
@@ -395,6 +406,22 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   const nonScheduleVault = await ethers.getContractAt(
     L2NonScheduleVaultJson.abi, nonScheduleVaultProxy.address, deployer) as L2NonScheduleVault;
 
+  //==== L2AirdropStosVault =========================
+  const airdropStosVaultDeployment = await ethers.getContractFactory("L2AirdropStosVault")
+  const airdropStosVaultImpl = (await airdropStosVaultDeployment.connect(deployer).deploy()) as L2AirdropStosVault;
+
+  //==== L2AirdropStosVaultProxy =================================
+  const airdropStosVaultProxyDeployment = await ethers.getContractFactory("L2AirdropStosVaultProxy")
+  const airdropStosVaultProxy = (await airdropStosVaultProxyDeployment.connect(deployer).deploy()) as L2AirdropStosVaultProxy;
+
+  impl = await airdropStosVaultProxy.implementation()
+  if (impl != airdropStosVaultImpl.address) {
+    await (await airdropStosVaultProxy.connect(deployer).upgradeTo(airdropStosVaultImpl.address)).wait()
+  }
+
+  const airdropStosVault = await ethers.getContractAt(
+    L2AirdropStosVaultJson.abi, airdropStosVaultProxy.address, deployer) as L2AirdropStosVault;
+
   //==== daoVault =================================
   const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")
   const daoVaultImpl = (await daoVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVault;
@@ -452,13 +479,72 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
   await (await teamVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await scheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await airdropStosVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
 
-  // for test
-  // await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
+  //==== L2UniversalStos =========================
+  const l2UniversalStosDeployment = await ethers.getContractFactory("L2UniversalStos")
+  const l2UniversalStosImpl = (await l2UniversalStosDeployment.connect(deployer).deploy()) as L2UniversalStos;
+
+  //==== L2UniversalStosProxy =================================
+  const l2UniversalStosProxyDeployment = await ethers.getContractFactory("L2UniversalStosProxy")
+  const l2UniversalStosProxy = (await l2UniversalStosProxyDeployment.connect(deployer).deploy()) as L2UniversalStosProxy;
+
+  impl = await l2UniversalStosProxy.implementation()
+  if (impl != l2UniversalStosImpl.address) {
+    await (await l2UniversalStosProxy.connect(deployer).upgradeTo(l2UniversalStosImpl.address)).wait()
+  }
+
+  const l2UniversalStos = await ethers.getContractAt(
+    L2UniversalStosJson.abi, l2UniversalStosProxy.address, deployer) as L2UniversalStos;
+
+  // let l2StakeV2_l2UniversalStosProxy = await l2UniversalStos.l2StakeV2()
+  // if (l2StakeV2_l2UniversalStosProxy != l2DividendPoolForStosProxy.address) {
+  //   await (await airdropStosVault.connect(deployer).setDividendPool(l2DividendPoolForStosProxy.address)).wait()
+  // }
+  // let lockIdNftForRegister_l2UniversalStosProxy = await l2UniversalStos.lockIdNftForRegister()
+  // if (lockIdNftForRegister_l2UniversalStosProxy != ethers.constants.AddressZero &&
+  //     lockIdNftForRegister_l2UniversalStosProxy != lockIdNftForRegister.address) {
+  //   await (await l2UniversalStos.connect(deployer).setLockIdNftForRegister(lockIdNftForRegister.address)).wait()
+  // }
+
+
+  //==== L2DividendPoolForStos =========================
+  const l2DividendPoolForStosDeployment = await ethers.getContractFactory("L2DividendPoolForStos")
+  const l2DividendPoolForStosImpl = (await l2DividendPoolForStosDeployment.connect(deployer).deploy()) as L2DividendPoolForStos;
+
+  //==== L2DividendPoolForStosProxy =================================
+  const l2DividendPoolForStosProxyDeployment = await ethers.getContractFactory("L2DividendPoolForStosProxy")
+  const l2DividendPoolForStosProxy = (await l2DividendPoolForStosProxyDeployment.connect(deployer).deploy()) as L2DividendPoolForStosProxy;
+
+  impl = await l2DividendPoolForStosProxy.implementation()
+  if (impl != l2DividendPoolForStosImpl.address) {
+    await (await l2DividendPoolForStosProxy.connect(deployer).upgradeTo(l2DividendPoolForStosImpl.address)).wait()
+  }
+  const l2DividendPoolForStos = await ethers.getContractAt(
+    L2DividendPoolForStosJson.abi, l2DividendPoolForStosProxy.address, deployer) as L2DividendPoolForStos;
+
+  let dividendPool_airdropStosVaultProxy = await airdropStosVault.dividendPool()
+  if (dividendPool_airdropStosVaultProxy != l2DividendPoolForStosProxy.address) {
+    await (await airdropStosVault.connect(deployer).setDividendPool(l2DividendPoolForStosProxy.address)).wait()
+  }
+
+  let universalStos_l2DividendPoolForStos = await l2DividendPoolForStos.universalStos()
+  if (universalStos_l2DividendPoolForStos != l2UniversalStosProxy.address) {
+    await (await l2DividendPoolForStos.connect(deployer).initialize(
+      l2UniversalStosProxy.address,
+      lockTosInitializeIfo.epochUnit
+    )).wait()
+  }
+
+  // for test (npx hardhat test test/2.L1ProjectManager.spec.ts로 테스트할때는 토큰도 L2StandardERC20 로 맏들수없는데.. )
+  if (mockL2FactoryFlag) {
+    await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
+  }
 
   await (await l2TokenFactory.connect(deployer).setL1Bridge(l1Bridge.address)).wait()
   await (await l2Bridge.connect(deployer).setAddress(
     l2Messenger.address, l1Bridge.address)).wait()
+
 
   return  {
       libProject: libProject,
@@ -492,6 +578,12 @@ export const l2ProjectLaunchFixtures2 = async function (): Promise<SetL2ProjectL
       scheduleVaultProxy: scheduleVaultProxy,
       nonScheduleVault: nonScheduleVault,
       nonScheduleVaultProxy: nonScheduleVaultProxy,
+      airdropStosVault: airdropStosVault,
+      airdropStosVaultProxy: airdropStosVaultProxy,
+      l2DividendPoolForStos: l2DividendPoolForStos,
+      l2DividendPoolForStosProxy: l2DividendPoolForStosProxy,
+      l2UniversalStos: l2UniversalStos,
+      l2UniversalStosProxy: l2UniversalStosProxy,
       tosAddress: tosAddress,
       tosAdminAddress: tosAdminAddress
   }

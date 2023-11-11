@@ -33,18 +33,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test6',
-    tokenName: 'Test6',
-    tokenSymbol: 'T6T',
+    projectName: 'Test8',
+    tokenName: 'Test8',
+    tokenSymbol: 'T8T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("6");
+let projectId = ethers.BigNumber.from("8");
 
-const L2Token = "0x9668420A4E797e5B823EbeC870b30e4ff91D6dCF"
+const L2Token = "0x63043fa631f6fe951585664fc88082e474f8a466"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 
 const setup = async() => {
@@ -171,7 +171,7 @@ async function main() {
         tonAirdropParams: tonAirdropParams
     }
     // console.log('tokamakVaults' ,tokamakVaults )
-    let customScheduleVaults = [teamParams, marketingParams, teamParams]
+    let customScheduleVaults = [teamParams, marketingParams]
     let customNonScheduleVaults = [daoParams]
 
     console.log('initialVaultParams' , initialVaultParams)

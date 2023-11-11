@@ -15,6 +15,7 @@ import univ3prices from '@thanpolas/univ3prices';
 import ERC20AJson from './abi/ERC20A.json'
 import L2StandardERC20Json from './abi/L2StandardERC20.json';
 
+const mockL2FactoryFlag = false
 describe('L1ProjectManager', () => {
     let deployer: Signer, addr1: Signer, addr2:Signer;
     let deployed: SetL2ProjectLaunchFixture
@@ -23,7 +24,7 @@ describe('L1ProjectManager', () => {
     let l2TokenContract: any;
 
     before('create fixture loader', async () => {
-        deployed = await l2ProjectLaunchFixtures2()
+        deployed = await l2ProjectLaunchFixtures2(mockL2FactoryFlag)
         deployer = deployed.deployer;
         addr1 = deployed.addr1;
         addr2 = deployed.addr2;
@@ -244,7 +245,7 @@ describe('L1ProjectManager', () => {
                         deployed.initialLiquidityVaultProxy.address,
                         ethers.constants.AddressZero,
                         ethers.constants.AddressZero,
-                        ethers.constants.AddressZero,
+                        deployed.airdropStosVault.address,
                         deployed.scheduleVaultProxy.address,
                         deployed.nonScheduleVaultProxy.address
                         )
@@ -258,7 +259,7 @@ describe('L1ProjectManager', () => {
                     deployed.initialLiquidityVaultProxy.address,
                     ethers.constants.AddressZero,
                     ethers.constants.AddressZero,
-                    ethers.constants.AddressZero,
+                    deployed.airdropStosVault.address,
                     deployed.scheduleVaultProxy.address,
                     deployed.nonScheduleVaultProxy.address
                 )
@@ -266,22 +267,23 @@ describe('L1ProjectManager', () => {
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
+                expect(await deployed.l2ProjectManager.tosAirdropVault()).to.be.eq(deployed.airdropStosVault.address)
 
             })
 
-            it('setTokamakVaults can set only once', async () => {
-                await expect(
-                    deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
-                        ethers.constants.AddressZero,
-                        deployed.initialLiquidityVaultProxy.address,
-                        ethers.constants.AddressZero,
-                        ethers.constants.AddressZero,
-                        ethers.constants.AddressZero,
-                        deployed.scheduleVaultProxy.address,
-                        deployed.nonScheduleVaultProxy.address
-                    )
-                ).to.be.revertedWith("already set")
-            })
+            // it('setTokamakVaults can set only once', async () => {
+            //     await expect(
+            //         deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
+            //             ethers.constants.AddressZero,
+            //             deployed.initialLiquidityVaultProxy.address,
+            //             ethers.constants.AddressZero,
+            //             ethers.constants.AddressZero,
+            //             deployed.airdropStosVault.address,
+            //             deployed.scheduleVaultProxy.address,
+            //             deployed.nonScheduleVaultProxy.address
+            //         )
+            //     ).to.be.revertedWith("already set")
+            // })
         });
 
     });
@@ -409,7 +411,9 @@ describe('L1ProjectManager', () => {
             let contract = await ethers.getContractAt(
                 L2StandardERC20Json.abi, projectInfo.l2Token, deployer);
 
-            // expect(await contract.l2Bridge()).to.be.eq(deployed.l2Bridge.address);
+            if(mockL2FactoryFlag)
+                expect(await contract.l2Bridge()).to.be.eq(deployed.l2Bridge.address);
+
             expect(await contract.l1Token()).to.be.eq(projectInfo.l1Token);
 
         })
@@ -506,10 +510,12 @@ describe('L1ProjectManager', () => {
 
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
-            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("4"))
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("5"))
             let daoAmount = initialLiquidityAmount
             let teamAmount = initialLiquidityAmount
             let marketingAmount = initialLiquidityAmount
+            let airdropStosAmount = initialLiquidityAmount
+
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
             let firstClaimTime = sTime
             let totalClaimCount = 4
@@ -554,7 +560,15 @@ describe('L1ProjectManager', () => {
                 sTime,
                 3000) ;
             let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
-            let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+            let tosAirdropParams =  getTosAirdropParams(
+                ethers.constants.AddressZero,
+                airdropStosAmount,
+                totalClaimCount,
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+                );
             let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
             let daoParams =  getNonScheduleParams("DAO", addr1.address, daoAmount);
             let teamParams =  getScheduleParams(

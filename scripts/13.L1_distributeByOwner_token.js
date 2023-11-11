@@ -35,18 +35,19 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test2',
-    tokenName: 'Test2',
-    tokenSymbol: 'T2T',
+    projectName: 'Test7',
+    tokenName: 'Test7',
+    tokenSymbol: 'T7T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("2");
-const L1Token = "0x9D154DD6b98E3c3fE384170678408d3A07aeb9Ac"
-const L2Token = "0x08E1e630D3fdE75f30587b075141EefcE6DF64B9"
+let projectId = ethers.BigNumber.from("7");
+
+const L1Token = "0xb74db9f6b3f4bc6282657f09d8640ac0532c9cd4"
+const L2Token = "0xafbd7734324934b07642d50f156b5bae9832b184"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 
 const setup = async() => {
@@ -78,15 +79,19 @@ async function main() {
     projectInfo.projectOwner = ourAddr;
     projectInfo.l1Token = L1Token;
     projectInfo.l2Token = L2Token;
+    let vaultCount = BigNumber.from("5")
 
-    let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("4"))
+    let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let daoAmount = initialLiquidityAmount
     let teamAmount = initialLiquidityAmount
     let marketingAmount = initialLiquidityAmount
+    let airdropStosAmount = initialLiquidityAmount
+
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
     let firstClaimTime = sTime
-    let totalClaimCount = 4
-    let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
+
+    let totalClaimCount = BigNumber.from("4")
+    let firstClaimAmount = teamAmount.div(totalClaimCount)
     let roundIntervalTime = 60*60*24*7;
     let secondClaimTime =  firstClaimTime + roundIntervalTime
 
@@ -121,14 +126,22 @@ async function main() {
         sTime,
         3000) ;
     let rewardParams = getLpRewardParams(ourAddr, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
-    let tosAirdropParams =  getTosAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
+    let tosAirdropParams =  getTosAirdropParams(
+        ethers.constants.AddressZero,
+        airdropStosAmount,
+        totalClaimCount.toNumber(),
+        firstClaimAmount,
+        firstClaimTime,
+        secondClaimTime,
+        roundIntervalTime
+        );
     let tonAirdropParams =  getTonAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
     let daoParams =  getNonScheduleParams("DAO", ourAddr, daoAmount);
     let teamParams =  getScheduleParams(
         "TEAM",
         ourAddr,
         teamAmount, //totalAllocatedAmount
-        totalClaimCount, // totalClaimCount
+        totalClaimCount.toNumber(), // totalClaimCount
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -139,7 +152,7 @@ async function main() {
         "MARKETING",
         ourAddr,
         marketingAmount, //totalAllocatedAmount
-        totalClaimCount, // totalClaimCount 4
+        totalClaimCount.toNumber(), // totalClaimCount 4
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -176,37 +189,37 @@ async function main() {
         )
     console.log('gos', gos)
 
-    const receipt = await (await L2ProjectManager.distributesL2TokenOwner(
-        projectInfo.l1Token,
-        projectInfo.l2Token,
-        projectInfo.projectId,
-        projectInfo.initialTotalSupply,
-        tokamakVaults,
-        customScheduleVaults,
-        customNonScheduleVaults
-        )).wait();
+    // const receipt = await (await L2ProjectManager.distributesL2TokenOwner(
+    //     projectInfo.l1Token,
+    //     projectInfo.l2Token,
+    //     projectInfo.projectId,
+    //     projectInfo.initialTotalSupply,
+    //     tokamakVaults,
+    //     customScheduleVaults,
+    //     customNonScheduleVaults
+    //     )).wait();
 
-    //--------------------------
-    const topic = L2ProjectManager.interface.getEventTopic('DistributedL2Token');
-    const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
-    const deployedEvent = L2ProjectManager.interface.parseLog(log);
+    // //--------------------------
+    // const topic = L2ProjectManager.interface.getEventTopic('DistributedL2Token');
+    // const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
+    // const deployedEvent = L2ProjectManager.interface.parseLog(log);
 
-    console.log(deployedEvent.args)
+    // console.log(deployedEvent.args)
 
-    const tokenContract = new ethers.Contract(projectInfo.l2Token, L2StandardERC20Json.abi, l2Signer)
-    let totalSupply = await tokenContract.totalSupply()
-    let balanceOf = await tokenContract.balanceOf(L2ProjectManager.address);
-    console.log("l2Token totalSupply", totalSupply)
-    console.log("l2Token L2ProjectManager balanceOf", balanceOf)
+    // const tokenContract = new ethers.Contract(projectInfo.l2Token, L2StandardERC20Json.abi, l2Signer)
+    // let totalSupply = await tokenContract.totalSupply()
+    // let balanceOf = await tokenContract.balanceOf(L2ProjectManager.address);
+    // console.log("l2Token totalSupply", totalSupply)
+    // console.log("l2Token L2ProjectManager balanceOf", balanceOf)
 
 
-    let balanceOfInitialVaultProxy = await tokenContract.balanceOf(L2Contracts.abis["L2InitialLiquidityVaultProxy"].address);
-    let balanceOfL2ScheduleVaultProxy = await tokenContract.balanceOf(L2Contracts.abis["L2ScheduleVaultProxy"].address);
-    let balanceOfL2CustomVaultBaseProxy = await tokenContract.balanceOf(L2Contracts.abis["L2CustomVaultBaseProxy"].address);
+    // let balanceOfInitialVaultProxy = await tokenContract.balanceOf(L2Contracts.abis["L2InitialLiquidityVaultProxy"].address);
+    // let balanceOfL2ScheduleVaultProxy = await tokenContract.balanceOf(L2Contracts.abis["L2ScheduleVaultProxy"].address);
+    // let balanceOfL2CustomVaultBaseProxy = await tokenContract.balanceOf(L2Contracts.abis["L2CustomVaultBaseProxy"].address);
 
-    console.log("l2Token L2ProjectManager balanceOf", balanceOfInitialVaultProxy)
-    console.log("l2Token L2ProjectManager balanceOf", balanceOfL2ScheduleVaultProxy)
-    console.log("l2Token L2ProjectManager balanceOf", balanceOfL2CustomVaultBaseProxy)
+    // console.log("l2Token L2ProjectManager balanceOf", balanceOfInitialVaultProxy)
+    // console.log("l2Token L2ProjectManager balanceOf", balanceOfL2ScheduleVaultProxy)
+    // console.log("l2Token L2ProjectManager balanceOf", balanceOfL2CustomVaultBaseProxy)
 
 }
 

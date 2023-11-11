@@ -297,6 +297,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         if (allowance < amount) IERC20(l1Token).approve(l1Bridge, type(uint256).max);
         // console.log('_depositL1TokenToL2 l1Bridge %s', l1Bridge);
         // console.log('_depositL1TokenToL2 amount %s', amount);
+        // console.log('_depositL1TokenToL2 depositTo %s', depositTo);
 
         L1BridgeI(l1Bridge).depositERC20To(
             l1Token,

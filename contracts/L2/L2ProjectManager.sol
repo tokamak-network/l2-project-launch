@@ -62,6 +62,15 @@ interface IL2NonScheduleVault {
         uint256 totalAllocatedAmount
     ) external;
 }
+
+interface IL2AirdropStosVault {
+    function initialize(
+        address l2Token,
+        LibProject.InitalParameterScheduleVault memory params
+    ) external;
+}
+
+
 /**
  * @title L2ProjectManager
  * @dev
@@ -153,7 +162,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         // nonZeroAddress(publicSale)
         nonZeroAddress(initialLiquidity)
         // nonZeroAddress(liquidityReward)
-        // nonZeroAddress(tosAirdrop)
+        nonZeroAddress(tosAirdrop)
         // nonZeroAddress(tonAirdrop)
         nonZeroAddress(_scheduleVault)
         nonZeroAddress(_nonScheduleVault)
@@ -289,6 +298,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         total += (totalCustomSchedule + totalNonCustomSchedule);
 
         require(total == totalAmount, "not matched totalAmount");
+        require(totalAmount <= IERC20(l2Token).balanceOf(address(this)), "insufficient balance");
 
         projects[info.l2Token].projectId = projectId;
         _approveVaults(info.l2Token, publicSaleVault, publicTotal);
@@ -308,10 +318,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         LibProject.InitalParameterInitialLiquidityVault memory initialVaultParams = tokamakVaults.initialVaultParams;
 
         if (tokamakVaults.initialVaultParams.totalAllocatedAmount != 0) {
-
             if(!IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner)) IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(info.l2Token, info.projectOwner);
-            IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner);
-
             IL2InitialLiquidityVault(initialLiquidityVault).initialize(
                 info.l2Token,
                 initialVaultParams);
@@ -326,9 +333,13 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         }
 
         if (tokamakVaults.tosAirdropParams.totalAllocatedAmount != 0) {
-            //
-        }
+            if(!IL2CustomVaultBase(tosAirdropVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(tosAirdropVault).setVaultAdmin(info.l2Token, info.projectOwner);
 
+            IL2AirdropStosVault(tosAirdropVault).initialize(
+                info.l2Token,
+                tokamakVaults.tosAirdropParams);
+        }
         if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
             //
         }
