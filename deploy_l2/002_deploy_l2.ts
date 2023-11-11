@@ -320,6 +320,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         args: [],
         log: true
     });
+    console.log('L2AirdropTonVaultProxy', L2AirdropTonVaultProxyDeployment.address)
 
     const l2AirdropTonVaultProxy = (await hre.ethers.getContractAt(
         L2AirdropTonVaultProxyDeployment.abi,
@@ -335,7 +336,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     const l2AirdropTonVault = (await hre.ethers.getContractAt(
         L2AirdropTonVaultDeployment.abi,
         L2AirdropTonVaultProxyDeployment.address
-    )) as L2AirdropStosVault;
+    )) as L2AirdropTonVault;
 
 
     let l2ProjectManage5 = await l2AirdropTonVault.l2ProjectManager()
@@ -365,13 +366,13 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         scheduleVault != l2ScheduleVaultProxy.address ||
         nonScheduleVault != l2NonScheduleVaultProxy.address ||
         tosAirdropVault != l2AirdropStosVaultProxy.address ||
-        tonAirdropVault != l2AirdropTonVaultProxy.address
+        tonAirdropVault != L2AirdropTonVaultProxyDeployment.address
         ) {
         await (await l2ProjectManager.connect(deploySigner).setTokamakVaults(
             hre.ethers.constants.AddressZero,
             l2InitialLiquidityVaultProxy.address,
             hre.ethers.constants.AddressZero,
-            l2AirdropTonVaultProxy.address,
+            L2AirdropTonVaultProxyDeployment.address,
             l2AirdropStosVaultProxy.address,
             l2ScheduleVaultProxy.address,
             l2NonScheduleVaultProxy.address

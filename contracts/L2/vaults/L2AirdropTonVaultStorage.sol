@@ -12,4 +12,5 @@ contract L2AirdropTonVaultStorage {
     // l2token - VaultInfo
     mapping(address => LibScheduleVault.VaultInfo) public vaultInfo;
     address public dividendPool;
+    address public ext;
 }

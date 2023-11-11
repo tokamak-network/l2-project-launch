@@ -10,11 +10,12 @@ import { L2AirdropTonVaultStorage } from "./L2AirdropTonVaultStorage.sol";
  */
 contract L2AirdropTonVaultProxy is L2CustomVaultBaseProxy, L2AirdropTonVaultStorage {
 
-
     /* ========== DEPENDENCIES ========== */
 
     /* ========== CONSTRUCTOR ========== */
+    constructor () {
 
+    }
     /* ========== onlyOwner ========== */
 
     /* ========== only L2ProjectManager ========== */
