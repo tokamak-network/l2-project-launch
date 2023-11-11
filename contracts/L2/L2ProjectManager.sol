@@ -340,8 +340,14 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 info.l2Token,
                 tokamakVaults.tosAirdropParams);
         }
+
         if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
-            //
+            if(!IL2CustomVaultBase(tonAirdropVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(tonAirdropVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            IL2AirdropStosVault(tonAirdropVault).initialize(
+                info.l2Token,
+                tokamakVaults.tonAirdropParams);
         }
 
         uint256 projectId_ = projectId;

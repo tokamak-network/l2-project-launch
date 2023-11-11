@@ -1,0 +1,83 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L2AirdropTonVaultStorage",
+  "sourceName": "contracts/L2/vaults/L2AirdropTonVaultStorage.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "dividendPool",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaultInfo",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "claimer",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalAllocatedAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalClaimCount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalClaimedAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstClaimAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint32",
+          "name": "firstClaimTime",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "secondClaimTime",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "roundInterval",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "latestClaimedRound",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b50610186806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c806330d172d51461003b5780639164359a1461006b575b600080fd5b60015461004e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6100ec610079366004610149565b6000602081905290815260409020805460018201546002830154600384015460048501546005909501546001600160a01b039094169492939192909163ffffffff8082169164010000000081048216916801000000000000000082048116916c0100000000000000000000000090041689565b604080516001600160a01b03909a168a5260208a0198909852968801959095526060870193909352608086019190915263ffffffff90811660a086015290811660c085015290811660e08401521661010082015261012001610062565b60006020828403121561015b57600080fd5b81356001600160a01b038116811461017257600080fd5b939250505056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c806330d172d51461003b5780639164359a1461006b575b600080fd5b60015461004e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b6100ec610079366004610149565b6000602081905290815260409020805460018201546002830154600384015460048501546005909501546001600160a01b039094169492939192909163ffffffff8082169164010000000081048216916801000000000000000082048116916c0100000000000000000000000090041689565b604080516001600160a01b03909a168a5260208a0198909852968801959095526060870193909352608086019190915263ffffffff90811660a086015290811660c085015290811660e08401521661010082015261012001610062565b60006020828403121561015b57600080fd5b81356001600160a01b038116811461017257600080fd5b939250505056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

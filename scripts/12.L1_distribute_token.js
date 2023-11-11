@@ -31,11 +31,11 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("100000"),
+    initialTotalSupply: ethers.utils.parseEther("300000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test8',
-    tokenName: 'Test8',
-    tokenSymbol: 'T8T',
+    projectName: 'Test9',
+    tokenName: 'Test9',
+    tokenSymbol: 'T9T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
@@ -83,13 +83,15 @@ async function main() {
     console.log('projectInfo', projectInfo)
 
     // test vaults : initialLiquidityVault, DAO, Team, Marketing , airdropStos
-    let vaultCount = BigNumber.from("5")
+    let vaultCount = BigNumber.from("6")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let daoAmount = initialLiquidityAmount
     let teamAmount = initialLiquidityAmount
     let marketingAmount = initialLiquidityAmount
     let airdropStosAmount = initialLiquidityAmount
+    let airdropTonAmount = initialLiquidityAmount
+
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
     let firstClaimTime = sTime
@@ -139,7 +141,16 @@ async function main() {
         roundIntervalTime
         );
 
-    let tonAirdropParams =  getTonAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
+    let tonAirdropParams =  getTonAirdropParams(
+        ethers.constants.AddressZero,
+        airdropTonAmount,
+        totalClaimCount.toNumber(),
+        firstClaimAmount,
+        firstClaimTime,
+        secondClaimTime,
+        roundIntervalTime
+        );
+
     let daoParams =  getNonScheduleParams("DAO", ourAddr, daoAmount);
     let teamParams =  getScheduleParams(
         "TEAM",

@@ -21,7 +21,8 @@ import { L2DividendPoolForStosProxy } from '../typechain-types/contracts/L2/aird
 import { L2DividendPoolForStos } from '../typechain-types/contracts/L2/airdrop/L2DividendPoolForStos.sol'
 import { L2AirdropStosVaultProxy } from '../typechain-types/contracts/L2/vaults/L2AirdropStosVaultProxy'
 import { L2AirdropStosVault } from '../typechain-types/contracts/L2/vaults/L2AirdropStosVault.sol'
-
+import { L2AirdropTonVaultProxy } from '../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
+import { L2AirdropTonVault } from '../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
 
 let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
 let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
@@ -306,6 +307,43 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             )).wait()
     }
 
+    //==== L2AirdropTonVault =================================
+    const L2AirdropTonVaultDeployment = await deploy("L2AirdropTonVault", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L2AirdropTonVaultProxy =================================
+    const L2AirdropTonVaultProxyDeployment = await deploy("L2AirdropTonVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l2AirdropTonVaultProxy = (await hre.ethers.getContractAt(
+        L2AirdropTonVaultProxyDeployment.abi,
+        L2AirdropTonVaultProxyDeployment.address
+    )) as L2AirdropTonVaultProxy;
+
+    //==== l2AirdropTonVaultProxy upgradeTo =================================
+    let impl7 = await l2AirdropTonVaultProxy.implementation()
+    if (impl7 != L2AirdropTonVaultDeployment.address) {
+        await (await l2AirdropTonVaultProxy.connect(deploySigner).upgradeTo(L2AirdropTonVaultDeployment.address)).wait()
+    }
+
+    const l2AirdropTonVault = (await hre.ethers.getContractAt(
+        L2AirdropTonVaultDeployment.abi,
+        L2AirdropTonVaultProxyDeployment.address
+    )) as L2AirdropStosVault;
+
+
+    let l2ProjectManage5 = await l2AirdropTonVault.l2ProjectManager()
+    if (l2ProjectManage5 != l2ProjectManager.address) {
+        await (await l2AirdropTonVault.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
      //---- setTokamakVaults
     /*
     address publicSale,
@@ -320,18 +358,20 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     let scheduleVault = await l2ProjectManager.scheduleVault()
     let nonScheduleVault = await l2ProjectManager.initialLiquidityVault()
     let tosAirdropVault = await l2ProjectManager.tosAirdropVault()
+    let tonAirdropVault = await l2ProjectManager.tonAirdropVault()
 
 
     if (initialLiquidityVault != l2InitialLiquidityVaultProxy.address ||
         scheduleVault != l2ScheduleVaultProxy.address ||
         nonScheduleVault != l2NonScheduleVaultProxy.address ||
-        tosAirdropVault != l2AirdropStosVaultProxy.address
+        tosAirdropVault != l2AirdropStosVaultProxy.address ||
+        tonAirdropVault != l2AirdropTonVaultProxy.address
         ) {
         await (await l2ProjectManager.connect(deploySigner).setTokamakVaults(
             hre.ethers.constants.AddressZero,
             l2InitialLiquidityVaultProxy.address,
             hre.ethers.constants.AddressZero,
-            hre.ethers.constants.AddressZero,
+            l2AirdropTonVaultProxy.address,
             l2AirdropStosVaultProxy.address,
             l2ScheduleVaultProxy.address,
             l2NonScheduleVaultProxy.address

@@ -52,6 +52,9 @@ import { L2DividendPoolForStosProxy } from '../../typechain-types/contracts/L2/a
 import { L2UniversalStos } from '../../typechain-types/contracts/L2/stos/L2UniversalStos.sol'
 import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2UniversalStosProxy'
 
+import { L2AirdropTonVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
+import { L2AirdropTonVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
+
 // LpReward
 // TonAirdrop
 // TosAirDrop
@@ -123,6 +126,8 @@ interface SetL2ProjectLaunchFixture  {
     l2DividendPoolForStosProxy: L2DividendPoolForStosProxy,
     l2UniversalStos: L2UniversalStos,
     l2UniversalStosProxy: L2UniversalStosProxy,
+    airdropTonVault: L2AirdropTonVault,
+    airdropTonVaultProxy: L2AirdropTonVaultProxy,
     tosAddress: string,
     tosAdminAddress: string
 }
