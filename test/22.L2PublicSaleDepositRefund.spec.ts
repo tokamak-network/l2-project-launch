@@ -125,7 +125,6 @@ describe('L2PublicSaleTest', () => {
     let refundTONAmount = ethers.utils.parseUnits("1000", 18);
 
     let publicSaleParams: any;
-    let publicSaleClaimParas: any;
 
 
     //goerli

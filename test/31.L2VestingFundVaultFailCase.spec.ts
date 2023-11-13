@@ -4,6 +4,7 @@ import { ethers, network } from 'hardhat'
 import { BigNumber, Signer } from 'ethers'
 import { l2ProjectLaunchFixtures, l1Fixtures } from './shared/fixtures'
 import { L2ProjectLaunchFixture, L1Fixture } from './shared/fixtureInterfaces'
+import { getPublicSaleParams } from './shared/vaultParameters'
 
 import ERC20A from './abi/ERC20A.json'
 import ERC20B from './abi/ERC20B.json'
@@ -126,6 +127,8 @@ describe('L2TokenFactory', () => {
 
     let contractHaveTON = ethers.utils.parseUnits("10000", 18);
 
+    let publicSaleParams: any;
+
     //goerli
     // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
 
@@ -173,7 +176,7 @@ describe('L2TokenFactory', () => {
             params: [testAccount2],
         });
 
-        richTOS = await ethers.getSigner(testAccount2);        //ton주인
+        richTOS = await ethers.getSigner(testAccount2);        //tos주인
     })
 
     describe('# setL2ProjectManager', () => {
@@ -559,14 +562,24 @@ describe('L2TokenFactory', () => {
             claimTime4 = claimTime3 + (60 * 3);
             claimTime5 = claimTime4 + (60 * 4);
 
+            publicSaleParams = getPublicSaleParams (
+                [settingTier1,settingTier2,settingTier3,settingTier4],
+                [settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                [round1SaleAmount,round2SaleAmount],
+                [saleTokenPrice,tonTokenPrice],
+                hardcapAmount,
+                changeTOS,
+                [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime],
+                totalclaimCounts,
+                [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+            )
+
             await expect(
                 deployed.l2PublicProxy.connect(addr1).vaultInitialize(
                     erc20Atoken.address,
-                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
-                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
-                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
-                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
-                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                    publicSaleParams.vaultParams,
+                    publicSaleParams.claimParams
                 )
             ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
         })
@@ -575,11 +588,8 @@ describe('L2TokenFactory', () => {
             await expect(
                 deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
                     addr1Address,
-                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
-                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
-                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
-                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
-                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                    publicSaleParams.vaultParams,
+                    publicSaleParams.claimParams
                 )
             ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
         })
@@ -588,16 +598,52 @@ describe('L2TokenFactory', () => {
             await expect(
                 deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
                     erc20Atoken.address,
-                    [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
-                    [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
-                    [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
-                    [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
-                    [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                    publicSaleParams.vaultParams,
+                    publicSaleParams.claimParams
                 )
-            ).to.be.revertedWith("not input token")
+            ).to.be.revertedWith("TRANSFER_FROM_FAILED")
+        })
+
+        it("vaultInitialize need set snapshot consider delayTime", async () => {
+            let tx = await erc20Atoken.balanceOf(l2vaultAdminAddress)
+            await erc20Atoken.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
+
+            await expect(
+                deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                    erc20Atoken.address,
+                    publicSaleParams.vaultParams,
+                    publicSaleParams.claimParams
+                )
+            ).to.be.revertedWith("snapshot need later")
         })
 
         it("vaultInitialize can be executed by only L2VaultAdmin & l2Token", async () => {
+            blockTime = Number(await time.latest())
+            whitelistStartTime = blockTime + 86400;
+            whitelistEndTime = whitelistStartTime + (86400*7);
+            round1StartTime = whitelistEndTime + 1;
+            round1EndTime = round1StartTime + (86400*7);
+            round2StartTime = round1EndTime + 1;
+            round2EndTime = round2StartTime + (86400*7);
+            claimTime1 = round2EndTime + (86400 * 20);
+            claimTime2 = claimTime1 + (60 * 1);
+            claimTime3 = claimTime2 + (60 * 2);
+            claimTime4 = claimTime3 + (60 * 3);
+            claimTime5 = claimTime4 + (60 * 4);
+
+            publicSaleParams = getPublicSaleParams (
+                [settingTier1,settingTier2,settingTier3,settingTier4],
+                [settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
+                [round1SaleAmount,round2SaleAmount],
+                [saleTokenPrice,tonTokenPrice],
+                hardcapAmount,
+                changeTOS,
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot,round2StartTime,round2EndTime],
+                totalclaimCounts,
+                [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
+                [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+            )
+
             // console.log("blockTime : ",blockTime)
             // console.log("setSnapshot : ",setSnapshot)
             // console.log("whitelistStartTime : ",whitelistStartTime)
@@ -625,16 +671,11 @@ describe('L2TokenFactory', () => {
             // console.log("claimPercent3 : ",claimPercent3)
             // console.log("claimPercent4 : ",claimPercent4)
             // console.log("claimPercent5 : ",claimPercent5)
-            let tx = await erc20Atoken.balanceOf(l2vaultAdminAddress)
-            await erc20Atoken.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
 
             await deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
                 erc20Atoken.address,
-                [settingTier1,settingTier2,settingTier3,settingTier4,settingTierPercent1,settingTierPercent2,settingTierPercent3,settingTierPercent4],
-                [round1SaleAmount,round2SaleAmount,saleTokenPrice,tonTokenPrice,hardcapAmount,changeTOS,changeTick],
-                [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime,totalclaimCounts],
-                [claimTime1,claimTime2,claimTime3,claimTime4,claimTime5],
-                [claimPercent1,claimPercent2,claimPercent3,claimPercent4,claimPercent5]
+                publicSaleParams.vaultParams,
+                publicSaleParams.claimParams
             )
         })
 
