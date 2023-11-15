@@ -9,6 +9,17 @@ import '../../libraries/LibProject.sol';
 
 import "hardhat/console.sol";
 
+interface IVestingFund {
+    function setVaultAdmin(address l2Token, address newAdmin) external;
+    function setBaseInfoProxy(
+        address tonToken,
+        address tosToken,
+        address publicSaleVault,
+        address uniswapV3Factory
+    )
+        external;
+}
+
 contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 {
     using SafeERC20 for IERC20;
@@ -20,19 +31,6 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     {
         require(l2ProjectManager != _l2ProjectManager, "same");
         l2ProjectManager = _l2ProjectManager;
-    }
-
-    /* ========== only L2ProjectManager ========== */
-
-    function setVaultAdmin(
-        address l2Token,
-        address _newAdmin
-    )
-        external nonZeroAddress(l2Token) nonZeroAddress(_newAdmin) onlyL2ProjectManager
-    {
-        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
-        vaultAdminOfToken[l2Token] = _newAdmin;
-        emit SetVaultAdmin(l2Token, _newAdmin);
     }
 
     //_setAddress = quoter, vestingFund, liquidityVault, uniswapRouter, lockTOS, tos, ton
@@ -47,7 +45,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint256 _delayTime
     )
         external 
-        onlyL2ProjectManager
+        onlyOwner
     {
         setAddress(_setAddress);
         setMaxMinPercent(_min,_max);
@@ -59,7 +57,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         address[7] calldata _setAddress
     )
         public
-        onlyL2ProjectManager
+        onlyOwner
     {
         quoter = _setAddress[0];
         vestingFund = _setAddress[1];
@@ -85,7 +83,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint8 _max
     )
         public
-        onlyL2ProjectManager
+        onlyOwner
     {
         require(_min < _max, "need min < max");
         minPer = _min;
@@ -99,7 +97,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint256 _tier4
     )   
         public
-        onlyL2ProjectManager 
+        onlyOwner 
     {
         require(
             (_tier1 < _tier2) &&
@@ -117,11 +115,43 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         uint256 _delay
     )
         public 
-        onlyL2ProjectManager 
+        onlyOwner 
     {
         require(delayTime != _delay, "same delayTime");
         delayTime = _delay;
     }
+
+    /* ========== only L2ProjectManager ========== */
+
+    function setVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external nonZeroAddress(l2Token) nonZeroAddress(_newAdmin) onlyL2ProjectManager
+    {
+        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
+        vaultAdminOfToken[l2Token] = _newAdmin;
+        //vestinfFundVault의 setVaultAdmin세팅
+        IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
+        emit SetVaultAdmin(l2Token, _newAdmin);
+    }
+
+
+    // function setVestingFundBase(
+    //     address _tonToken,
+    //     address _tosToken,
+    //     address _uniswapV3Factory
+    // ) 
+    //     external
+    //     onlyL2ProjectManager
+    // {
+    //     IVestingFund(vestingFund).setBaseInfoProxy(
+    //         _tonToken,
+    //         _tosToken,
+    //         address(this),
+    //         _uniswapV3Factory
+    //     );
+    // }
 
     /* ========== only VaultAdmin ========== */
 
@@ -304,7 +334,9 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         } else {
             timeInfos.deployTime = block.timestamp;
         }
-
+        console.log("timeInfos.deployTime :", timeInfos.deployTime);
+        console.log("delayTime :", delayTime);
+        console.log("_startAddWhiteTime :", _startAddWhiteTime);
         require((timeInfos.deployTime + delayTime) < _startAddWhiteTime, "snapshot need later");
 
         timeInfos.whiteListStartTime = _startAddWhiteTime;

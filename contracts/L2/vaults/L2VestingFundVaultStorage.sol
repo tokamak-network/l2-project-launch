@@ -8,7 +8,7 @@ pragma solidity ^0.8.4;
 contract L2VestingFundVaultStorage {
 
     bool internal free = true;
-    address public l2ProjectManager;
+    // address public l2ProjectManager;
     // address public initializer;
 
     address public publicSaleVault;
@@ -80,8 +80,13 @@ contract L2VestingFundVaultStorage {
         uint256 amount
     );
 
-    modifier onlyL2ProjectManager() {
-        require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
+    // modifier onlyL2ProjectManager() {
+    //     require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
+    //     _;
+    // }
+
+    modifier onlyL2PublicSale() {
+        require(publicSaleVault != address(0) && msg.sender == publicSaleVault, "caller is not L2PublicSale");
         _;
     }
 

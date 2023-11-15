@@ -14,26 +14,6 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
     /* ========== CONSTRUCTOR ========== */
 
     /* ========== onlyOwner ========== */
-    function setL2ProjectManager(address _l2ProjectManager)
-        external nonZeroAddress(_l2ProjectManager) onlyOwner
-    {
-        require(l2ProjectManager != _l2ProjectManager, "same");
-        l2ProjectManager = _l2ProjectManager;
-    }
-
-    /* ========== only L2ProjectManager ========== */
-    
-    function setVaultAdmin(
-        address l2Token,
-        address _newAdmin
-    )
-        external nonZeroAddress(l2Token) nonZeroAddress(_newAdmin) onlyL2ProjectManager
-    {
-        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
-        vaultAdminOfToken[l2Token] = _newAdmin;
-        emit SetVaultAdmin(l2Token, _newAdmin);
-    }
-
     function setBaseInfoProxy(
         address _tonToken,
         address _tosToken,
@@ -45,14 +25,29 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
         nonZeroAddress(_tosToken)
         nonZeroAddress(_publicSaleVault)
         nonZeroAddress(_uniswapV3Factory)
-        onlyL2ProjectManager 
+        onlyOwner 
     {
         tonToken = _tonToken;
         tosToken = _tosToken;
         publicSaleVault = _publicSaleVault;
         uniswapV3Factory = _uniswapV3Factory;
     }
-
+    
+    /* ========== only L2ProjectManager ========== */
+    
+    function setVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external 
+        nonZeroAddress(l2Token) 
+        nonZeroAddress(_newAdmin) 
+        onlyL2PublicSale
+    {
+        require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
+        vaultAdminOfToken[l2Token] = _newAdmin;
+        emit SetVaultAdmin(l2Token, _newAdmin);
+    }
 
     /* ========== only VaultAdmin Of Token ========== */
 

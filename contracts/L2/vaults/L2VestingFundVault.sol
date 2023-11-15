@@ -55,7 +55,7 @@ contract L2VestingFundVault is
         uint256[] memory _claimAmounts
     )
         external
-        onlyL2ProjectManager
+        onlyOwner
     {
         if(settingChecks[_l2Token] == true) {
             delete claimTimes[_l2Token];
@@ -83,7 +83,7 @@ contract L2VestingFundVault is
         nonZeroAddress(_receivedAddress)
     {
         require(settingChecks[_l2Token] != true, "Already initalized");
-        require(vaultAdminOfToken[_l2Token] == msg.sender, "not l2Token vaultAdmin");
+        require(isVaultAdmin(_l2Token,msg.sender), "not l2Token vaultAdmin");
         
         receivedAddress[_l2Token] = _receivedAddress;
         fees[_l2Token] = _fee;
@@ -313,8 +313,8 @@ contract L2VestingFundVault is
     //     if (!settingCheck && (_addr == receivedAddress || isAdmin(_addr))) result = true;
     // }
 
-    function isL2ProjectManager(address account) public view returns (bool) {
-        return (account != address(0) && l2ProjectManager == account);
+    function isL2PublicSale(address account) public view returns (bool) {
+        return (account != address(0) && publicSaleVault == account);
     }
 
     function isVaultAdmin(address l2Token, address account) public view returns (bool) {

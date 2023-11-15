@@ -352,6 +352,32 @@ describe('L2TokenFactory', () => {
             await tonContract.connect(richTON).transfer(addr5Address,transferTON)
         })
     })
+
+    describe("# setL2VestingFundVault OwnerSetting", () => {
+        it('setBaseInfoProxy can not be executed by anyone', async () => {
+            await expect(
+                deployed.l2VestingFundProxy.connect(addr1).setBaseInfoProxy(
+                    ton,
+                    tos,
+                    deployed.l2PublicProxy.address,
+                    uniswapFacotry
+                )
+            ).to.be.revertedWith("Accessible: Caller is not an admin")
+        })
+
+        it('setBaseInfoProxy can be executed by only Owner ', async () => {
+            await deployed.l2VestingFundProxy.connect(deployer).setBaseInfoProxy(
+                ton,
+                tos,
+                deployed.l2PublicProxy.address,
+                uniswapFacotry
+            )
+            expect(await deployed.l2VestingFundProxy.tonToken()).to.eq(ton)
+            expect(await deployed.l2VestingFundProxy.tosToken()).to.eq(tos)
+            expect(await deployed.l2VestingFundProxy.publicSaleVault()).to.eq(deployed.l2PublicProxy.address)
+            expect(await deployed.l2VestingFundProxy.uniswapV3Factory()).to.eq(uniswapFacotry)
+        })
+    })
     
     describe("# setL2PublicSale L2ProjectManager", () => {
         describe("# set L2ProjectManager", () => {
@@ -393,11 +419,11 @@ describe('L2TokenFactory', () => {
                         standardTier3,
                         standardTier4,
                         delayTime
-                    )).to.be.revertedWith("caller is not l2ProjectManager")
+                    )).to.be.revertedWith("Accessible: Caller is not an admin")
             })
 
-            it('set initialize can be executed by only ProjectManager ', async () => {
-                await deployed.l2PublicProxy.connect(l2ProjectManager).initialize(
+            it('set initialize can be executed by only Owner ', async () => {
+                await deployed.l2PublicProxy.connect(deployer).initialize(
                     [
                         quoter,
                         deployed.l2VestingFundProxy.address,
@@ -432,7 +458,7 @@ describe('L2TokenFactory', () => {
             })
         })
 
-        describe("# setVaultAdmin", () => {
+        describe("# PublicSale setVaultAdmin", () => {
             it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
                 await expect(
                     deployed.l2PublicProxy.connect(addr1).setVaultAdmin(
@@ -456,7 +482,19 @@ describe('L2TokenFactory', () => {
                         lydaContract.address,
                         l2vaultAdminAddress
                     )
-                    ).to.be.revertedWith("same")
+                ).to.be.revertedWith("same")
+            })
+        })
+
+        describe("# VestingFund setVaultAdmin check", () => {
+            it("isVaultAdmin Value check", async () => {
+                let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
+                expect(tx).to.be.equal(true);
+            })
+
+            it("vaultAdminOfToken check", async () => {
+                let tx = await deployed.l2VestingFund.vaultAdminOfToken(lydaContract.address)
+                expect(tx).to.be.equal(l2vaultAdminAddress)
             })
         })
     })
@@ -763,80 +801,34 @@ describe('L2TokenFactory', () => {
     })
 
     describe("# set VestingFundVault", () => {
-        describe("# set L2projectManager", () => {
-            it('setL2ProjectManager can not be executed by not owner', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
-                    ).to.be.revertedWith("Accessible: Caller is not an admin")
-            })
+        // describe("# set VaultAdmin", () => {
+        //     it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
+        //         await expect(
+        //             deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
+        //                 lydaContract.address,
+        //                 l2vaultAdminAddress
+        //             )
+        //         ).to.be.revertedWith("caller is not l2ProjectManager")
+        //     })
 
-            it('setL2ProjectManager can be executed by only owner ', async () => {
-                await deployed.l2VestingFundProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
-                expect(await deployed.l2VestingFundProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
-            })
+        //     it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
+        //         await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+        //             lydaContract.address,
+        //             l2vaultAdminAddress
+        //         )
+        //         expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
+        //         expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
+        //     })
 
-            it('cannot be changed to the same value', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
-                    ).to.be.revertedWith("same")
-            })
-        })
-
-        describe("# set VaultAdmin", () => {
-            it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
-                        lydaContract.address,
-                        l2vaultAdminAddress
-                    )
-                ).to.be.revertedWith("caller is not l2ProjectManager")
-            })
-
-            it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-                await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-                    lydaContract.address,
-                    l2vaultAdminAddress
-                )
-                expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
-                expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
-            })
-
-            it('cannot be changed to the same value', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-                        lydaContract.address,
-                        l2vaultAdminAddress
-                    )
-                ).to.be.revertedWith("same")
-            })
-        })
-      
-        describe("# set setBaseInfoProxy", () => {
-            it('setBaseInfoProxy can not be executed by not l2ProjectManager', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(addr1).setBaseInfoProxy(
-                        ton,
-                        tos,
-                        deployed.l2PublicProxy.address,
-                        uniswapFacotry
-                    )
-                ).to.be.revertedWith("caller is not l2ProjectManager")
-            })
-
-            it('setBaseInfoProxy can be executed by only l2ProjectManager ', async () => {
-                await deployed.l2VestingFundProxy.connect(l2ProjectManager).setBaseInfoProxy(
-                    ton,
-                    tos,
-                    deployed.l2PublicProxy.address,
-                    uniswapFacotry
-                )
-                expect(await deployed.l2VestingFundProxy.tonToken()).to.eq(ton)
-                expect(await deployed.l2VestingFundProxy.tosToken()).to.eq(tos)
-                expect(await deployed.l2VestingFundProxy.publicSaleVault()).to.eq(deployed.l2PublicProxy.address)
-                expect(await deployed.l2VestingFundProxy.uniswapV3Factory()).to.eq(uniswapFacotry)
-            })
-            
-        })
+        //     it('cannot be changed to the same value', async () => {
+        //         await expect(
+        //             deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+        //                 lydaContract.address,
+        //                 l2vaultAdminAddress
+        //             )
+        //         ).to.be.revertedWith("same")
+        //     })
+        // })
 
         describe("# set initialize about l2Token", () => {
             it("not vaultAdmin not initialize", async () => {
