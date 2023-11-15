@@ -56,6 +56,7 @@ contract L2PublicSaleVault is
             "end whitelistTime"
         );
         uint8 tier = calculTier(_l2token,msg.sender);
+        //if tier 0 is don't have sTOS
         require(tier >= 1, "need to more sTOS");
         // LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
@@ -65,13 +66,26 @@ contract L2PublicSaleVault is
         whitelists[_l2token].push(msg.sender);
 
         user1rds.join = true;
-        // console.log("1 user1rds.tier", user1rds.tier);
         user1rds.tier = tier;
-        // console.log("2 user1rds.tier", user1rds.tier);
-        // console.log("user1rds.saleAmount", user1rds.saleAmount);
-        // user1rds.saleAmount = 0;
+
         tiersWhiteList[_l2token][tier] = tiersWhiteList[_l2token][tier]+(1);
-        // tiersAccount[tier] = tiersAccount[tier].add(1);
+
+        if (tier == 4) {
+            tiersCalculAccount[_l2token][4] = tiersCalculAccount[_l2token][4]+(1);
+            tiersCalculAccount[_l2token][3] = tiersCalculAccount[_l2token][3]+(1);
+            tiersCalculAccount[_l2token][2] = tiersCalculAccount[_l2token][2]+(1);
+            tiersCalculAccount[_l2token][1] = tiersCalculAccount[_l2token][1]+(1);
+        } else if (tier == 3) {
+            tiersCalculAccount[_l2token][3] = tiersCalculAccount[_l2token][3]+(1);
+            tiersCalculAccount[_l2token][2] = tiersCalculAccount[_l2token][2]+(1);
+            tiersCalculAccount[_l2token][1] = tiersCalculAccount[_l2token][1]+(1);
+        } else if (tier == 2) {
+            tiersCalculAccount[_l2token][2] = tiersCalculAccount[_l2token][2]+(1);
+            tiersCalculAccount[_l2token][1] = tiersCalculAccount[_l2token][1]+(1);
+        } else if (tier == 1) {
+            tiersCalculAccount[_l2token][1] = tiersCalculAccount[_l2token][1]+(1);
+        }
+        
 
         emit AddedWhiteList(_l2token, msg.sender, tier);
     }
@@ -184,7 +198,7 @@ contract L2PublicSaleVault is
         manageInfos.adminWithdraw = true;
 
         uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
-        if(burnAmount != 0) {
+        if (burnAmount != 0) {
             IIERC20Burnable(_l2token).burn(burnAmount);
         }
         
@@ -237,7 +251,7 @@ contract L2PublicSaleVault is
         //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
                 
-        if(manageInfos.exchangeTOS == false) {
+        if (manageInfos.exchangeTOS == false) {
             IIWTON(wton).swapFromTON(liquidityTON);
             manageInfos.remainTON = liquidityTON*(1000000000);
             manageInfos.exchangeTOS = true;
@@ -291,18 +305,18 @@ contract L2PublicSaleVault is
         // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][_sender];
         require(user1rds.join == true, "no whitelist");
+        uint8 tier = calculTier(_l2token, _sender);
         uint256 tokenSaleAmount = calculSaleToken(_l2token, _amount);
-        uint256 salePossible = calculTierAmount(_l2token, _sender);
+        uint256 salePossible = calculTierAmount(_l2token, _sender,tier);
 
         require(
             salePossible >= user1rds.saleAmount+(tokenSaleAmount),
             "don't over buy"
         );
 
-        uint8 tier = calculTier(_l2token, _sender);
 
         LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
-        if(user1rds.payAmount == 0) {
+        if (user1rds.payAmount == 0) {
             saleInfos.total1rdUsers = saleInfos.total1rdUsers+(1);
             saleInfos.totalUsers = saleInfos.totalUsers+(1);
             tiers1stAccount[_l2token][tier] = tiers1stAccount[_l2token][tier]+(1);
@@ -481,9 +495,43 @@ contract L2PublicSaleVault is
         return tier;
     }
 
+    // function calculTierAmount(
+    //     address _l2token,
+    //     address _account 
+    // )
+    //     public
+    //     view
+    //     returns (uint256)
+    // {
+    //     LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
+    //     LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+    //     uint8 tier = calculTier(_l2token,_account);
+    //     if (user1rds.join == true && tier > 0) {
+    //         // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
+    //         // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
+    //         uint256 salePossible =
+    //             manageInfos.set1rdTokenAmount
+    //                 *(tiersPercents[_l2token][tier])
+    //                 /(tiersWhiteList[_l2token][tier])
+    //                 /(10000);
+    //         return salePossible;
+    //     } else if (tier > 0) {
+    //         uint256 tierAccount = tiersWhiteList[_l2token][tier]+(1);
+    //         uint256 salePossible =
+    //             manageInfos.set1rdTokenAmount
+    //                 *(tiersPercents[_l2token][tier])
+    //                 /(tierAccount)
+    //                 /(10000);
+    //         return salePossible;
+    //     } else {
+    //         return 0;
+    //     }
+    // }
+
     function calculTierAmount(
         address _l2token,
-        address _account 
+        address _account,
+        uint8 tier 
     )
         public
         view
@@ -491,23 +539,54 @@ contract L2PublicSaleVault is
     {
         LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
         LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
-        uint8 tier = calculTier(_l2token,_account);
+        uint256 salePossible;
+        // uint8 tier = calculTier(_l2token,_account);
+
         if (user1rds.join == true && tier > 0) {
             // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
             // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
-            uint256 salePossible =
+            salePossible =
                 manageInfos.set1rdTokenAmount
                     *(tiersPercents[_l2token][tier])
-                    /(tiersWhiteList[_l2token][tier])
+                    /(tiersCalculAccount[_l2token][tier])
                     /(10000);
             return salePossible;
         } else if (tier > 0) {
-            uint256 tierAccount = tiersWhiteList[_l2token][tier]+(1);
-            uint256 salePossible =
+            uint256 tierAccount = tiersCalculAccount[_l2token][tier]+(1);
+            salePossible =
                 manageInfos.set1rdTokenAmount
                     *(tiersPercents[_l2token][tier])
                     /(tierAccount)
                     /(10000);
+            return salePossible;
+        } else {
+            return 0;
+        }
+    }
+
+    function calcul1RoundAmount(
+        address _l2token,
+        address _account
+    )
+        public
+        view
+        returns (uint256)
+    {
+        // LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
+        // LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
+        uint8 tier = calculTier(_l2token,_account);
+        uint256 salePossible;
+        if (tier > 0) {
+            for (uint8 i = tier; i >0; i--) {
+                salePossible = salePossible + calculTierAmount(_l2token,_account,i);
+            }
+            // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
+            // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
+            // uint256 salePossible =
+            //     manageInfos.set1rdTokenAmount
+            //         *(tiersPercents[_l2token][tier])
+            //         /(tiersWhiteList[_l2token][tier])
+            //         /(10000);
             return salePossible;
         } else {
             return 0;

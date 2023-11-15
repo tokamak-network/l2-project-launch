@@ -68,6 +68,7 @@ contract L2PublicSaleVaultStorage {
     mapping(address => mapping(uint8 => uint256)) public tiers;                 // l2token - tierNumber - tier sTOS value
     mapping(address => mapping(uint8 => uint256)) public tiersPercents;         // l2token - tierNumber - tier SalePercent (tierPercents sum is 10000)
     mapping(address => mapping(uint8 => uint256)) public tiersWhiteList;        // l2token - tierNumber - Number of whitelist participants by tier
+    mapping(address => mapping(uint8 => uint256)) public tiersCalculAccount;    // l2token - tierNumber - Number of calculator for Amount by tier
     mapping(address => mapping(uint8 => uint256)) public tiers1stAccount;       // l2token - tierNumber - Number of 1round participants by tier
 
     event SetVaultAdmin(address l2Token, address newAdmin);
