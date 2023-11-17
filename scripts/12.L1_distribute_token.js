@@ -31,21 +31,22 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("300000"),
+    initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test10',
-    tokenName: 'Test10',
-    tokenSymbol: 'T10T',
+    projectName: 'Test11',
+    tokenName: 'Test11',
+    tokenSymbol: 'T11T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("10");
+let projectId = ethers.BigNumber.from("11");
 
-const L2Token = "0x3613d5730d4d4bd156c0da837b10e26861a7a336"
+const L2Token = "0x1fac3ff465d5d6a25bd6aa56b5b12bca6d3a6d01"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
+const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
 const setup = async() => {
   wallets = await getSigners()
@@ -82,10 +83,14 @@ async function main() {
 
     console.log('projectInfo', projectInfo)
 
-    // test vaults : initialLiquidityVault, DAO, Team, Marketing , airdropStos
-    let vaultCount = BigNumber.from("6")
+    // test vaults :
+    // initialLiquidityVault, tontosReward, prokectTokenTosReward, DAO,
+    // Team, Marketing , airdropStos, airdropTon
+    let vaultCount = BigNumber.from("8")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
+    let rewardTonTosPoolAmount = initialLiquidityAmount
+    let rewardProjectTosPoolAmount = initialLiquidityAmount
     let daoAmount = initialLiquidityAmount
     let teamAmount = initialLiquidityAmount
     let marketingAmount = initialLiquidityAmount
@@ -130,7 +135,32 @@ async function main() {
         sqrtPrice.toString(),
         sTime,
         3000) ;
-    let rewardParams = getLpRewardParams(ourAddr, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+
+    let rewardTonTosPoolParams = getLpRewardParams(
+        ethers.constants.AddressZero,
+        L2TON,
+        L2TOS,
+        3000,
+        rewardTonTosPoolAmount,
+        totalClaimCount,
+        firstClaimAmount, //firstClaimAmount
+        firstClaimTime, //firstClaimTime
+        secondClaimTime, //secondClaimTime
+        roundIntervalTime //roundIntervalTime
+        );
+    let rewardProjectTosPoolParams = getLpRewardParams(
+        ethers.constants.AddressZero,
+        projectInfo.l2Token,
+        L2TOS,
+        3000,
+        rewardProjectTosPoolAmount,
+        totalClaimCount,
+        firstClaimAmount, //firstClaimAmount
+        firstClaimTime, //firstClaimTime
+        secondClaimTime, //secondClaimTime
+        roundIntervalTime //roundIntervalTime
+    );
+
     let tosAirdropParams =  getTosAirdropParams(
         ethers.constants.AddressZero,
         airdropStosAmount,
@@ -177,7 +207,8 @@ async function main() {
     let tokamakVaults = {
         publicSaleParams: publicSaleParams,
         initialVaultParams : initialVaultParams,
-        rewardParams: rewardParams,
+        rewardTonTosPoolParams: rewardTonTosPoolParams,
+        rewardProjectTosPoolParams: rewardProjectTosPoolParams,
         tosAirdropParams: tosAirdropParams,
         tonAirdropParams: tonAirdropParams
     }
@@ -185,9 +216,10 @@ async function main() {
     let customScheduleVaults = [teamParams, marketingParams]
     let customNonScheduleVaults = [daoParams]
 
-    console.log('initialVaultParams' , initialVaultParams)
-    console.log('customScheduleVaults' , customScheduleVaults)
-    console.log('customNonScheduleVaults' , customNonScheduleVaults)
+    // console.log('initialVaultParams' , initialVaultParams)
+    // console.log('customScheduleVaults' , customScheduleVaults)
+    // console.log('rewardTonTosPoolParams' , rewardTonTosPoolParams)
+    // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
     const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,

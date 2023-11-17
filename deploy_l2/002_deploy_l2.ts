@@ -249,7 +249,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     let uniswapV3Factory_l2LpRewardVault = await l2LpRewardVault.uniswapV3Factory()
     if (uniswapV3Factory_l2LpRewardVault != uniswapFactory) {
-        await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+        await (await l2LpRewardVault.connect(deploySigner).setUniswapV3Factory(
             uniswapFactory
             )).wait()
     }

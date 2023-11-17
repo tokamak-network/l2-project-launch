@@ -28,18 +28,18 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("300000"),
+    initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test10',
-    tokenName: 'Test10',
-    tokenSymbol: 'T10T',
+    projectName: 'Test11',
+    tokenName: 'Test11',
+    tokenSymbol: 'T11T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("10");
+let projectId = ethers.BigNumber.from("11");
 
 const setup = async() => {
   wallets = await getSigners()

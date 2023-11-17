@@ -10,8 +10,6 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
-import "hardhat/console.sol";
-
 interface L2ProjectManagerI {
     function distributesL2Token(
         address l1Token,
@@ -229,17 +227,6 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 1. L2토큰 정보를 저장한다.
         projects[id].l2Token = l2Token;
         info.l2Token = l2Token;
-        // LibProject.TokamakVaults memory tVaults = tokamakVaults;
-        // bytes memory  callData = abi.encodeWithSelector(
-        //             L2ProjectManagerI.distributesL2Token.selector,
-        //             info.l1Token,
-        //             info.l2Token,
-        //             id,
-        //             totalAllocatedAmount,
-        //             tokamakVaults,
-        //             customScheduleVaults,
-        //             customNonScheduleVaults
-        //         ) ;
 
         uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
 
@@ -295,9 +282,6 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         uint256 allowance = IERC20(l1Token).allowance(address(this), l1Bridge);
 
         if (allowance < amount) IERC20(l1Token).approve(l1Bridge, type(uint256).max);
-        // console.log('_depositL1TokenToL2 l1Bridge %s', l1Bridge);
-        // console.log('_depositL1TokenToL2 amount %s', amount);
-        // console.log('_depositL1TokenToL2 depositTo %s', depositTo);
 
         L1BridgeI(l1Bridge).depositERC20To(
             l1Token,
