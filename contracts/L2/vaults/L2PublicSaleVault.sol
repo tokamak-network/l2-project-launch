@@ -307,7 +307,8 @@ contract L2PublicSaleVault is
         require(user1rds.join == true, "no whitelist");
         uint8 tier = calculTier(_l2token, _sender);
         uint256 tokenSaleAmount = calculSaleToken(_l2token, _amount);
-        uint256 salePossible = calculTierAmount(_l2token, _sender,tier);
+        // uint256 salePossible = calculTierAmount(_l2token, _sender,tier);
+        uint256 salePossible = calcul1RoundAmount(_l2token, _sender);
 
         require(
             salePossible >= user1rds.saleAmount+(tokenSaleAmount),
