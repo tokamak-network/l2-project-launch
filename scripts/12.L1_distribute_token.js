@@ -31,20 +31,20 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("100000"),
+    initialTotalSupply: ethers.utils.parseEther("300000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test8',
-    tokenName: 'Test8',
-    tokenSymbol: 'T8T',
+    projectName: 'Test10',
+    tokenName: 'Test10',
+    tokenSymbol: 'T10T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("8");
+let projectId = ethers.BigNumber.from("10");
 
-const L2Token = "0x63043fa631f6fe951585664fc88082e474f8a466"
+const L2Token = "0x3613d5730d4d4bd156c0da837b10e26861a7a336"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 
 const setup = async() => {
@@ -83,13 +83,15 @@ async function main() {
     console.log('projectInfo', projectInfo)
 
     // test vaults : initialLiquidityVault, DAO, Team, Marketing , airdropStos
-    let vaultCount = BigNumber.from("5")
+    let vaultCount = BigNumber.from("6")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let daoAmount = initialLiquidityAmount
     let teamAmount = initialLiquidityAmount
     let marketingAmount = initialLiquidityAmount
     let airdropStosAmount = initialLiquidityAmount
+    let airdropTonAmount = initialLiquidityAmount
+
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
     let firstClaimTime = sTime
@@ -139,7 +141,16 @@ async function main() {
         roundIntervalTime
         );
 
-    let tonAirdropParams =  getTonAirdropParams(ourAddr, 0, 0, 0, 0, 0, 0);
+    let tonAirdropParams =  getTonAirdropParams(
+        ethers.constants.AddressZero,
+        airdropTonAmount,
+        totalClaimCount.toNumber(),
+        firstClaimAmount,
+        firstClaimTime,
+        secondClaimTime,
+        roundIntervalTime
+        );
+
     let daoParams =  getNonScheduleParams("DAO", ourAddr, daoAmount);
     let teamParams =  getScheduleParams(
         "TEAM",

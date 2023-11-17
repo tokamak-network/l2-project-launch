@@ -74,6 +74,10 @@ import { L2DividendPoolForStosProxy } from '../../typechain-types/contracts/L2/a
 import { L2UniversalStos } from '../../typechain-types/contracts/L2/stos/L2UniversalStos.sol'
 import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2UniversalStosProxy'
 
+import { L2AirdropTonVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
+import { L2AirdropTonVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
+
+
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2ProjectManagerJson from "../../artifacts/contracts/L2/L2ProjectManager.sol/L2ProjectManager.json";
 import initialLiquidityVaultJson from "../../artifacts/contracts/L2/vaults/L2InitialLiquidityVault.sol/L2InitialLiquidityVault.json";
@@ -87,6 +91,7 @@ import L2AirdropStosVaultJson from "../../artifacts/contracts/L2/vaults/L2Airdro
 import L2DividendPoolForStosJson from "../../artifacts/contracts/L2/airdrop/L2DividendPoolForStos.sol/L2DividendPoolForStos.json";
 import L2UniversalStosJson from "../../artifacts/contracts/L2/stos/L2UniversalStos.sol/L2UniversalStos.json";
 import L2LpRewardVaultJson from "../../artifacts/contracts/L2/vaults/L2LpRewardVault.sol/L2LpRewardVault.json";
+import L2AirdropTonVaultJson from "../../artifacts/contracts/L2/vaults/L2AirdropTonVault.sol/L2AirdropTonVault.json";
 
 
 const tosInfo = {
@@ -449,6 +454,24 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   const airdropStosVault = await ethers.getContractAt(
     L2AirdropStosVaultJson.abi, airdropStosVaultProxy.address, deployer) as L2AirdropStosVault;
 
+
+  //==== L2AirdropStosVault =========================
+  const airdropTonVaultDeployment = await ethers.getContractFactory("L2AirdropTonVault")
+  const airdropTonVaultImpl = (await airdropTonVaultDeployment.connect(deployer).deploy()) as L2AirdropTonVault;
+
+  //==== L2AirdropTonVaultProxy =================================
+  const airdropTonVaultProxyDeployment = await ethers.getContractFactory("L2AirdropTonVaultProxy")
+  const airdropTonVaultProxy = (await airdropStosVaultProxyDeployment.connect(deployer).deploy()) as L2AirdropTonVaultProxy;
+
+  impl = await airdropTonVaultProxy.implementation()
+  if (impl != airdropTonVaultImpl.address) {
+    await (await airdropTonVaultProxy.connect(deployer).upgradeTo(airdropTonVaultImpl.address)).wait()
+  }
+
+  const airdropTonVault = await ethers.getContractAt(
+    L2AirdropTonVaultJson.abi, airdropTonVaultProxy.address, deployer) as L2AirdropTonVault;
+
+
   //==== daoVault =================================
   const daoVaultDeployment = await ethers.getContractFactory("L2NonScheduleVault")
   const daoVaultImpl = (await daoVaultDeployment.connect(deployer).deploy()) as L2NonScheduleVault;
@@ -507,6 +530,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   await (await scheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await airdropStosVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await airdropTonVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
 
   //==== L2UniversalStos =========================
   const l2UniversalStosDeployment = await ethers.getContractFactory("L2UniversalStos")
@@ -613,6 +637,8 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
       l2DividendPoolForStosProxy: l2DividendPoolForStosProxy,
       l2UniversalStos: l2UniversalStos,
       l2UniversalStosProxy: l2UniversalStosProxy,
+      airdropTonVault: airdropTonVault,
+      airdropTonVaultProxy: airdropTonVaultProxy,
       tosAddress: tosAddress,
       tosAdminAddress: tosAdminAddress
   }

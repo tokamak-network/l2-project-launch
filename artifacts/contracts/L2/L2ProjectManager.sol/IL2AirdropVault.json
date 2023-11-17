@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IL2AirdropStosVault",
+  "contractName": "IL2AirdropVault",
   "sourceName": "contracts/L2/L2ProjectManager.sol",
   "abi": [
     {

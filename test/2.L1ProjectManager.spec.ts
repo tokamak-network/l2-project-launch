@@ -244,7 +244,7 @@ describe('L1ProjectManager', () => {
                         ethers.constants.AddressZero,
                         deployed.initialLiquidityVaultProxy.address,
                         deployed.l2LpRewardVaultProxy.address,
-                        ethers.constants.AddressZero,
+                        deployed.airdropTonVault.address,
                         deployed.airdropStosVault.address,
                         deployed.scheduleVaultProxy.address,
                         deployed.nonScheduleVaultProxy.address
@@ -258,7 +258,7 @@ describe('L1ProjectManager', () => {
                     ethers.constants.AddressZero,
                     deployed.initialLiquidityVaultProxy.address,
                     deployed.l2LpRewardVaultProxy.address,
-                    ethers.constants.AddressZero,
+                    deployed.airdropTonVault.address,
                     deployed.airdropStosVault.address,
                     deployed.scheduleVaultProxy.address,
                     deployed.nonScheduleVaultProxy.address
@@ -268,6 +268,7 @@ describe('L1ProjectManager', () => {
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.tosAirdropVault()).to.be.eq(deployed.airdropStosVault.address)
+                expect(await deployed.l2ProjectManager.tonAirdropVault()).to.be.eq(deployed.airdropTonVault.address)
 
             })
 
@@ -277,7 +278,7 @@ describe('L1ProjectManager', () => {
             //             ethers.constants.AddressZero,
             //             deployed.initialLiquidityVaultProxy.address,
             //             deployed.l2LpRewardVaultProxy.address,
-            //             ethers.constants.AddressZero,
+            //             deployed.airdropTonVault.address,
             //             deployed.airdropStosVault.address,
             //             deployed.scheduleVaultProxy.address,
             //             deployed.nonScheduleVaultProxy.address
@@ -340,7 +341,7 @@ describe('L1ProjectManager', () => {
                 projectId :  ethers.constants.Zero,
                 tokenOwner: addr1Address,
                 projectOwner: addr2Address,
-                initialTotalSupply: ethers.utils.parseEther("100000"),
+                initialTotalSupply: ethers.utils.parseEther("120000"),
                 tokenType: 0, // non-mintable
                 projectName: 'CandyShop',
                 tokenName: 'Candy',
@@ -519,11 +520,14 @@ describe('L1ProjectManager', () => {
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
 
-            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("5"))
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("6"))
+
             let daoAmount = initialLiquidityAmount
             let teamAmount = initialLiquidityAmount
             let marketingAmount = initialLiquidityAmount
             let airdropStosAmount = initialLiquidityAmount
+            let airdropTonAmount = initialLiquidityAmount
+
 
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
             let firstClaimTime = sTime
@@ -568,6 +572,7 @@ describe('L1ProjectManager', () => {
                 sTime,
                 3000) ;
 
+
             let rewardParams = getLpRewardParams(
                 ethers.constants.AddressZero,
                 projectInfo.l2Token,
@@ -584,8 +589,19 @@ describe('L1ProjectManager', () => {
                 secondClaimTime, //secondClaimTime
                 roundIntervalTime //roundIntervalTime
                 );
-            let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+
+            let tonAirdropParams =  getTonAirdropParams(
+                ethers.constants.AddressZero,
+                airdropTonAmount,
+                totalClaimCount,
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+                );
+
             let daoParams =  getNonScheduleParams("DAO", addr1.address, daoAmount);
+
             let teamParams =  getScheduleParams(
                 "TEAM",
                 addr1.address,

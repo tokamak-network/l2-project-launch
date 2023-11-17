@@ -64,7 +64,7 @@ interface IL2NonScheduleVault {
     ) external;
 }
 
-interface IL2AirdropStosVault {
+interface IL2AirdropVault {
     function initialize(
         address l2Token,
         LibProject.InitalParameterScheduleVault memory params
@@ -342,13 +342,18 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
             if(!IL2CustomVaultBase(tosAirdropVault).isVaultAdmin(info.l2Token, info.projectOwner))
                 IL2CustomVaultBase(tosAirdropVault).setVaultAdmin(info.l2Token, info.projectOwner);
 
-            IL2AirdropStosVault(tosAirdropVault).initialize(
+            IL2AirdropVault(tosAirdropVault).initialize(
                 info.l2Token,
                 tokamakVaults.tosAirdropParams);
         }
 
         if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
-            //
+            if(!IL2CustomVaultBase(tonAirdropVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(tonAirdropVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            IL2AirdropVault(tonAirdropVault).initialize(
+                info.l2Token,
+                tokamakVaults.tonAirdropParams);
         }
 
         uint256 projectId_ = projectId;
