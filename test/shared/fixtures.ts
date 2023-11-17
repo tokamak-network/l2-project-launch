@@ -276,7 +276,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boolean): Promise<SetL2ProjectLaunchFixture> {
 
   const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-  const { uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
+  const {tonAddress, uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
   const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
 
   //==== LibProject =================================
@@ -368,7 +368,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   //=================================
   //===== set Vaults
-
+  console.log(' set Vaults'  )
   //==== L2InitialLiquidityVault =================================
   const initialLiquidityVaultDeployment = await ethers.getContractFactory("L2InitialLiquidityVault")
   const initialLiquidityVaultImpl = (await initialLiquidityVaultDeployment.connect(deployer).deploy()) as L2InitialLiquidityVault;
@@ -388,11 +388,11 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   //==== L2LpRewardVault =================================
   const l2LpRewardVaultDeployment = await ethers.getContractFactory("L2LpRewardVault")
-  const l2LpRewardVaultImpl = (await initialLiquidityVaultDeployment.connect(deployer).deploy()) as L2LpRewardVault;
+  const l2LpRewardVaultImpl = (await l2LpRewardVaultDeployment.connect(deployer).deploy()) as L2LpRewardVault;
 
   //==== L2LpRewardVaultProxy =================================
   const L2LpRewardVaultProxyDeployment = await ethers.getContractFactory("L2LpRewardVaultProxy")
-  const l2LpRewardVaultProxy = (await L2InitialLiquidityVaultProxyDeployment.connect(deployer).deploy()) as L2LpRewardVaultProxy;
+  const l2LpRewardVaultProxy = (await L2LpRewardVaultProxyDeployment.connect(deployer).deploy()) as L2LpRewardVaultProxy;
 
   impl = await l2LpRewardVaultProxy.implementation()
   if (impl != l2LpRewardVaultImpl.address) {
@@ -524,6 +524,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   //==SET Vault===============================
   await (await initialLiquidityVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+  await (await l2LpRewardVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await daoVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await marketingVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await teamVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
@@ -640,7 +641,8 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
       airdropTonVault: airdropTonVault,
       airdropTonVaultProxy: airdropTonVaultProxy,
       tosAddress: tosAddress,
-      tosAdminAddress: tosAdminAddress
+      tosAdminAddress: tosAdminAddress,
+      tonAddress: tonAddress
   }
 }
 

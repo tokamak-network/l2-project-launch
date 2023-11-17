@@ -56,7 +56,8 @@ library LibProject {
     struct TokamakVaults {
         InitalParameterPublicSale publicSaleParams;
         InitalParameterInitialLiquidityVault initialVaultParams;
-        InitalParameterLiquidityRewardVault rewardParams;
+        InitalParameterLiquidityRewardVault rewardTonTosPoolParams;
+        InitalParameterLiquidityRewardVault rewardProjectTosPoolParams;
         InitalParameterScheduleVault tosAirdropParams;
         InitalParameterScheduleVault tonAirdropParams;
     }
@@ -190,11 +191,11 @@ library LibProject {
         //     tokamakVaults.tonAirdropParams.roundIntervalTime == 0
         //     ) return (boolValidate, totalAmount);
 
-
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +
-                    tokamakVaults.rewardParams.params.totalAllocatedAmount +
+                    tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount +
+                    tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount +
                     tokamakVaults.tosAirdropParams.totalAllocatedAmount +
                     tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
 

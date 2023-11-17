@@ -24,6 +24,10 @@ import { L2AirdropStosVault } from '../typechain-types/contracts/L2/vaults/L2Air
 import { L2AirdropTonVaultProxy } from '../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
 import { L2AirdropTonVault } from '../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
 
+import { L2LpRewardVaultProxy } from '../typechain-types/contracts/L2/vaults/L2LpRewardVaultProxy'
+import { L2LpRewardVault } from '../typechain-types/contracts/L2/vaults/L2LpRewardVault.sol'
+
+
 let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
 let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
 let  l2StakeV2_Address = null
@@ -198,6 +202,65 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             l2ProjectManager.address
             )).wait()
     }
+
+    //=================================
+    //==== LpRewardVault
+    const L2LpRewardVaultDeployment = await deploy("L2LpRewardVault", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+    const L2LpRewardVaultProxyDeployment = await deploy("L2LpRewardVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l2LpRewardVaultProxy = (await hre.ethers.getContractAt(
+        L2LpRewardVaultProxyDeployment.abi,
+        L2LpRewardVaultProxyDeployment.address
+    )) as L2LpRewardVaultProxy;
+
+
+    impl = await l2LpRewardVaultProxy.implementation()
+    if (impl != L2LpRewardVaultDeployment.address) {
+        await (await l2LpRewardVaultProxy.connect(deploySigner).upgradeTo(L2LpRewardVaultDeployment.address)).wait()
+    }
+
+    const l2LpRewardVault = (await hre.ethers.getContractAt(
+        L2LpRewardVaultDeployment.abi,
+        L2LpRewardVaultProxyDeployment.address
+    )) as L2LpRewardVault;
+
+    let l2ProjectManage_l2LpRewardVault = await l2LpRewardVault.l2ProjectManager()
+    if (l2ProjectManage_l2LpRewardVault != l2ProjectManager.address) {
+        await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
+
+    const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
+    let pool_init_code_hash = await l2LpRewardVault.pool_init_code_hash()
+    if (pool_init_code_hash != init_code_hash) {
+        await (await l2LpRewardVault.connect(deploySigner).setPoolInitCodeHash(
+            init_code_hash
+            )).wait()
+    }
+
+    let uniswapV3Factory_l2LpRewardVault = await l2LpRewardVault.uniswapV3Factory()
+    if (uniswapV3Factory_l2LpRewardVault != uniswapFactory) {
+        await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+            uniswapFactory
+            )).wait()
+    }
+
+    // let recipient_l2LpRewardVault = await l2LpRewardVault.recipient()
+    // if (recipient_l2LpRewardVault != a(0)) {
+    //     await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+    //         l2ProjectManager.address
+    //         )).wait()
+    // }
+
     //=================================
     //==== schedule Vault
     const L2ScheduleVaultDeployment = await deploy("L2ScheduleVault", {
@@ -356,13 +419,14 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         address _nonScheduleVault
         */
     let initialLiquidityVault = await l2ProjectManager.initialLiquidityVault()
+    let lpRewardVault = await l2ProjectManager.liquidityRewardVault()
     let scheduleVault = await l2ProjectManager.scheduleVault()
     let nonScheduleVault = await l2ProjectManager.initialLiquidityVault()
     let tosAirdropVault = await l2ProjectManager.tosAirdropVault()
     let tonAirdropVault = await l2ProjectManager.tonAirdropVault()
 
-
     if (initialLiquidityVault != l2InitialLiquidityVaultProxy.address ||
+        lpRewardVault != l2LpRewardVaultProxy.address ||
         scheduleVault != l2ScheduleVaultProxy.address ||
         nonScheduleVault != l2NonScheduleVaultProxy.address ||
         tosAirdropVault != l2AirdropStosVaultProxy.address ||
@@ -371,7 +435,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         await (await l2ProjectManager.connect(deploySigner).setTokamakVaults(
             hre.ethers.constants.AddressZero,
             l2InitialLiquidityVaultProxy.address,
-            hre.ethers.constants.AddressZero,
+            l2LpRewardVaultProxy.address,
             L2AirdropTonVaultProxyDeployment.address,
             l2AirdropStosVaultProxy.address,
             l2ScheduleVaultProxy.address,

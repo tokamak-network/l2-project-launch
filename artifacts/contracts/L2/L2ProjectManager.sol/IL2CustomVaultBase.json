@@ -28,6 +28,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "l2ProjectManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",

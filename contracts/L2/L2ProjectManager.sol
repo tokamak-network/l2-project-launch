@@ -22,6 +22,7 @@ interface IL2CustomVaultBase {
     ) external;
 
     function isVaultAdmin(address l2Token, address account) external view returns (bool);
+    function l2ProjectManager() external view returns (address);
 }
 
 interface IL2PublicSaleVault {
@@ -164,7 +165,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         nonZeroAddress(initialLiquidity)
         nonZeroAddress(liquidityReward)
         nonZeroAddress(tosAirdrop)
-        // nonZeroAddress(tonAirdrop)
+        nonZeroAddress(tonAirdrop)
         nonZeroAddress(_scheduleVault)
         nonZeroAddress(_nonScheduleVault)
     {
@@ -179,7 +180,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
         publicSaleVault = publicSale;
         initialLiquidityVault = initialLiquidity;
-        liquidityReward = liquidityReward;
+        liquidityRewardVault = liquidityReward;
         tonAirdropVault = tonAirdrop;
         tosAirdropVault = tosAirdrop;
         scheduleVault = _scheduleVault;
@@ -283,7 +284,8 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
         uint256 total = publicTotal +
             tokamakVaults.initialVaultParams.totalAllocatedAmount +
-            tokamakVaults.rewardParams.params.totalAllocatedAmount +
+            tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount +
+            tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount +
             tokamakVaults.tosAirdropParams.totalAllocatedAmount +
             tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
 
@@ -304,7 +306,8 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         projects[info.l2Token].projectId = projectId;
         _approveVaults(info.l2Token, publicSaleVault, publicTotal);
         _approveVaults(info.l2Token, initialLiquidityVault, tokamakVaults.initialVaultParams.totalAllocatedAmount);
-        _approveVaults(info.l2Token, liquidityRewardVault, tokamakVaults.rewardParams.params.totalAllocatedAmount);
+        _approveVaults(info.l2Token, liquidityRewardVault,
+            tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount + tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount );
         _approveVaults(info.l2Token, tonAirdropVault, tokamakVaults.tonAirdropParams.totalAllocatedAmount);
         _approveVaults(info.l2Token, tosAirdropVault, tokamakVaults.tosAirdropParams.totalAllocatedAmount);
 
@@ -326,11 +329,24 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 tokamakVaults.initialVaultParams);
         }
 
-        if (tokamakVaults.rewardParams.params.totalAllocatedAmount != 0) {
+
+        if (tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount != 0) {
             if(!IL2CustomVaultBase(liquidityRewardVault).isVaultAdmin(info.l2Token, info.projectOwner))
                 IL2CustomVaultBase(liquidityRewardVault).setVaultAdmin(info.l2Token, info.projectOwner);
 
-            LibProject.InitalParameterLiquidityRewardVault memory rewardParams = tokamakVaults.rewardParams;
+            LibProject.InitalParameterLiquidityRewardVault memory rewardParams = tokamakVaults.rewardTonTosPoolParams;
+
+            IL2LiquidityRewardVault(liquidityRewardVault).initialize(
+                l2Token,
+                rewardParams.poolParams,
+                rewardParams.params);
+        }
+
+        if (tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount != 0) {
+            if(!IL2CustomVaultBase(liquidityRewardVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(liquidityRewardVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            LibProject.InitalParameterLiquidityRewardVault memory rewardParams = tokamakVaults.rewardProjectTosPoolParams;
 
             IL2LiquidityRewardVault(liquidityRewardVault).initialize(
                 l2Token,

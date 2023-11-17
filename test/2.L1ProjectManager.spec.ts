@@ -341,7 +341,7 @@ describe('L1ProjectManager', () => {
                 projectId :  ethers.constants.Zero,
                 tokenOwner: addr1Address,
                 projectOwner: addr2Address,
-                initialTotalSupply: ethers.utils.parseEther("120000"),
+                initialTotalSupply: ethers.utils.parseEther("140000"),
                 tokenType: 0, // non-mintable
                 projectName: 'CandyShop',
                 tokenName: 'Candy',
@@ -460,12 +460,25 @@ describe('L1ProjectManager', () => {
                 sTime,
                 3000) ;
 
-            let rewardParams = getLpRewardParams(
+            let rewardTonTosPoolParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                deployed.tonAddress,
+                deployed.tosAddress,
+                3000,
+                0, //totalAllocatedAmount
+                0, // totalClaimCount
+                0, //firstClaimAmount
+                0, //firstClaimTime
+                0, //secondClaimTime
+                0 //roundIntervalTime
+            );
+
+            let rewardProjectTosPoolParams = getLpRewardParams(
                 ethers.constants.AddressZero,
                 projectInfo.l2Token,
                 deployed.tosAddress,
                 3000,
-                 0, 0, 0, 0, 0, 0);
+                0, 0, 0, 0, 0, 0);
 
             let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
 
@@ -497,7 +510,8 @@ describe('L1ProjectManager', () => {
             let tokamakVaults = {
                 publicSaleParams: publicSaleParams,
                 initialVaultParams : initialVaultParams,
-                rewardParams: rewardParams,
+                rewardTonTosPoolParams: rewardTonTosPoolParams,
+                rewardProjectTosPoolParams: rewardProjectTosPoolParams,
                 tosAirdropParams: tosAirdropParams,
                 tonAirdropParams: tonAirdropParams
             }
@@ -520,8 +534,9 @@ describe('L1ProjectManager', () => {
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
 
-            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("6"))
-
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("8"))
+            let rewardTonTosPoolAmount = initialLiquidityAmount
+            let rewardProjectTosPoolAmount = initialLiquidityAmount
             let daoAmount = initialLiquidityAmount
             let teamAmount = initialLiquidityAmount
             let marketingAmount = initialLiquidityAmount
@@ -572,13 +587,31 @@ describe('L1ProjectManager', () => {
                 sTime,
                 3000) ;
 
+            let rewardTonTosPoolParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                deployed.tonAddress,
+                deployed.tosAddress,
+                3000,
+                rewardTonTosPoolAmount,
+                totalClaimCount,
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+                );
 
-            let rewardParams = getLpRewardParams(
+            let rewardProjectTosPoolParams = getLpRewardParams(
                 ethers.constants.AddressZero,
                 projectInfo.l2Token,
                 deployed.tosAddress,
                 3000,
-                0, 0, 0, 0, 0, 0);
+                rewardProjectTosPoolAmount,
+                totalClaimCount,
+                firstClaimAmount, //firstClaimAmount
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime
+                roundIntervalTime //roundIntervalTime
+            );
 
             let tosAirdropParams =  getTosAirdropParams(
                 ethers.constants.AddressZero,
@@ -627,7 +660,8 @@ describe('L1ProjectManager', () => {
             let tokamakVaults = {
                 publicSaleParams: publicSaleParams,
                 initialVaultParams : initialVaultParams,
-                rewardParams: rewardParams,
+                rewardTonTosPoolParams: rewardTonTosPoolParams,
+                rewardProjectTosPoolParams: rewardProjectTosPoolParams,
                 tosAirdropParams: tosAirdropParams,
                 tonAirdropParams: tonAirdropParams
             }

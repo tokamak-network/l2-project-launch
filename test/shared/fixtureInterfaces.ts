@@ -136,7 +136,8 @@ interface SetL2ProjectLaunchFixture  {
     airdropTonVault: L2AirdropTonVault,
     airdropTonVaultProxy: L2AirdropTonVaultProxy,
     tosAddress: string,
-    tosAdminAddress: string
+    tosAdminAddress: string,
+    tonAddress: string
 }
 
 interface ProjectInfo {

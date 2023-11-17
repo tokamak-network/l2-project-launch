@@ -45,13 +45,15 @@ const config: HardhatUserConfig = {
       default: 7,
       goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
       hardhat: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+      titan: '0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2',
       titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
     },
     tonAdminAddress: {
       default: 8,
       goerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
       hardhat: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
-      titangoerli: '0xc1eba383D94c6021160042491A5dfaF1d82694E6',
+      titan: '',
+      titangoerli: ' ',
     },
     // tonAddress : {
     //   default: 7,
@@ -75,6 +77,7 @@ const config: HardhatUserConfig = {
       goerli: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
       hardhat: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
       // hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+      titan: '0xD08a2917653d4E460893203471f0000826fb4034',
       titangoerli: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
     },
     tosAdminAddress: {
@@ -87,13 +90,15 @@ const config: HardhatUserConfig = {
       default: 13,
       goerli: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
       hardhat: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
-      titangoerli: '0x8C2351935011CfEccA4Ea08403F127FB782754AC',
+      titan: '0x755Ba335013C07CE35C9A2dd5746617Ac4c6c799',
+      titangoerli: '0x37B8d7714419ba5B50379b799a0B2a582274F5Eb',
     },
     npm: {
       default: 14,
       goerli: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
       hardhat: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
-      titangoerli: '0x324d7015E30e7C231e4aC155546b8AbfEAB00977',
+      titan: '0xfAFc55Bcdc6e7a74C21DD51531D14e5DD9f29613',
+      titangoerli: '0x8631308cDa88E98fc9DD109F537F9dEf84539370',
     },
     addressManager: {
       default: 15,

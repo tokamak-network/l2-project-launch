@@ -9,6 +9,8 @@ import "../../libraries/SafeERC20.sol";
 import "../../libraries/LibProject.sol";
 import "../../libraries/LibPool.sol";
 
+// import "hardhat/console.sol";
+
 interface IUniswapV3Factory {
  function getPool(address token0, address token1, uint24 _fee) external view returns(address);
 }
@@ -57,6 +59,7 @@ contract L2LpRewardVault is L2CustomVaultBase, L2LpRewardVaultStorage {
     )
         external onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
+
         require(params.firstClaimTime > block.number, "first claim time passed");
         require(params.totalAllocatedAmount != 0 && params.totalClaimCount != 0 && params.roundIntervalTime != 0, "wrong value");
         if (params.totalClaimCount > 1) require(params.secondClaimTime > params.firstClaimTime, "wrong the second claim time");
@@ -158,7 +161,8 @@ contract L2LpRewardVault is L2CustomVaultBase, L2LpRewardVaultStorage {
     }
 
     function getPoolAddress(address token0, address token1, uint24 _fee) public view returns(address) {
-        return computeAddress(uniswapV3Factory, token0, token1, _fee);
+        if(token0 < token1) return computeAddress(uniswapV3Factory, token0, token1, _fee);
+        else return computeAddress(uniswapV3Factory, token1, token0, _fee);
     }
 
     function computeAddress(address factory, address token0, address token1, uint24 _fee) public view returns (address pool) {
