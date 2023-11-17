@@ -52,6 +52,11 @@ import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 //L2InitialLiquidityVault
 import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol'
 import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
+
+// L2LpRewardVault
+import { L2LpRewardVault } from '../../typechain-types/contracts/L2/vaults/L2LpRewardVault.sol'
+import { L2LpRewardVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2LpRewardVaultProxy'
+
 // L2ScheduleVault ( team, marketing )
 import { L2ScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVault'
 import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy'
@@ -81,6 +86,7 @@ import LockIdNftForRegisterJson from "../../artifacts/contracts/stos/LockIdNftFo
 import L2AirdropStosVaultJson from "../../artifacts/contracts/L2/vaults/L2AirdropStosVault.sol/L2AirdropStosVault.json";
 import L2DividendPoolForStosJson from "../../artifacts/contracts/L2/airdrop/L2DividendPoolForStos.sol/L2DividendPoolForStos.json";
 import L2UniversalStosJson from "../../artifacts/contracts/L2/stos/L2UniversalStos.sol/L2UniversalStos.json";
+import L2LpRewardVaultJson from "../../artifacts/contracts/L2/vaults/L2LpRewardVault.sol/L2LpRewardVault.json";
 
 
 const tosInfo = {
@@ -265,7 +271,8 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boolean): Promise<SetL2ProjectLaunchFixture> {
 
   const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-  const { paymasterAddress, l1AddressManagerAddress, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
+  const { uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
+  const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
 
   //==== LibProject =================================
   const LibProject_ = await ethers.getContractFactory('LibProject');
@@ -372,6 +379,26 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   const initialLiquidityVault = await ethers.getContractAt(
     initialLiquidityVaultJson.abi, initialLiquidityVaultProxy.address, deployer) as L2InitialLiquidityVault;
+
+
+  //==== L2LpRewardVault =================================
+  const l2LpRewardVaultDeployment = await ethers.getContractFactory("L2LpRewardVault")
+  const l2LpRewardVaultImpl = (await initialLiquidityVaultDeployment.connect(deployer).deploy()) as L2LpRewardVault;
+
+  //==== L2LpRewardVaultProxy =================================
+  const L2LpRewardVaultProxyDeployment = await ethers.getContractFactory("L2LpRewardVaultProxy")
+  const l2LpRewardVaultProxy = (await L2InitialLiquidityVaultProxyDeployment.connect(deployer).deploy()) as L2LpRewardVaultProxy;
+
+  impl = await l2LpRewardVaultProxy.implementation()
+  if (impl != l2LpRewardVaultImpl.address) {
+    await (await l2LpRewardVaultProxy.connect(deployer).upgradeTo(l2LpRewardVaultImpl.address)).wait()
+  }
+
+  const l2LpRewardVault = await ethers.getContractAt(
+    L2LpRewardVaultJson.abi, l2LpRewardVaultProxy.address, deployer) as L2LpRewardVault;
+
+  await (await l2LpRewardVault.connect(deployer).setPoolInitCodeHash(init_code_hash)).wait()
+  await (await l2LpRewardVault.connect(deployer).setUniswapV3Factory(uniswapFactory)).wait()
 
   //=================================
   //==== customScheduleVault =================================
@@ -568,6 +595,8 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
       // publicSaleVault:
       initialLiquidityVault: initialLiquidityVault,
       initialLiquidityVaultProxy: initialLiquidityVaultProxy,
+      l2LpRewardVault: l2LpRewardVault,
+      l2LpRewardVaultProxy: l2LpRewardVaultProxy,
       daoVault: daoVault,
       daoVaultProxy: daoVaultProxy,
       marketingVault : marketingVault,

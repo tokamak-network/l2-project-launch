@@ -10,7 +10,7 @@ import { LibPool } from "../../libraries/LibPool.sol";
  * @dev
  */
 contract L2LpRewardVaultStorage {
-
+    bytes32 public pool_init_code_hash;
     address public uniswapV3Factory;
     address public recipient;
 

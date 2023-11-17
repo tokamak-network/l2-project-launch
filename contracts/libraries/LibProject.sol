@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "./LibPool.sol";
+
 interface AddressManagerI {
     function getAddress(string memory _name) external view returns (address);
 }
@@ -104,7 +106,7 @@ library LibProject {
     }
 
     struct InitalParameterLiquidityRewardVault {
-        address poolAddress;
+        LibPool.PoolInfo poolParams;
         InitalParameterScheduleVault params;
     }
 

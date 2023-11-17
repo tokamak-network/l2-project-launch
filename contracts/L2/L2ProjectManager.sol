@@ -42,7 +42,8 @@ interface IL2InitialLiquidityVault {
 interface IL2LiquidityRewardVault {
     function initialize(
         address l2Token,
-        LibProject.InitalParameterLiquidityRewardVault memory params
+        LibPool.PoolInfo memory poolParams,
+        LibProject.InitalParameterScheduleVault memory params
     ) external;
 }
 
@@ -161,7 +162,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         external onlyOwner
         // nonZeroAddress(publicSale)
         nonZeroAddress(initialLiquidity)
-        // nonZeroAddress(liquidityReward)
+        nonZeroAddress(liquidityReward)
         nonZeroAddress(tosAirdrop)
         // nonZeroAddress(tonAirdrop)
         nonZeroAddress(_scheduleVault)
@@ -315,21 +316,26 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 tokamakVaults.publicSaleParams.claimParams
             );
         }
-        LibProject.InitalParameterInitialLiquidityVault memory initialVaultParams = tokamakVaults.initialVaultParams;
 
         if (tokamakVaults.initialVaultParams.totalAllocatedAmount != 0) {
+
             if(!IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner)) IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
             IL2InitialLiquidityVault(initialLiquidityVault).initialize(
                 info.l2Token,
-                initialVaultParams);
+                tokamakVaults.initialVaultParams);
         }
 
         if (tokamakVaults.rewardParams.params.totalAllocatedAmount != 0) {
-            // // liquidity reward
-            // IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(l2Token, projects[l2Token].projectOwner);
-            // IL2LiquidityRewardVault(liquidityRewardVault).initialize(
-            //     l2Token,
-            //     tokamakVaults.rewardParams);
+            if(!IL2CustomVaultBase(liquidityRewardVault).isVaultAdmin(info.l2Token, info.projectOwner))
+                IL2CustomVaultBase(liquidityRewardVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            LibProject.InitalParameterLiquidityRewardVault memory rewardParams = tokamakVaults.rewardParams;
+
+            IL2LiquidityRewardVault(liquidityRewardVault).initialize(
+                l2Token,
+                rewardParams.poolParams,
+                rewardParams.params);
         }
 
         if (tokamakVaults.tosAirdropParams.totalAllocatedAmount != 0) {
@@ -340,6 +346,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 info.l2Token,
                 tokamakVaults.tosAirdropParams);
         }
+
         if (tokamakVaults.tonAirdropParams.totalAllocatedAmount != 0) {
             //
         }

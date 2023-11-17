@@ -33,6 +33,10 @@ contract L2LpRewardVault is L2CustomVaultBase, L2LpRewardVaultStorage {
     /* ========== CONSTRUCTOR ========== */
 
     /* ========== onlyOwner ========== */
+    function setPoolInitCodeHash(bytes32 _hash) external onlyOwner {
+        require(pool_init_code_hash != _hash, "same");
+        pool_init_code_hash = _hash;
+    }
 
     function setUniswapV3Factory(address _factory) external nonZeroAddress(_factory) onlyOwner {
         require(uniswapV3Factory != _factory, "same");
@@ -154,7 +158,23 @@ contract L2LpRewardVault is L2CustomVaultBase, L2LpRewardVaultStorage {
     }
 
     function getPoolAddress(address token0, address token1, uint24 _fee) public view returns(address) {
-        return IUniswapV3Factory(uniswapV3Factory).getPool(token0, token1, _fee);
+        return computeAddress(uniswapV3Factory, token0, token1, _fee);
     }
 
+    function computeAddress(address factory, address token0, address token1, uint24 _fee) public view returns (address pool) {
+        require(token0 < token1);
+        pool = address(
+            uint160(
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        hex'ff',
+                        factory,
+                        keccak256(abi.encode(token0, token1, _fee)),
+                        pool_init_code_hash
+                    )
+                )
+            ))
+        );
+    }
 }

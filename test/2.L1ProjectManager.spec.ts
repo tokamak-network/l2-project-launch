@@ -243,7 +243,7 @@ describe('L1ProjectManager', () => {
                     deployed.l2ProjectManager.connect(addr1).setTokamakVaults(
                         ethers.constants.AddressZero,
                         deployed.initialLiquidityVaultProxy.address,
-                        ethers.constants.AddressZero,
+                        deployed.l2LpRewardVaultProxy.address,
                         ethers.constants.AddressZero,
                         deployed.airdropStosVault.address,
                         deployed.scheduleVaultProxy.address,
@@ -257,7 +257,7 @@ describe('L1ProjectManager', () => {
                 await deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
                     ethers.constants.AddressZero,
                     deployed.initialLiquidityVaultProxy.address,
-                    ethers.constants.AddressZero,
+                    deployed.l2LpRewardVaultProxy.address,
                     ethers.constants.AddressZero,
                     deployed.airdropStosVault.address,
                     deployed.scheduleVaultProxy.address,
@@ -276,7 +276,7 @@ describe('L1ProjectManager', () => {
             //         deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
             //             ethers.constants.AddressZero,
             //             deployed.initialLiquidityVaultProxy.address,
-            //             ethers.constants.AddressZero,
+            //             deployed.l2LpRewardVaultProxy.address,
             //             ethers.constants.AddressZero,
             //             deployed.airdropStosVault.address,
             //             deployed.scheduleVaultProxy.address,
@@ -458,8 +458,16 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+
+            let rewardParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                projectInfo.l2Token,
+                deployed.tosAddress,
+                3000,
+                 0, 0, 0, 0, 0, 0);
+
             let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+
             let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
 
             let daoParams =  getNonScheduleParams("DAO", addr1.address, BigNumber.from("0"));
@@ -510,11 +518,13 @@ describe('L1ProjectManager', () => {
 
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
+
             let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("5"))
             let daoAmount = initialLiquidityAmount
             let teamAmount = initialLiquidityAmount
             let marketingAmount = initialLiquidityAmount
             let airdropStosAmount = initialLiquidityAmount
+
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
             let firstClaimTime = sTime
             let totalClaimCount = 4
@@ -557,7 +567,14 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+
+            let rewardParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                projectInfo.l2Token,
+                deployed.tosAddress,
+                3000,
+                0, 0, 0, 0, 0, 0);
+
             let tosAirdropParams =  getTosAirdropParams(
                 ethers.constants.AddressZero,
                 airdropStosAmount,

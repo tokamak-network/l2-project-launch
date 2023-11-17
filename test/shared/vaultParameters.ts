@@ -82,7 +82,9 @@ export const  getInitialLiquidityParams = (
 
 export const  getLpRewardParams = (
     claimer:  string,
-    poolAddress: string,
+    token0: string,
+    token1: string,
+    fee: number,
     totalAmount:number,
     totalClaimCount:number,
     firstClaimAmount:number,
@@ -91,7 +93,11 @@ export const  getLpRewardParams = (
     roundIntervalTime:number ) =>
     {
     return  {
-        poolAddress: poolAddress,
+        poolParams: {
+            token0: token0,
+            token1: token1,
+            fee: fee
+        },
         params : {
             claimer: claimer,
             totalAllocatedAmount: ethers.BigNumber.from(""+totalAmount),

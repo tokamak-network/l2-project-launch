@@ -14,53 +14,63 @@
           "components": [
             {
               "internalType": "address",
-              "name": "poolAddress",
+              "name": "token0",
               "type": "address"
             },
             {
-              "components": [
-                {
-                  "internalType": "address",
-                  "name": "claimer",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "totalAllocatedAmount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "totalClaimCount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "firstClaimAmount",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint32",
-                  "name": "firstClaimTime",
-                  "type": "uint32"
-                },
-                {
-                  "internalType": "uint32",
-                  "name": "secondClaimTime",
-                  "type": "uint32"
-                },
-                {
-                  "internalType": "uint32",
-                  "name": "roundIntervalTime",
-                  "type": "uint32"
-                }
-              ],
-              "internalType": "struct LibProject.InitalParameterScheduleVault",
-              "name": "params",
-              "type": "tuple"
+              "internalType": "address",
+              "name": "token1",
+              "type": "address"
+            },
+            {
+              "internalType": "uint24",
+              "name": "fee",
+              "type": "uint24"
             }
           ],
-          "internalType": "struct LibProject.InitalParameterLiquidityRewardVault",
+          "internalType": "struct LibPool.PoolInfo",
+          "name": "poolParams",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "claimer",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalAllocatedAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalClaimCount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "firstClaimAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "firstClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "secondClaimTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "roundIntervalTime",
+              "type": "uint32"
+            }
+          ],
+          "internalType": "struct LibProject.InitalParameterScheduleVault",
           "name": "params",
           "type": "tuple"
         }

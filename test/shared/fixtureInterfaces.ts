@@ -38,6 +38,11 @@ import { LockTOSv2 } from '../../typechain-types/contracts/stos/LockTOSv2'
 //L2InitialLiquidityVault
 import { L2InitialLiquidityVault } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol'
 import { L2InitialLiquidityVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy'
+
+import { L2LpRewardVault } from '../../typechain-types/contracts/L2/vaults/L2LpRewardVault.sol'
+import { L2LpRewardVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2LpRewardVaultProxy'
+
+
 // L2ScheduleVault ( team, marketing )
 import { L2ScheduleVault } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVault'
 import { L2ScheduleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2ScheduleVaultProxy'
@@ -107,6 +112,8 @@ interface SetL2ProjectLaunchFixture  {
     // publicSaleVault:
     initialLiquidityVault: L2InitialLiquidityVault,
     initialLiquidityVaultProxy: L2InitialLiquidityVaultProxy,
+    l2LpRewardVault: L2LpRewardVault,
+    l2LpRewardVaultProxy: L2LpRewardVaultProxy,
     daoVault: L2NonScheduleVault,
     daoVaultProxy: L2CustomVaultBaseProxy,
     marketingVault : L2ScheduleVault,
