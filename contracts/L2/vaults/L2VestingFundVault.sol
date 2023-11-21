@@ -138,7 +138,7 @@ contract L2VestingFundVault is
     ) 
         public 
     {
-        require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
+        // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
 
         require(claimTimes[_l2Token][0] != 0 && block.timestamp > claimTimes[_l2Token][0], "Vault: not started yet");
         require(totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token],"Vault: already All get");
