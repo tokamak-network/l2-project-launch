@@ -40,7 +40,7 @@ import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2P
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
 
-import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy.sol"
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
 import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
 
 import l2VestingFundJson from "../../artifacts/contracts/L2/vaults/L2VestingFundVault.sol/L2VestingFundVault.json";

@@ -196,15 +196,19 @@ contract L2PublicSaleVault is
         require(getAmount <= IERC20(ton).balanceOf(address(this)), "haven't token");        
 
         manageInfos.adminWithdraw = true;
-
-        uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
-        if (burnAmount != 0) {
-            IIERC20Burnable(_l2token).burn(burnAmount);
-        }
+        console.log("contract 1");
+        // uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
+        // console.log("burnAmount :", burnAmount);
+        // if (burnAmount != 0) {
+        //     console.log("in");
+        //     IIERC20Burnable(_l2token).burn(burnAmount);
+        // }
         
+        console.log("contract 2");
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
-        // IERC20(ton).transfer(vestingFund,getAmount);
+        console.log("contract 3");
         IIVestingPublicFundAction(vestingFund).funding(_l2token,getAmount);
+        console.log("contract 4");
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
@@ -223,7 +227,18 @@ contract L2PublicSaleVault is
 
         uint256 liquidityTON = hardcapCalcul(_l2token);
         require(liquidityTON > 0, "don't pass the hardCap");
-        address poolAddress = LibPublicSaleVault.getPoolAddress(wton,tos);
+        if (manageInfos.exchangeTOS == false) {
+            // IIWTON(wton).swapFromTON(liquidityTON);
+            // manageInfos.remainTON = liquidityTON*(1000000000);
+            // manageInfos.exchangeTOS = true;
+            require(liquidityTON >= amountIn, "amountIn over");
+            manageInfos.remainTON = liquidityTON;
+            manageInfos.exchangeTOS = true;
+        } else {
+            require(manageInfos.remainTON >= amountIn, "amountIn over");
+        }
+        address poolAddress = LibPublicSaleVault.getPoolAddress(ton,tos);
+        // console.log("TON-TOS PoolAddress :",poolAddress);
 
         (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
         require(sqrtPriceX96 > 0, "pool not initial");
@@ -235,12 +250,12 @@ contract L2PublicSaleVault is
         );
 
         (uint256 amountOutMinimum, , uint160 sqrtPriceLimitX96)
-            = LibPublicSaleVault.limitPrameters(amountIn, poolAddress, wton, tos, manageInfos.changeTick);
+            = LibPublicSaleVault.limitPrameters(amountIn, poolAddress, ton, tos, manageInfos.changeTick);
     
         (,bytes memory result) = address(quoter).call(
             abi.encodeWithSignature(
                 "quoteExactInputSingle(address,address,uint24,uint256,uint160)", 
-                wton,tos,poolFee,amountIn,0
+                ton,tos,poolFee,amountIn,0
             )
         );
         
@@ -249,15 +264,10 @@ contract L2PublicSaleVault is
 
         //quoter 값이 더 크다면 quoter값이 minimum값으로 사용됨
         //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
+
+        // console.log("amountOutMinimum :", amountOutMinimum);
+        // console.log("amountOutMinimum2 ", amountOutMinimum2);
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
-                
-        if (manageInfos.exchangeTOS == false) {
-            IIWTON(wton).swapFromTON(liquidityTON);
-            manageInfos.remainTON = liquidityTON*(1000000000);
-            manageInfos.exchangeTOS = true;
-        } else {
-            require(manageInfos.remainTON >= amountIn, "amountIn over");
-        }
 
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
@@ -265,7 +275,7 @@ contract L2PublicSaleVault is
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
-                tokenIn: wton,
+                tokenIn: ton,
                 tokenOut: tos,
                 fee: poolFee,
                 recipient: liquidityVault,

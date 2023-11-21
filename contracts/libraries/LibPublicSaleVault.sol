@@ -104,7 +104,8 @@ library LibPublicSaleVault {
     }
 
     function getPoolAddress(address _wton, address _tos) public view returns(address) {
-        address factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+        // address factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+        address factory = 0x2Ae8FeE7B4f4ef27088fa8a550C91A045A3128b5;
         return IIUniswapV3Factory(factory).getPool(_wton, _tos, 3000);
     }
 

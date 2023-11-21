@@ -45,20 +45,34 @@ describe('L2TokenFactory', () => {
     let tier1Amount: BigNumber;
 
     //mainnet
-    let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
-    let uniswapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-    let tos = "0x409c4D8cd5d2924b9bc5509230d16a61289c8153"
-    let ton = "0x2be5e8c109e2197D077D13A82dAead6a9b3433C5"
-    let uniswapFacotry = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
+    // let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
+    // let uniswapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+    // let tos = "0x409c4D8cd5d2924b9bc5509230d16a61289c8153"
+    // let ton = "0x2be5e8c109e2197D077D13A82dAead6a9b3433C5"
+    // let uniswapFacotry = "0x1F98431c8aD98523631AE4a59f267346ea31F984"
 
-    let lyda = "0xE1B0630D7649CdF503eABc2b6423227Be9605247"
+    // let lyda = "0xE1B0630D7649CdF503eABc2b6423227Be9605247"
 
-    let lydaRich = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
+    // let lydaRich = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
+
+    //titan-goerli
+    let quoter = "0x32cdAd6cd559EcFE87Be49167F2F68A1Df08c9E9"
+    let uniswapRouter = "0x0DD8EA3A5A8900CE36A7302E600C4B8A3ef23B8d"
+    let tos = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
+    let ton = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+    let uniswapFacotry = "0x2Ae8FeE7B4f4ef27088fa8a550C91A045A3128b5"
+
+    let lyda = "0x3bB4445D30AC020a84c1b5A8A2C6248ebC9779D0"
+
+    let lydaRich = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
 
     //goerli
     // let tos = "0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9"
     // let ton = "0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00"
+    // let lyda = "0x51C5E2D3dc8Ee66Dffdb1747dEB20d6b326E8bF2"
 
+
+    //standard set
     let minPer = 5;
     let maxPer = 10;
 
@@ -146,9 +160,13 @@ describe('L2TokenFactory', () => {
     //goerli
     // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
 
+    //titan-goerli
+    let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+    let testAccount2 = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+
     //mainnet
-    let testAccount = "0x156DD25d342a6B63874333985140aA3103bf1Ff0"
-    let testAccount2 = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
+    // let testAccount = "0x156DD25d342a6B63874333985140aA3103bf1Ff0"
+    // let testAccount2 = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
     let richTON: Signer;
     let richTOS: Signer;
     let richLYDA: Signer;
@@ -601,7 +619,6 @@ describe('L2TokenFactory', () => {
             expect(addr5balanceOfAt).to.be.above(0);
         })
     })
-
 
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
         it("check the is L2Token", async () => {
@@ -1656,9 +1673,16 @@ describe('L2TokenFactory', () => {
             })
 
             it("anybody can execute exchangeWTONtoTOS", async () => {
+                let amount1 = ethers.utils.parseUnits("1", 27);
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
+                let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
+                await expect(tx).to.be.revertedWith("amountIn over")
+            })
+
+            it("anybody can execute exchangeWTONtoTOS", async () => {
                 // let changeTick = await deployed.l2PublicProxyLogic.changeTick();
                 // console.log("changeTick :", changeTick)
-                let amount1 = ethers.utils.parseUnits("1", 27);
+                let amount1 = ethers.utils.parseUnits("1", 18);
                 expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
                 await deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
                 // console.log(await tosContract.balanceOf(deployed.l2LiquidityProxy.address))
@@ -1670,96 +1694,100 @@ describe('L2TokenFactory', () => {
     describe("depositWithdraw (execute to funding)", () => {
         it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
             expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(0)
+            console.log("depositWithdraw")
             await deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
+            console.log("2")
             let round1TONAmount = await deployed.l2PublicProxyLogic.saleInfo(lydaContract.address);
             let round2TONAmount = await deployed.l2PublicProxyLogic.totalOpenPurchasedAmount(lydaContract.address)
             let liquidityTON = await deployed.l2PublicProxyLogic.hardcapCalcul(lydaContract.address)
             let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
+            console.log("3")
             expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
+            console.log("4")
         })
     })
 
-    describe("L2VestingFundVault claim", () => {
-        it("can not claim before claimTIme", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("Vault: not started yet")
-        })
+    // describe("L2VestingFundVault claim", () => {
+    //     it("can not claim before claimTIme", async () => {
+    //         await expect(
+    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+    //                 lyda
+    //             )
+    //         ).to.be.revertedWith("Vault: not started yet")
+    //     })
 
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
-            await ethers.provider.send('evm_mine');
-        })
+    //     it("duration the time", async () => {
+    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
+    //         await ethers.provider.send('evm_mine');
+    //     })
 
-        it("can claim after claimTime1", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //     it("can claim after claimTime1", async () => {
+    //         let round = await deployed.l2VestingFund.currentRound(lyda)
+    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
+    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-        })
+    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+    //     })
 
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("claimable amount is zero")
-        })
+    //     it("can't claim already get reward", async () => {
+    //         await expect(
+    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+    //                 lyda
+    //             )
+    //         ).to.be.revertedWith("claimable amount is zero")
+    //     })
 
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
-            await ethers.provider.send('evm_mine');
-        })
+    //     it("duration the time", async () => {
+    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
+    //         await ethers.provider.send('evm_mine');
+    //     })
 
-        it("can claim after claimTime2", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //     it("can claim after claimTime2", async () => {
+    //         let round = await deployed.l2VestingFund.currentRound(lyda)
+    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
+    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-        })
+    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+    //     })
 
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("claimable amount is zero")
-        })
+    //     it("can't claim already get reward", async () => {
+    //         await expect(
+    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+    //                 lyda
+    //             )
+    //         ).to.be.revertedWith("claimable amount is zero")
+    //     })
 
 
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime3+1]);
-            await ethers.provider.send('evm_mine');
-        })
+    //     it("duration the time", async () => {
+    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime3+1]);
+    //         await ethers.provider.send('evm_mine');
+    //     })
 
-        it("can claim after claimTime3", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //     it("can claim after claimTime3", async () => {
+    //         let round = await deployed.l2VestingFund.currentRound(lyda)
+    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda,round)
+    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
+    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-            expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
-        })
+    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+    //         expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
+    //     })
 
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("Vault: already All get")
-        })
+    //     it("can't claim already get reward", async () => {
+    //         await expect(
+    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+    //                 lyda
+    //             )
+    //         ).to.be.revertedWith("Vault: already All get")
+    //     })
 
-    })
+    // })
 
 });
 

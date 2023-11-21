@@ -67,15 +67,20 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         tos = _setAddress[5];
         ton = _setAddress[6];
 
-        IERC20(wton).approve(
+        IERC20(ton).approve(
             address(uniswapRouter),
             type(uint256).max
         );
 
-        IERC20(ton).approve(
-            wton,
-            type(uint256).max
-        );
+        // IERC20(wton).approve(
+        //     address(uniswapRouter),
+        //     type(uint256).max
+        // );
+
+        // IERC20(ton).approve(
+        //     wton,
+        //     type(uint256).max
+        // );
     }
 
     function setMaxMinPercent(

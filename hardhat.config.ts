@@ -61,14 +61,18 @@ const config: HardhatUserConfig = {
       //   url: `${process.env.ETH_NODE_URI_GOERLI}`,
       //   blockNumber: 9448400
       // },
-      forking: {
-        url: `${process.env.ETH_NODE_URI_MAINNET}`,
-        blockNumber: 15927883
-      },
+      // forking: {
+      //   url: `${process.env.ETH_NODE_URI_MAINNET}`,
+      //   blockNumber: 15927883
+      // },
       // forking: {
       //   url: `${process.env.ETH_NODE_URI_TITAN}`,
       //   blockNumber: 1200
       // },
+      forking: {
+        url: `${process.env.ETH_NODE_URI_TITANGOERLI}`,
+        blockNumber: 23885
+      },
       allowUnlimitedContractSize: false,
       deploy: ['deploy_l1', 'deploy_l2'],
       companionNetworks: {
@@ -98,6 +102,11 @@ const config: HardhatUserConfig = {
       chainId: 5050,
       gasPrice: 250000,
       deploy: ['deploy_l2_proxy']
+    },
+    "tokamakGoerli" : {
+      url: `https://rpc.titan-goerli.tokamak.network`,
+      // url: `https://goerli.optimism.tokamak.network`,
+      // accounts: [`${process.env.PRIVATE_KEY}`]
     },
   },
   deterministicDeployment: (network: string) => {
