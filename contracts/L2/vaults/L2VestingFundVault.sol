@@ -170,7 +170,7 @@ contract L2VestingFundVault is
     ) 
         external
     {
-        // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
+        require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
         require(claimTimes[_l2Token].length != 0, "set up a claim round for vesting");
 
         require(msg.sender == publicSaleVault, "caller is not publicSaleVault.");
