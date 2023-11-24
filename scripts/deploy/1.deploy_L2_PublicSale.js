@@ -26,11 +26,29 @@ async function DeployPublicSale() {
 }
 
 async function DeployVestingFund() {
+    //==== L2VestingFundVault =================================
 
+    const L2VestingFundVaultProxy = await ethers.getContractFactory('L2VestingFundVaultProxy')
+    const l2vestingFundProxy = await L2VestingFundVaultProxy.deploy();
+    await l2vestingFundProxy.deployed();
+    console.log('l2vestingFundProxy' , l2vestingFundProxy.address)
+
+    //==== L2VestingFundVault =================================
+    const L2VestingFundVault = await ethers.getContractFactory('L2VestingFundVault')
+    const l2vestingFund = await L2VestingFundVault.deploy();
+    await l2vestingFund.deployed();
+    console.log('l2vestingFund' , l2vestingFund.address)
+
+
+    await (await l2vestingFundProxy.upgradeTo(l2vestingFund.address)).wait()
+
+    // titan-goerli
+    // l2vestingFundProxy 0x9f4282cea29432724BbefF6ab4394B338e0fabB6
+    // l2vestingFund 0xE3f634F2AeaaEDb094A34B795A5a8E532Bdda853
 }
 
 const main = async () => {
-  await DeployPublicSale()
+  // await DeployPublicSale()
   await DeployVestingFund()
   // await initializeStaking()
 }
