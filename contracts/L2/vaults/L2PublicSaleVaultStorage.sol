@@ -17,6 +17,11 @@ contract L2PublicSaleVaultStorage {
     address public tos;
     address public ton;
 
+    //L2PublicSaleContract을 manage하는 manager
+    address public l2ProjectManager;
+    address public l2Bridge;
+    address public l1burnVault;
+
     //관리자가 설정하는 min,maxPer (changeTOS를 결정할 수 있는 범위)
     uint8 public minPer;    //현재는 소수점 자리수가 없이 사용되어서 uint8(0~255까지 범위)이 사용됨.
     uint8 public maxPer;
@@ -32,9 +37,6 @@ contract L2PublicSaleVaultStorage {
 
     //관리자가 설정하는 changeTick
     int24 public changeTick;    //TON -> TOS로 변경할때 허용되는 Tick 범위
-
-    //L2PublicSaleContract을 manage하는 manager
-    address public l2ProjectManager;
     
     bool internal free = true;
 

@@ -25,12 +25,18 @@ interface IIWTON {
     function swapFromTON(uint256 tonAmount) external returns (bool);
 }
 
-interface IIERC20Burnable {
-    function burn(uint256 amount) external ;
-}
-
 interface IIVestingPublicFundAction {
     function funding(address l2token,uint256 amount) external;
+}
+
+interface IIL2ERC20Bridge {
+    function withdrawTo(
+        address _l2Token,
+        address _to,
+        uint256 _amount,
+        uint32 _l1Gas,
+        bytes calldata _data
+    ) external;
 }
 
 contract L2PublicSaleVault is 
@@ -126,15 +132,12 @@ contract L2PublicSaleVault is
             block.timestamp >= claimTimes[_l2token][0],
             "not claimTime"
         );
-        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[msg.sender];
         LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][msg.sender];
-        // LibPublicSale.UserClaim storage userClaim = usersClaim[msg.sender];
         LibPublicSaleVault.UserClaim storage userClaims = userClaim[_l2token][msg.sender];
         uint256 hardcapcut = hardcapCalcul(_l2token);
         if (hardcapcut == 0) {
             //hardcap을 넘지 못하였을 때
             require(userClaims.refund != true, "already getRefund");
-            // LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
             LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
             uint256 refundTON = user1rds.payAmount+(user2rds.depositAmount);
             userClaims.refund = true;
@@ -197,16 +200,14 @@ contract L2PublicSaleVault is
 
         manageInfos.adminWithdraw = true;
         console.log("contract 1");
-        // uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
-        // console.log("burnAmount :", burnAmount);
-        // if (burnAmount != 0) {
-        //     console.log("in");
-        //     IIERC20Burnable(_l2token).burn(burnAmount);
-        // }
+        uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
         
-        console.log("contract 2");
+        if (burnAmount != 0) {
+            console.log("in");
+            IIL2ERC20Bridge(l2Bridge).withdrawTo(_l2token, l1burnVault, burnAmount, 0, '0x');
+        }
+        
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
-        console.log("contract 3");
         IIVestingPublicFundAction(vestingFund).funding(_l2token,getAmount);
         console.log("contract 4");
 
@@ -583,21 +584,12 @@ contract L2PublicSaleVault is
         view
         returns (uint256)
     {
-        // LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
-        // LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
         uint8 tier = calculTier(_l2token,_account);
         uint256 salePossible;
         if (tier > 0) {
             for (uint8 i = tier; i >0; i--) {
                 salePossible = salePossible + calculTierAmount(_l2token,_account,i);
             }
-            // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
-            // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
-            // uint256 salePossible =
-            //     manageInfos.set1rdTokenAmount
-            //         *(tiersPercents[_l2token][tier])
-            //         /(tiersWhiteList[_l2token][tier])
-            //         /(10000);
             return salePossible;
         } else {
             return 0;

@@ -33,6 +33,18 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         l2ProjectManager = _l2ProjectManager;
     }
 
+    function setBurnBridge(
+        address _l2Bridge,
+        address _l1burnVault
+    )
+        external
+        onlyOwner
+    {
+        require(l2Bridge != _l2Bridge && l1burnVault != _l1burnVault, "same addr");
+        l2Bridge = _l2Bridge;
+        l1burnVault = _l1burnVault;
+    }
+
     //_setAddress = quoter, vestingFund, liquidityVault, uniswapRouter, lockTOS, tos, ton
     function initialize(
         address[7] calldata _setAddress,
