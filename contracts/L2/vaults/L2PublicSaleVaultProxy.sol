@@ -228,6 +228,10 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             params2.claimTimes,
             params2.claimPercents
         );
+        IERC20(_l2token).approve(
+            address(l2Bridge),
+            type(uint256).max
+        );
     }
 
     function setTier(

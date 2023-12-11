@@ -13,6 +13,6 @@ contract mockL2StandardBridge {
         uint32 _l1Gas,
         bytes calldata _data
     ) external virtual {
-        IERC20(_l2Token).safeTransfer(_to,_amount);
+        IERC20(_l2Token).safeTransferFrom(msg.sender,_to,_amount);
     }
 }
