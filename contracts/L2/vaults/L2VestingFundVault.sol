@@ -7,6 +7,8 @@ import { ProxyStorage } from "../../proxy/ProxyStorage.sol";
 import { AccessibleCommon } from "../../common/AccessibleCommon.sol";
 import { L2VestingFundVaultStorage } from "./L2VestingFundVaultStorage.sol";
 
+import { LibVestingFundVault } from "../../libraries/LibVestingFundVault.sol";
+
 import "hardhat/console.sol";
 
 interface IIUniswapV3Pool {
@@ -51,21 +53,22 @@ contract L2VestingFundVault is
 
     function ownerSetting(
         address _l2Token,
-        uint256[] memory _claimTimes,
-        uint256[] memory _claimAmounts
+        uint256 _claimCounts,
+        uint256 _firstClaimPercents,
+        uint256 _firstClaimTime,
+        uint256 _secondClaimTime,
+        uint256 _roundInterval
     )
         external
         onlyOwner
-    {
-        if(settingChecks[_l2Token] == true) {
-            delete claimTimes[_l2Token];
-            delete claimAmounts[_l2Token];
-        }
-        
+    {   
         _initialize(
             _l2Token,
-            _claimTimes,
-            _claimAmounts
+            _claimCounts,
+            _firstClaimPercents,
+            _firstClaimTime,
+            _secondClaimTime,
+            _roundInterval
         );
 
         if(settingChecks[_l2Token] != true) settingChecks[_l2Token] = true;
@@ -113,33 +116,17 @@ contract L2VestingFundVault is
     )
         internal
     {
-        require(_claimTimes.length != 0,
+        require(_claimCounts != 0,
                 "claimCounts must be greater than zero");
 
-        require(_claimTimes.length == _claimAmounts.length,
-                "_claimTimes and _claimAmounts length do not match");
+        LibVestingFundVault.VaultInfo storage info = vaultInfo[_l2Token];
+        info.totalClaimCount = _claimCounts;
+        info.firstClaimPercents = _firstClaimPercents;
+        info.firstClaimTime = _firstClaimTime;
+        info.secondClaimTime = _secondClaimTime;
+        info.roundInterval = _roundInterval;
 
-        uint256 _claimCounts = _claimTimes.length;
-
-        require(_claimAmounts[_claimCounts-1] == 100, "Final claimAmounts is not 100%");
-
-        uint256 i = 0;
-        for (i = 1; i < _claimCounts; i++) {
-            require(_claimTimes[i-1] > block.timestamp && _claimTimes[i] > _claimTimes[i-1], "claimTimes should not be decreasing");
-            require(_claimAmounts[i] > _claimAmounts[i-1], "claimAmounts should not be decreasing");
-        }
-
-        totalClaimCounts[_l2Token] = _claimCounts;
-
-        claimTimes[_l2Token] = new uint256[](_claimCounts);
-        claimAmounts[_l2Token] = new uint256[](_claimCounts);
-
-        for(i = 0; i < _claimCounts; i++) {
-            claimTimes[_l2Token][i] = _claimTimes[i];
-            claimAmounts[_l2Token][i] = _claimAmounts[i];
-        }
-
-        emit Initialized(_claimCounts, _claimTimes, _claimAmounts);
+        emit InitializedL2VestingFundVault(_l2Token, _claimCounts, _firstClaimPercents, _firstClaimTime, _secondClaimTime, _roundInterval);
     }
 
     function claim(
@@ -160,7 +147,7 @@ contract L2VestingFundVault is
         internal
     {
         uint256 curRound = currentRound(_l2Token);
-        uint256 amount = calculClaimAmount(_l2Token,curRound);
+        uint256 amount = calculClaimAmount(_l2Token);
         require(amount > 0, "claimable amount is zero");
         require(IERC20(tonToken).balanceOf(address(this)) >= amount,"Vault: insufficient balance");
         require(remainAmount(_l2Token) >= amount,"Vault: over remain balance");
@@ -191,7 +178,7 @@ contract L2VestingFundVault is
 
         uint256 curRound = currentRound(_l2Token);
 
-        if (curRound > 0 && calculClaimAmount(_l2Token,curRound) > 0 && totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token]) {
+        if (curRound > 0 && calculClaimAmount(_l2Token) > 0 && totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token]) {
             _claim(_l2Token);
         }
     }
@@ -208,37 +195,37 @@ contract L2VestingFundVault is
         view 
         returns (uint256 round) 
     {
-        if(claimTimes[_l2Token].length == 0) return 0;
-        if(block.timestamp < claimTimes[_l2Token][0]){
-            round = 0;
+        LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
+        if(info.firstClaimTime == 0) return 0;
+        if(info.firstClaimTime > block.timestamp) return 0;
+        if(info.firstClaimTime != 0 && info.firstClaimTime <= block.timestamp && block.timestamp < info.secondClaimTime) {
+            round = 1;
+        } else if(info.secondClaimTime <= block.timestamp) {
+            round = (block.timestamp - info.secondClaimTime) / info.roundInterval + 2;
         }
-        if (block.timestamp >= claimTimes[_l2Token][totalClaimCounts[_l2Token]-1]) {
-            round = totalClaimCounts[_l2Token];
-        }
-
-        for(uint256 i = 0; i < totalClaimCounts[_l2Token]; i++) {
-            if(claimTimes[_l2Token][i] <= block.timestamp) {
-                round = i+1;
-            } else {
-                break;
-            }
-        }
+        if (round > info.totalClaimCount) round = info.totalClaimCount;
     }
 
     function calculClaimAmount(
-        address _l2Token,    
-        uint256 _round
+        address _l2Token
     ) 
         public 
         view 
         returns (uint256 amount) 
     {
-        if (currentRound(_l2Token) == 0) return 0;
-        if (totalClaimCounts[_l2Token] == 0 || totalAllocatedAmount[_l2Token] == 0) return 0;
-        if (totalClaimCounts[_l2Token] == _round) {
-            amount = totalAllocatedAmount[_l2Token] - totalClaimsAmount[_l2Token];
-        } else {
-            amount = (totalAllocatedAmount[_l2Token] * claimAmounts[_l2Token][_round-1] / 100) - totalClaimsAmount[_l2Token];
+        uint256 curRound = currentRound(_l2Token);
+        if (curRound == 0) return 0;
+
+        LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
+        if(nowClaimRound[_l2Token] < curRound) {
+            if (curRound == 1) {
+                amount = totalAllocatedAmount[_l2Token]*info.firstClaimPercents/(10000) - totalClaimsAmount[_l2Token];
+            } else if (curRound < info.totalClaimCount) {
+                amount = totalAllocatedAmount[_l2Token]*info.firstClaimPercents/(10000);
+                amount = (amount + ((totalAllocatedAmount[_l2Token] - amount)/(info.totalClaimCount-1) * (curRound -1))) - totalClaimsAmount[_l2Token];
+            } else {
+                amount = totalAllocatedAmount[_l2Token] - totalClaimsAmount[_l2Token];
+            }
         }
     }
 

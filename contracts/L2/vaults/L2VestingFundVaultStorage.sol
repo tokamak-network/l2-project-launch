@@ -54,7 +54,6 @@ contract L2VestingFundVaultStorage {
     // l2token - VaultInfo
     mapping(address => LibVestingFundVault.VaultInfo) public vaultInfo;
 
-
     event SetVaultAdmin(
         address l2Token, 
         address newAdmin
@@ -64,10 +63,13 @@ contract L2VestingFundVaultStorage {
         address newInitializer
     );
 
-    event Initialized(
-        uint256 claimCounts,
-        uint256[] claimTimes,
-        uint256[] claimAmounts
+    event InitializedL2VestingFundVault(
+        address l2Token,
+        uint256 totalClaimCount,
+        uint256 firstClaimPercents,
+        uint256 firstClaimTime,
+        uint256 secondClaimTime,
+        uint256 roundInterval
     );
 
     
