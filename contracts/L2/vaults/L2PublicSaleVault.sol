@@ -127,9 +127,9 @@ contract L2PublicSaleVault is
     ) 
         external 
     {
-        
+        LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
         require(
-            block.timestamp >= claimTimes[_l2token][0],
+            block.timestamp >= claimInfos.firstClaimTime,
             "not claimTime"
         );
         LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][msg.sender];
@@ -616,7 +616,7 @@ contract L2PublicSaleVault is
         returns (uint256 _reward, uint256 _totalClaim, uint256 _refundAmount)
     {
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
-        if (block.timestamp < claimTimes[_l2token][0]) return (0, 0, 0);
+        if (block.timestamp < claimInfos.firstClaimTime) return (0, 0, 0);
         if (_round > claimInfos.totalClaimCounts) return (0, 0, 0);
 
         LibPublicSaleVault.UserClaim memory userClaims = userClaim[_l2token][_account];

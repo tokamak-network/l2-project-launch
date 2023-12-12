@@ -130,7 +130,7 @@ describe('L2TokenFactory', () => {
     let firstClaimPercent = 4000; //첫번째 클레임 비율 40%
     let firstClaimTime: any;     //첫번째 클레임 타임
     let secondClaimTime: any;    //두번째 클레임 타임
-    let roundInterval: 600;      //1분
+    let roundInterval = 600;      //1분
 
     let blockTime: any;
 
@@ -694,7 +694,7 @@ describe('L2TokenFactory', () => {
         
         it("vaultInitialize can not be executed by not vaultAdmin", async () => {
             blockTime = Number(await time.latest())
-            whitelistStartTime = blockTime + 86400;
+            whitelistStartTime = setSnapshot + 400;
             whitelistEndTime = whitelistStartTime + (86400*7);
             round1StartTime = whitelistEndTime + 1;
             round1EndTime = round1StartTime + (86400*7);
@@ -710,7 +710,7 @@ describe('L2TokenFactory', () => {
                 [saleTokenPrice,tonTokenPrice],
                 hardcapAmount,
                 changeTOS,
-                [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime],
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot,round2StartTime,round2EndTime],
                 totalclaimCounts,
                 firstClaimPercent,
                 firstClaimTime,
@@ -778,7 +778,7 @@ describe('L2TokenFactory', () => {
                 [saleTokenPrice,tonTokenPrice],
                 hardcapAmount,
                 changeTOS,
-                [setSnapshot,whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,round2StartTime,round2EndTime],
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot,round2StartTime,round2EndTime],
                 totalclaimCounts,
                 firstClaimPercent,
                 firstClaimTime,
@@ -851,28 +851,20 @@ describe('L2TokenFactory', () => {
             expect(Number(timeInfo.snapshot)).to.be.equal(setSnapshot)
 
             expect(claimInfo.totalClaimCounts).to.be.equal(totalclaimCounts)
+            expect(claimInfo.firstClaimPercent).to.be.equal(firstClaimPercent)
+            expect(claimInfo.firstClaimTime).to.be.equal(firstClaimTime)
+            expect(claimInfo.secondClaimTime).to.be.equal(secondClaimTime)
+            expect(claimInfo.claimInterval).to.be.equal(roundInterval)
 
             expect(await deployed.l2PublicProxy.tiers(lydaContract.address,1)).to.be.equal(settingTier1)
             expect(await deployed.l2PublicProxy.tiers(lydaContract.address,2)).to.be.equal(settingTier2)
             expect(await deployed.l2PublicProxy.tiers(lydaContract.address,3)).to.be.equal(settingTier3)
             expect(await deployed.l2PublicProxy.tiers(lydaContract.address,4)).to.be.equal(settingTier4)
-            // console.log(await deployed.l2PublicProxy.tiers(erc20Atoken.address,1))
 
             expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,1)).to.be.equal(settingTierPercent1)
             expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,2)).to.be.equal(settingTierPercent2)
             expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,3)).to.be.equal(settingTierPercent3)
             expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,4)).to.be.equal(settingTierPercent4)
-            // console.log(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1))
-
-            expect(await deployed.l2PublicProxy.claimTimes(lydaContract.address,0)).to.be.equal(claimTime1)
-            expect(await deployed.l2PublicProxy.claimTimes(lydaContract.address,1)).to.be.equal(claimTime2)
-            expect(await deployed.l2PublicProxy.claimTimes(lydaContract.address,2)).to.be.equal(claimTime3)
-            expect(await deployed.l2PublicProxy.claimTimes(lydaContract.address,3)).to.be.equal(claimTime4)
-
-            expect(await deployed.l2PublicProxy.claimPercents(lydaContract.address,0)).to.be.equal(realclaimPercents1)
-            expect(await deployed.l2PublicProxy.claimPercents(lydaContract.address,1)).to.be.equal(realclaimPercents2)
-            expect(await deployed.l2PublicProxy.claimPercents(lydaContract.address,2)).to.be.equal(realclaimPercents3)
-            expect(await deployed.l2PublicProxy.claimPercents(lydaContract.address,3)).to.be.equal(realclaimPercents4)
         })
     })
 
@@ -908,7 +900,7 @@ describe('L2TokenFactory', () => {
 
         describe("# set initialize about l2Token", () => {
             it("not vaultAdmin not initialize", async () => {
-                fundClaimTime1 = claimTime4 + 1000
+                fundClaimTime1 = secondClaimTime + 3000
                 fundClaimTime2 = fundClaimTime1 + 100
                 fundClaimTime3 = fundClaimTime2 + 100
 
@@ -1557,6 +1549,18 @@ describe('L2TokenFactory', () => {
         })
 
         describe("# claim", () => {
+            it("currentRound test", async () => {
+                expect(await deployed.l2PublicProxyLogic.currentRound(lydaContract.address)).to.be.equal(0)
+            })
+            it("calculClaimAmount test", async () => {
+                let tx = await deployed.l2PublicProxyLogic.calculClaimAmount(
+                    lydaContract.address,
+                    addr1Address,
+                    0
+                )
+                console.log("calculAmount :", tx);
+
+            })
             it("claim fail before claimTime1", async () => {
                 let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
                 await expect(tx).to.be.revertedWith("not claimTime")
