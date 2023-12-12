@@ -313,7 +313,6 @@ contract L2PublicSaleVault is
             block.timestamp < timeInfos.round1EndTime,
             "end round1SaleTime"
         );
-        // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][_sender];
         require(user1rds.join == true, "no whitelist");
         uint8 tier = calculTier(_l2token, _sender);
@@ -507,39 +506,6 @@ contract L2PublicSaleVault is
         return tier;
     }
 
-    // function calculTierAmount(
-    //     address _l2token,
-    //     address _account 
-    // )
-    //     public
-    //     view
-    //     returns (uint256)
-    // {
-    //     LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_account];
-    //     LibPublicSaleVault.TokenSaleManage memory manageInfos = manageInfo[_l2token];
-    //     uint8 tier = calculTier(_l2token,_account);
-    //     if (user1rds.join == true && tier > 0) {
-    //         // console.log("tiersPercents[_l2token][tier] :", tiersPercents[_l2token][tier]);
-    //         // console.log("tiersWhiteList[_l2token][tier] :", tiersWhiteList[_l2token][tier]);
-    //         uint256 salePossible =
-    //             manageInfos.set1rdTokenAmount
-    //                 *(tiersPercents[_l2token][tier])
-    //                 /(tiersWhiteList[_l2token][tier])
-    //                 /(10000);
-    //         return salePossible;
-    //     } else if (tier > 0) {
-    //         uint256 tierAccount = tiersWhiteList[_l2token][tier]+(1);
-    //         uint256 salePossible =
-    //             manageInfos.set1rdTokenAmount
-    //                 *(tiersPercents[_l2token][tier])
-    //                 /(tierAccount)
-    //                 /(10000);
-    //         return salePossible;
-    //     } else {
-    //         return 0;
-    //     }
-    // }
-
     function calculTierAmount(
         address _l2token,
         address _account,
@@ -622,14 +588,22 @@ contract L2PublicSaleVault is
         returns (uint256 round) 
     {
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
-        if (block.timestamp >= claimTimes[_l2token][claimInfos.totalClaimCounts-1]) {
-            return claimInfos.totalClaimCounts;
+        if(claimInfos.firstClaimTime > block.timestamp) round = 0;
+        if(claimInfos.firstClaimTime <= block.timestamp && block.timestamp < claimInfos.secondClaimTime) {
+            round = 1;
+        } else if(claimInfos.secondClaimTime <= block.timestamp) {
+            round = (block.timestamp - claimInfos.secondClaimTime) / claimInfos.claimInterval + 2;
         }
-        for (uint256 i = 0; i < claimInfos.totalClaimCounts; i++) {
-            if (block.timestamp < claimTimes[_l2token][i]) {
-                return i;
-            }
-        }
+        if (round > claimInfos.totalClaimCounts) round = claimInfos.totalClaimCounts;
+
+        // if (block.timestamp >= claimTimes[_l2token][claimInfos.totalClaimCounts-1]) {
+        //     return claimInfos.totalClaimCounts;
+        // }
+        // for (uint256 i = 0; i < claimInfos.totalClaimCounts; i++) {
+        //     if (block.timestamp < claimTimes[_l2token][i]) {
+        //         return i;
+        //     }
+        // }
     }
 
     function calculClaimAmount(
@@ -641,7 +615,6 @@ contract L2PublicSaleVault is
         view
         returns (uint256 _reward, uint256 _totalClaim, uint256 _refundAmount)
     {
-        // LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
         if (block.timestamp < claimTimes[_l2token][0]) return (0, 0, 0);
         if (_round > claimInfos.totalClaimCounts) return (0, 0, 0);
@@ -652,26 +625,43 @@ contract L2PublicSaleVault is
         if (realSaleAmount == 0 ) return (0, 0, 0);
         if (userClaims.claimAmount >= realSaleAmount) return (0, 0, 0);   
 
-        uint256 round = currentRound(_l2token);
+        uint256 curRound = currentRound(_l2token);
 
         uint256 amount;
-        if (claimInfos.totalClaimCounts == round && _round == 0) {
+        if (claimInfos.totalClaimCounts == curRound && _round == 0) {
             amount = realSaleAmount-userClaims.claimAmount;
             return (amount, realSaleAmount, refundAmount);
         }
 
         if(_round == 0) {
-            amount = realSaleAmount*(claimPercents[_l2token][(round-1)])/(10000);
-            amount = amount-(userClaims.claimAmount);
-            return (amount, realSaleAmount, refundAmount);
-        } else if(_round == 1) {
-            amount = realSaleAmount*(claimPercents[_l2token][0])/(10000);
+            if(curRound == 0) {
+                return (amount, realSaleAmount, refundAmount);
+            } else {
+                amount = realSaleAmount*(claimInfos.firstClaimPercent)/(10000);
+                amount = (amount + ((realSaleAmount - amount)/(claimInfos.totalClaimCounts-1) * (curRound -1))) - userClaims.claimAmount;
+                return (amount, realSaleAmount, refundAmount);
+            }
+        } else if (_round == 1) {
+            amount = realSaleAmount*(claimInfos.firstClaimPercent)/(10000);
             return (amount, realSaleAmount, refundAmount);
         } else {
-            uint256 roundPercent = claimPercents[_l2token][_round-(1)]-(claimPercents[_l2token][_round-(2)]);
-            amount = realSaleAmount*(roundPercent)/(10000);
+            amount = realSaleAmount*(claimInfos.firstClaimPercent)/(10000);
+            amount = (amount + ((realSaleAmount - amount)/(claimInfos.totalClaimCounts-1) * (_round -1))) - userClaims.claimAmount;
             return (amount, realSaleAmount, refundAmount);
         }
+
+        // if(_round == 0) {
+        //     amount = realSaleAmount*(claimPercents[_l2token][(round-1)])/(10000);
+        //     amount = amount-(userClaims.claimAmount);
+        //     return (amount, realSaleAmount, refundAmount);
+        // } else if(_round == 1) {
+        //     amount = realSaleAmount*(claimPercents[_l2token][0])/(10000);
+        //     return (amount, realSaleAmount, refundAmount);
+        // } else {
+        //     uint256 roundPercent = claimPercents[_l2token][_round-(1)]-(claimPercents[_l2token][_round-(2)]);
+        //     amount = realSaleAmount*(roundPercent)/(10000);
+        //     return (amount, realSaleAmount, refundAmount);
+        // }
     }
 
     function totalSaleUserAmount(
@@ -682,7 +672,6 @@ contract L2PublicSaleVault is
         view 
         returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
     {
-        // LibPublicSale.UserInfoEx memory userEx = usersEx[user];
         LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][user];
 
         if (user1rds.join) {
@@ -702,7 +691,6 @@ contract L2PublicSaleVault is
         returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
     {
         LibPublicSaleVault.UserInfo2rd memory user2rds = user2rd[_l2token][user];
-        // LibPublicSale.UserInfoOpen memory userOpen = usersOpen[user];
 
         if (!user2rds.join || user2rds.depositAmount == 0) return (0, 0, 0);
 

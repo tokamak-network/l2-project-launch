@@ -59,16 +59,16 @@ library LibPublicSaleVault {
     }
 
     struct TokenSaleClaim {
-        uint256 claimInterval;          //클레임 간격 (epochtime)
-        uint256 claimPeriod;            //클레임 횟수
-        uint256 claimFirst;             //초기 클레임 percents
         uint256 totalClaimCounts;       //총 클레임 수
+        uint256 firstClaimPercent;      //초기 클레임 percents
+        uint256 firstClaimTime;         //첫번째 claim 시간
+        uint256 secondClaimTime;        //두번째 claim 시간
+        uint256 claimInterval;          //클레임 간격 (epochtime)
     }
 
     struct TokenSaleInfo {
         uint256 total1rdSaleAmount;      //Token을 판매한 양
         uint256 total1rdTONAmount;       //Token판매로 받은 TON양
-        // uint256 total2rdDepositAmount;  
         uint256 totalUsers;             //전체 세일 참여자 (라운드1,라운드2 포함, 유니크)
         uint256 total1rdUsers;       //라운드 1 참여자
         uint256 total2rdUsers;       //라운드 2 참여자
@@ -92,6 +92,7 @@ library LibPublicSaleVault {
         bool refund;
         uint256 claimAmount;
         uint256 refundAmount;
+        uint256 latestClaimedRound;     //마지막 claim 라운드
     }
 
     function getQuoteAtTick(

@@ -175,7 +175,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     function vaultInitialize(
         address _l2token,
         LibProject.InitalParameterPublicSaleVault memory params,
-        LibProject.InitalParameterPublicSaleClaim calldata params2
+        LibProject.InitalParameterPublicSaleClaim memory params2
     ) 
         external
         onlyVaultAdminOfToken(_l2token) 
@@ -224,9 +224,11 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
 
         setClaimTime(
             _l2token,
-            params.claimCounts,
-            params2.claimTimes,
-            params2.claimPercents
+            params2.claimCounts,
+            params2.firstClaimPercent,
+            params2.firstClaimTime,
+            params2.secondClaimTime,
+            params2.roundInterval
         );
         IERC20(_l2token).approve(
             address(l2Bridge),
@@ -397,8 +399,10 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     function setClaimTime(
         address _l2token,
         uint256 _claimCounts,
-        uint256[] calldata _claimTimes,
-        uint256[] calldata _claimPercents
+        uint256 _firstClaimPercents,
+        uint256 _firstClaimTime,
+        uint256 _secondClaimTime,
+        uint256 _roundInterval
     )
         public
         onlyVaultAdminOfToken(_l2token)
@@ -406,26 +410,17 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         beforeStartAddWhiteTime(_l2token)
     {
         LibPublicSaleVault.TokenSaleClaim storage claimInfos = claimInfo[_l2token];
-        require(_claimCounts == _claimTimes.length && _claimCounts == _claimPercents.length, "claimCounts err");
+        require(_firstClaimTime > block.number, "first claim time passed");
+        require(_firstClaimTime != 0, "firstclaimTime value err");
         if(claimInfos.totalClaimCounts != 0) {
             require(isL2ProjectManager(), "only DAO");
-            delete claimTimes[_l2token];
-            delete claimPercents[_l2token];
         }
         
         claimInfos.totalClaimCounts = _claimCounts;
-        uint256 i = 0;
-        uint256 y = 0;
-        for (i = 0; i < _claimCounts; i++) {
-            claimTimes[_l2token].push(_claimTimes[i]);
-            if (i != 0){
-                require(claimTimes[_l2token][i-1] < claimTimes[_l2token][i], "claimtime err");
-            }
-            y = y + _claimPercents[i];
-            claimPercents[_l2token].push(y);
-        }
-
-        require(y == 10000, "claimPercents err");
+        claimInfos.firstClaimPercent = _firstClaimPercents;
+        claimInfos.firstClaimTime = _firstClaimTime;
+        claimInfos.secondClaimTime = _secondClaimTime;
+        claimInfos.claimInterval = _roundInterval;
     }
 
     /* ========== VIEW ========== */

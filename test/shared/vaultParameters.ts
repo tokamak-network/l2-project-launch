@@ -12,8 +12,10 @@ export const getPublicSaleParams = (
     changeTOSPercent:number,
     times:Array<number>,
     claimCounts: number,
-    claimTimes: Array<number>,
-    claimPercents: Array<number>,
+    firstClaimPercent: number,
+    firstClaimTime: number,
+    secondClaimTime: number,
+    roundInterval: number,
     ) =>
     {
     let InitalParameterPublicSaleVault = {
@@ -40,23 +42,30 @@ export const getPublicSaleParams = (
          snapshotTime: ethers.BigNumber.from(""+times[4]),
          start2roundTime: ethers.BigNumber.from(""+times[5]),
          end2roundTime: ethers.BigNumber.from(""+times[6]),
-         claimCounts: ethers.BigNumber.from(""+claimCounts),
     }
 
-    type claimInterface = {
-        claimTimes: Array<BigNumber>,
-        claimPercents:  Array<BigNumber>
+    // type claimInterface = {
+    //     claimTimes: Array<BigNumber>,
+    //     claimPercents:  Array<BigNumber>
+    // }
+
+    // let InitalParameterPublicSaleClaim:claimInterface = {
+    //     claimTimes: [],
+    //     claimPercents: []
+    // }
+
+    let InitalParameterPublicSaleClaim = {
+        claimCounts: ethers.BigNumber.from(""+claimCounts),
+        firstClaimPercent: ethers.BigNumber.from(""+firstClaimPercent),
+        firstClaimTime: ethers.BigNumber.from(""+firstClaimTime),
+        secondClaimTime: ethers.BigNumber.from(""+secondClaimTime),
+        roundInterval: ethers.BigNumber.from(""+roundInterval)
     }
 
-    let InitalParameterPublicSaleClaim:claimInterface = {
-        claimTimes: [],
-        claimPercents: []
-    }
-
-    for(let i = 0; i < claimCounts ; i++){
-        InitalParameterPublicSaleClaim.claimTimes.push(ethers.BigNumber.from(""+claimTimes[i]));
-        InitalParameterPublicSaleClaim.claimPercents.push(ethers.BigNumber.from(""+claimPercents[i]));
-    }
+    // for(let i = 0; i < claimCounts ; i++){
+    //     InitalParameterPublicSaleClaim.claimTimes.push(ethers.BigNumber.from(""+claimTimes[i]));
+    //     InitalParameterPublicSaleClaim.claimPercents.push(ethers.BigNumber.from(""+claimPercents[i]));
+    // }
 
     return {
         vaultParams: InitalParameterPublicSaleVault,
