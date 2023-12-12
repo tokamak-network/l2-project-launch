@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import { LibVestingFundVault } from "../../libraries/LibVestingFundVault.sol";
+
 /**
  * @title L2VestingFundVaultStorage
  * @dev
@@ -43,14 +45,14 @@ contract L2VestingFundVaultStorage {
     // l2token - totalAllocatedAmount
     mapping(address => uint256) public totalAllocatedAmount;
     
+    // l2token - nowClaimRound
+    mapping(address => uint256) public nowClaimRound;
+
     // l2token - totalClaimsAmount
     mapping(address => uint256) public totalClaimsAmount;
 
-    // l2token - totalClaimCounts
-    mapping(address => uint256) public totalClaimCounts;
-
-    // l2token - nowClaimRound
-    mapping(address => uint256) public nowClaimRound;
+    // l2token - VaultInfo
+    mapping(address => LibVestingFundVault.VaultInfo) public vaultInfo;
 
 
     event SetVaultAdmin(

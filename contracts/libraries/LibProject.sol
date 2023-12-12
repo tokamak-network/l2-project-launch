@@ -92,6 +92,14 @@ library LibProject {
         uint256 roundInterval;
     }
 
+    struct InitalParameterVestingFundVault {
+        uint256 totalClaimCount;
+        uint256 firstClaimPercent;
+        uint256 firstClaimTime;
+        uint256 secondClaimTime;
+        uint256 roundIntervalTime;
+    }
+
     // struct InitalParameterPublicSaleClaim {
     //     uint256[] claimTimes;
     //     uint256[] claimPercents;

@@ -74,8 +74,11 @@ contract L2VestingFundVault is
     function initialize(
         address _l2Token,
         address _receivedAddress,
-        uint256[] memory _claimTimes,
-        uint256[] memory _claimAmounts,
+        uint256 _claimCounts,
+        uint256 _firstClaimPercents,
+        uint256 _firstClaimTime,
+        uint256 _secondClaimTime,
+        uint256 _roundInterval,
         uint24 _fee
     )
         external
@@ -90,8 +93,11 @@ contract L2VestingFundVault is
 
         _initialize(
             _l2Token,
-            _claimTimes,
-            _claimAmounts
+            _claimCounts,
+            _firstClaimPercents,
+            _firstClaimTime,
+            _secondClaimTime,
+            _roundInterval
         );
 
         settingChecks[_l2Token] = true;
@@ -99,8 +105,11 @@ contract L2VestingFundVault is
 
     function _initialize(
         address _l2Token,
-        uint256[] memory _claimTimes,
-        uint256[] memory _claimAmounts
+        uint256 _claimCounts,
+        uint256 _firstClaimPercents,
+        uint256 _firstClaimTime,
+        uint256 _secondClaimTime,
+        uint256 _roundInterval
     )
         internal
     {
