@@ -95,7 +95,7 @@ contract L2VestingFundVaultStorage {
     }
 
     modifier onlyVaultAdminOfToken(address l2token) {
-        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token] || msg.sender == l2ProjectManager, "caller is not a vaultAdmin");
+        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token] || vaultAdminOfToken[l2token] != address(0) && msg.sender == publicSaleVault, "caller is not a vaultAdmin");
         _;
     }
 

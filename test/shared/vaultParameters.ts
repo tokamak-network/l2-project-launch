@@ -16,6 +16,13 @@ export const getPublicSaleParams = (
     firstClaimTime: number,
     secondClaimTime: number,
     roundInterval: number,
+    receiveAddress: string,
+    vestingClaimCounts: number,
+    vestingfirstClaimPercent: number,
+    vestingClaimTime1: number,
+    vestingClaimTime2: number,
+    vestingRoundInterval: number,
+    fee: number
     ) =>
     {
     let InitalParameterPublicSaleVault = {
@@ -59,7 +66,17 @@ export const getPublicSaleParams = (
         firstClaimPercent: ethers.BigNumber.from(""+firstClaimPercent),
         firstClaimTime: ethers.BigNumber.from(""+firstClaimTime),
         secondClaimTime: ethers.BigNumber.from(""+secondClaimTime),
-        roundInterval: ethers.BigNumber.from(""+roundInterval)
+        roundInterval: ethers.BigNumber.from(""+roundInterval),
+    }
+    
+    let InitialParameterVestingClaim = {
+        receiveAddress: receiveAddress,
+        totalClaimCount: ethers.BigNumber.from(""+vestingClaimCounts),
+        firstClaimPercent: ethers.BigNumber.from(""+vestingfirstClaimPercent),
+        firstClaimTime: ethers.BigNumber.from(""+vestingClaimTime1),
+        secondClaimTime: ethers.BigNumber.from(""+vestingClaimTime2),
+        roundIntervalTime: ethers.BigNumber.from(""+vestingRoundInterval),
+        fee: ethers.BigNumber.from(""+fee)
     }
 
     // for(let i = 0; i < claimCounts ; i++){
@@ -69,7 +86,8 @@ export const getPublicSaleParams = (
 
     return {
         vaultParams: InitalParameterPublicSaleVault,
-        claimParams: InitalParameterPublicSaleClaim
+        claimParams: InitalParameterPublicSaleClaim,
+        vestingParams: InitialParameterVestingClaim
     }
 }
 

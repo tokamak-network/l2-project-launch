@@ -93,11 +93,13 @@ library LibProject {
     }
 
     struct InitalParameterVestingFundVault {
+        address receiveAddress;
         uint256 totalClaimCount;
         uint256 firstClaimPercent;
         uint256 firstClaimTime;
         uint256 secondClaimTime;
         uint256 roundIntervalTime;
+        uint24 fee;
     }
 
     // struct InitalParameterPublicSaleClaim {

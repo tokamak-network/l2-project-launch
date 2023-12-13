@@ -3,20 +3,27 @@ const { ethers } = require("hardhat");
 const ownerAddress = '0xc1eba383D94c6021160042491A5dfaF1d82694E6'
 
 async function DeployPublicSale() {
-
+    const [deployer] = await ethers.getSigners();
     //==== L2PublicSaleVaultProxy =================================
 
     const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
     const l2PublicProxy = await l2PublicSaleProxy.deploy();
     await l2PublicProxy.deployed();
-    console.log('l2PublicProxy' , l2PublicProxy.address)
+    console.log('deploying "L2PublicSaleVaultProxy" at' , l2PublicProxy.address)
 
     //==== LibPublicSaleVault =================================
-    const l2PublicSaleLogic = await ethers.getContractFactory('LibPublicSaleVault')
+    const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
+    const libL2Public = (await libL2PublicSale.deploy())
+    await libL2Public.deployed();
+    console.log('deploying "LibPublicSaleVault" at' , libL2Public.address)
+
+    //==== LibPublicSaleVault =================================
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+      signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
+    })
     const l2PublicLogic = await l2PublicSaleLogic.deploy();
     await l2PublicLogic.deployed();
-    console.log('l2PublicLogic' , l2PublicLogic.address)
-
+    console.log('deploying "L2PublicSaleVault" at' , l2PublicLogic.address)
 
     await (await l2PublicProxy.upgradeTo(l2PublicLogic.address)).wait()
     
@@ -31,13 +38,13 @@ async function DeployVestingFund() {
     const L2VestingFundVaultProxy = await ethers.getContractFactory('L2VestingFundVaultProxy')
     const l2vestingFundProxy = await L2VestingFundVaultProxy.deploy();
     await l2vestingFundProxy.deployed();
-    console.log('l2vestingFundProxy' , l2vestingFundProxy.address)
+    console.log('deploying "L2VestingFundVaultProxy" at' , l2vestingFundProxy.address)
 
     //==== L2VestingFundVault =================================
     const L2VestingFundVault = await ethers.getContractFactory('L2VestingFundVault')
     const l2vestingFund = await L2VestingFundVault.deploy();
     await l2vestingFund.deployed();
-    console.log('l2vestingFund' , l2vestingFund.address)
+    console.log('deploying "L2VestingFundVault" at' , l2vestingFund.address)
 
 
     await (await l2vestingFundProxy.upgradeTo(l2vestingFund.address)).wait()
@@ -49,7 +56,7 @@ async function DeployVestingFund() {
 
 const main = async () => {
   // await DeployPublicSale()
-  await DeployVestingFund()
+  // await DeployVestingFund()
   // await initializeStaking()
 }
 

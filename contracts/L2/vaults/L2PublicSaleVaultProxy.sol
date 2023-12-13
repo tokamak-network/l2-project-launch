@@ -11,11 +11,15 @@ import "hardhat/console.sol";
 
 interface IVestingFund {
     function setVaultAdmin(address l2Token, address newAdmin) external;
-    function setBaseInfoProxy(
-        address tonToken,
-        address tosToken,
-        address publicSaleVault,
-        address uniswapV3Factory
+    function initialize(
+        address l2Token,
+        address receivedAddress,
+        uint256 claimCounts,
+        uint256 firstClaimPercents,
+        uint256 firstClaimTime,
+        uint256 secondClaimTime,
+        uint256 roundInterval,
+        uint24 fee
     )
         external;
 }
@@ -149,7 +153,7 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
         vaultAdminOfToken[l2Token] = _newAdmin;
         //vestinfFundVault의 setVaultAdmin세팅
-        // IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
+        IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
         emit SetVaultAdmin(l2Token, _newAdmin);
     }
 
@@ -158,7 +162,8 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
     function vaultInitialize(
         address _l2token,
         LibProject.InitalParameterPublicSaleVault memory params,
-        LibProject.InitalParameterPublicSaleClaim memory params2
+        LibProject.InitalParameterPublicSaleClaim memory params2,
+        LibProject.InitalParameterVestingFundVault memory params3
     ) 
         external
         onlyVaultAdminOfToken(_l2token) 
@@ -212,6 +217,16 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
             params2.firstClaimTime,
             params2.secondClaimTime,
             params2.roundInterval
+        );
+        IVestingFund(vestingFund).initialize(
+            _l2token,
+            params3.receiveAddress,
+            params3.totalClaimCount,
+            params3.firstClaimPercent,
+            params3.firstClaimTime,
+            params3.secondClaimTime,
+            params3.roundIntervalTime,
+            params3.fee
         );
         IERC20(_l2token).approve(
             address(l2Bridge),

@@ -45,7 +45,7 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
         external 
         nonZeroAddress(l2Token) 
         nonZeroAddress(_newAdmin) 
-        onlyL2ProjectManager
+        onlyL2PublicSale
     {
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
         vaultAdminOfToken[l2Token] = _newAdmin;

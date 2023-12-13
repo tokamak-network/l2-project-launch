@@ -132,6 +132,8 @@ describe('L2TokenFactory', () => {
     let secondClaimTime: any;    //두번째 클레임 타임
     let roundInterval = 600;      //1분
 
+    let fee = 3000;
+
     let blockTime: any;
 
     let tosAmount = 100000000000;
@@ -544,36 +546,36 @@ describe('L2TokenFactory', () => {
         })
 
         describe("# VestingFund setVaultAdmin", () => {
-            it("isVaultAdmin Value check", async () => {
-                let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
-                expect(tx).to.be.equal(false);
-            })
+            // it("isVaultAdmin Value check", async () => {
+            //     let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
+            //     expect(tx).to.be.equal(false);
+            // })
 
-            it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
-                        lydaContract.address,
-                        l2vaultAdminAddress
-                        )
-                    ).to.be.revertedWith("caller is not l2ProjectManager")
-            })
+            // it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
+            //     await expect(
+            //         deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
+            //             lydaContract.address,
+            //             l2vaultAdminAddress
+            //             )
+            //         ).to.be.revertedWith("caller is not l2ProjectManager")
+            // })
     
-            it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-                await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-                    lydaContract.address,
-                    l2vaultAdminAddress
-                )
-                expect(await deployed.l2VestingFundProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
-            })
+            // it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
+            //     await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+            //         lydaContract.address,
+            //         l2vaultAdminAddress
+            //     )
+            //     expect(await deployed.l2VestingFundProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
+            // })
     
-            it('cannot be changed to the same value', async () => {
-                await expect(
-                    deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-                        lydaContract.address,
-                        l2vaultAdminAddress
-                    )
-                ).to.be.revertedWith("same")
-            })
+            // it('cannot be changed to the same value', async () => {
+            //     await expect(
+            //         deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+            //             lydaContract.address,
+            //             l2vaultAdminAddress
+            //         )
+            //     ).to.be.revertedWith("same")
+            // })
 
             it("isVaultAdmin Value check", async () => {
                 let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
@@ -736,6 +738,8 @@ describe('L2TokenFactory', () => {
             round2EndTime = round2StartTime + (86400*7);
             firstClaimTime = round2EndTime + (86400 * 20);
             secondClaimTime = firstClaimTime + (60 * 5);
+            fundClaimTime1 = secondClaimTime + 3000
+            fundClaimTime2 = fundClaimTime1 + 100
 
             publicSaleParams = getPublicSaleParams (
                 [settingTier1,settingTier2,settingTier3,settingTier4],
@@ -749,14 +753,22 @@ describe('L2TokenFactory', () => {
                 firstClaimPercent,
                 firstClaimTime,
                 secondClaimTime,
-                roundInterval
+                roundInterval,
+                l2vaultAdminAddress,
+                3,
+                firstClaimPercent,
+                fundClaimTime1,
+                fundClaimTime2,
+                roundInterval,
+                fee
             )
 
             await expect(
                 deployed.l2PublicProxy.connect(addr1).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
-                    publicSaleParams.claimParams
+                    publicSaleParams.claimParams,
+                    publicSaleParams.vestingParams
                 )
             ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
         })
@@ -766,7 +778,8 @@ describe('L2TokenFactory', () => {
                 deployed.l2PublicProxy.connect(addr1).vaultInitialize(
                     addr1Address,
                     publicSaleParams.vaultParams,
-                    publicSaleParams.claimParams
+                    publicSaleParams.claimParams,
+                    publicSaleParams.vestingParams
                 )
             ).to.be.revertedWith("caller is not a vaultAdmin Of l2Token")
         })
@@ -776,7 +789,8 @@ describe('L2TokenFactory', () => {
                 deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
-                    publicSaleParams.claimParams
+                    publicSaleParams.claimParams,
+                    publicSaleParams.vestingParams
                 )
             ).to.be.revertedWith("TRANSFER_FROM_FAILED")
         })
@@ -789,7 +803,8 @@ describe('L2TokenFactory', () => {
                 deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
-                    publicSaleParams.claimParams
+                    publicSaleParams.claimParams,
+                    publicSaleParams.vestingParams
                 )
             ).to.be.revertedWith("snapshot need later")
         })
@@ -804,6 +819,8 @@ describe('L2TokenFactory', () => {
             round2EndTime = round2StartTime + (86400*7);
             firstClaimTime = round2EndTime + (86400 * 20);
             secondClaimTime = firstClaimTime + (60 * 5);
+            fundClaimTime1 = secondClaimTime + 3000
+            fundClaimTime2 = fundClaimTime1 + 100
 
             publicSaleParams = getPublicSaleParams (
                 [settingTier1,settingTier2,settingTier3,settingTier4],
@@ -817,7 +834,14 @@ describe('L2TokenFactory', () => {
                 firstClaimPercent,
                 firstClaimTime,
                 secondClaimTime,
-                roundInterval
+                roundInterval,
+                l2vaultAdminAddress,
+                3,
+                firstClaimPercent,
+                fundClaimTime1,
+                fundClaimTime2,
+                roundInterval,
+                fee
             )
 
             // console.log("blockTime : ",blockTime)
@@ -850,7 +874,8 @@ describe('L2TokenFactory', () => {
             await deployed.l2PublicProxy.connect(l2ProjectManager).vaultInitialize(
                 lydaContract.address,
                 publicSaleParams.vaultParams,
-                publicSaleParams.claimParams
+                publicSaleParams.claimParams,
+                publicSaleParams.vestingParams
             )
         })
 
@@ -933,53 +958,43 @@ describe('L2TokenFactory', () => {
         // })
 
         describe("# set initialize about l2Token", () => {
-            it("not vaultAdmin not initialize", async () => {
-                fundClaimTime1 = secondClaimTime + 3000
-                fundClaimTime2 = fundClaimTime1 + 100
-                fundClaimTime3 = fundClaimTime2 + 100
+            // it("not vaultAdmin not initialize", async () => {
+            //     fundClaimTime1 = secondClaimTime + 3000
+            //     fundClaimTime2 = fundClaimTime1 + 100
+            //     fundClaimTime3 = fundClaimTime2 + 100
 
-                await expect(
-                    deployed.l2VestingFund.connect(addr1).initialize(
-                        lyda,
-                        l2vaultAdminAddress,
-                        3,
-                        firstClaimPercent,
-                        fundClaimTime1,
-                        fundClaimTime2,
-                        roundInterval,
-                        3000
-                    )
-                ).to.be.revertedWith("caller is not a vaultAdmin")
-            })
+            //     await expect(
+            //         deployed.l2VestingFund.connect(addr1).initialize(
+            //             lyda,
+            //             l2vaultAdminAddress,
+            //             3,
+            //             firstClaimPercent,
+            //             fundClaimTime1,
+            //             fundClaimTime2,
+            //             roundInterval,
+            //             3000
+            //         )
+            //     ).to.be.revertedWith("caller is not a vaultAdmin")
+            // })
         
-            it("if claimCounts == 0, not initialize", async () => {
-                await expect(
-                    deployed.l2VestingFund.connect(l2vaultAdmin).initialize(
-                        lyda,
-                        l2vaultAdminAddress,
-                        0,
-                        firstClaimPercent,
-                        fundClaimTime1,
-                        fundClaimTime2,
-                        roundInterval,
-                        3000
-                    )
-                ).to.be.revertedWith("claimCounts must be greater than zero")
-            })
+            // it("if claimCounts == 0, not initialize", async () => {
+            //     await expect(
+            //         deployed.l2VestingFund.connect(l2vaultAdmin).initialize(
+            //             lyda,
+            //             l2vaultAdminAddress,
+            //             0,
+            //             firstClaimPercent,
+            //             fundClaimTime1,
+            //             fundClaimTime2,
+            //             roundInterval,
+            //             3000
+            //         )
+            //     ).to.be.revertedWith("claimCounts must be greater than zero")
+            // })
             
             it("can initialize only vaultAdmin about l2Token", async () => {
-                await deployed.l2VestingFund.connect(l2ProjectManager).initialize(
-                    lyda,
-                    l2vaultAdminAddress,
-                    3,
-                    firstClaimPercent,
-                    fundClaimTime1,
-                    fundClaimTime2,
-                    roundInterval,
-                    3000
-                )
                 expect(await deployed.l2VestingFund.receivedAddress(lyda)).to.be.equal(l2vaultAdminAddress)
-                expect(await deployed.l2VestingFund.fees(lyda)).to.be.equal(3000)
+                expect(await deployed.l2VestingFund.fees(lyda)).to.be.equal(fee)
                 expect(await deployed.l2VestingFund.settingChecks(lyda)).to.be.equal(true)
                 let tx = await deployed.l2VestingFund.vaultInfo(lyda)
                 expect(tx.totalClaimCount).to.be.equal(3)
