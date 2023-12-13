@@ -149,26 +149,9 @@ contract L2PublicSaleVaultProxy is Proxy, L2PublicSaleVaultStorage
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
         vaultAdminOfToken[l2Token] = _newAdmin;
         //vestinfFundVault의 setVaultAdmin세팅
-        IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
+        // IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
         emit SetVaultAdmin(l2Token, _newAdmin);
     }
-
-
-    // function setVestingFundBase(
-    //     address _tonToken,
-    //     address _tosToken,
-    //     address _uniswapV3Factory
-    // ) 
-    //     external
-    //     onlyL2ProjectManager
-    // {
-    //     IVestingFund(vestingFund).setBaseInfoProxy(
-    //         _tonToken,
-    //         _tosToken,
-    //         address(this),
-    //         _uniswapV3Factory
-    //     );
-    // }
 
     /* ========== only VaultAdmin ========== */
 

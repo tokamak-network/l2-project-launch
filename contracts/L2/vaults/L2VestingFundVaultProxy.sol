@@ -17,18 +17,21 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
     function setBaseInfoProxy(
         address _tonToken,
         address _tosToken,
+        address _l2ProjectManager,
         address _publicSaleVault,
         address _uniswapV3Factory
     ) 
         external 
         nonZeroAddress(_tonToken)
         nonZeroAddress(_tosToken)
+        nonZeroAddress(_l2ProjectManager)
         nonZeroAddress(_publicSaleVault)
         nonZeroAddress(_uniswapV3Factory)
         onlyOwner 
     {
         tonToken = _tonToken;
         tosToken = _tosToken;
+        l2ProjectManager = _l2ProjectManager;
         publicSaleVault = _publicSaleVault;
         uniswapV3Factory = _uniswapV3Factory;
     }
@@ -42,7 +45,7 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
         external 
         nonZeroAddress(l2Token) 
         nonZeroAddress(_newAdmin) 
-        onlyL2PublicSale
+        onlyL2ProjectManager
     {
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
         vaultAdminOfToken[l2Token] = _newAdmin;

@@ -87,9 +87,9 @@ contract L2VestingFundVault is
         external
         nonZeroAddress(_l2Token)
         nonZeroAddress(_receivedAddress)
+        onlyVaultAdminOfToken(_l2Token)
     {
         require(settingChecks[_l2Token] != true, "Already initalized");
-        require(isVaultAdmin(_l2Token,msg.sender), "not l2Token vaultAdmin");
         
         receivedAddress[_l2Token] = _receivedAddress;
         fees[_l2Token] = _fee;
@@ -135,8 +135,8 @@ contract L2VestingFundVault is
         public 
     {
         // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
-
-        require(claimTimes[_l2Token][0] != 0 && block.timestamp > claimTimes[_l2Token][0], "Vault: not started yet");
+        LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
+        require(info.firstClaimTime != 0 && block.timestamp > info.firstClaimTime, "Vault: not started yet");
         require(totalAllocatedAmount[_l2Token] > totalClaimsAmount[_l2Token],"Vault: already All get");
         _claim(_l2Token);
     }
@@ -165,9 +165,11 @@ contract L2VestingFundVault is
         uint256 amount
     ) 
         external
+        onlyL2PublicSale
     {
         // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
-        require(claimTimes[_l2Token].length != 0, "set up a claim round for vesting");
+        LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
+        require(info.totalClaimCount != 0, "set up a claim round for vesting");
 
         require(msg.sender == publicSaleVault, "caller is not publicSaleVault.");
         require(IERC20(tonToken).allowance(publicSaleVault, address(this)) >= amount, "funding: insufficient allowance");
@@ -309,9 +311,9 @@ contract L2VestingFundVault is
     //     if (!settingCheck && (_addr == receivedAddress || isAdmin(_addr))) result = true;
     // }
 
-    function isL2PublicSale(address account) public view returns (bool) {
-        return (account != address(0) && publicSaleVault == account);
-    }
+    // function isL2PublicSale(address account) public view returns (bool) {
+    //     return (account != address(0) && publicSaleVault == account);
+    // }
 
     function isVaultAdmin(address l2Token, address account) public view returns (bool) {
         return (account != address(0) && vaultAdminOfToken[l2Token] == account);

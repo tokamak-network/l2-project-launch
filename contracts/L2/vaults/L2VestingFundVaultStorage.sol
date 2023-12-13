@@ -10,7 +10,7 @@ import { LibVestingFundVault } from "../../libraries/LibVestingFundVault.sol";
 contract L2VestingFundVaultStorage {
 
     bool internal free = true;
-    // address public l2ProjectManager;
+    address public l2ProjectManager;
     // address public initializer;
 
     address public publicSaleVault;
@@ -84,10 +84,10 @@ contract L2VestingFundVaultStorage {
         uint256 amount
     );
 
-    // modifier onlyL2ProjectManager() {
-    //     require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
-    //     _;
-    // }
+    modifier onlyL2ProjectManager() {
+        require(l2ProjectManager != address(0) && msg.sender == l2ProjectManager, "caller is not l2ProjectManager");
+        _;
+    }
 
     modifier onlyL2PublicSale() {
         require(publicSaleVault != address(0) && msg.sender == publicSaleVault, "caller is not L2PublicSale");
@@ -95,7 +95,7 @@ contract L2VestingFundVaultStorage {
     }
 
     modifier onlyVaultAdminOfToken(address l2token) {
-        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token], "caller is not a vaultAdmin Of l2Token");
+        require(vaultAdminOfToken[l2token] != address(0) && msg.sender == vaultAdminOfToken[l2token] || msg.sender == l2ProjectManager, "caller is not a vaultAdmin");
         _;
     }
 
@@ -105,11 +105,6 @@ contract L2VestingFundVaultStorage {
     //         "caller is not a vaultAdmin Of l2Token");
     //     _;
     // }
-
-    modifier onlyL2PublicSaleVault() {
-        require(publicSaleVault != address(0) && msg.sender == publicSaleVault, "caller is not publicSaleVault");
-        _;
-    }
 
     modifier nonZero(uint256 value) {
         require(value != 0, "Z1");
