@@ -154,11 +154,11 @@ const config: HardhatUserConfig = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     // apiKey: `${process.env.ETHERSCAN_API_KEY}`
-    // apiKey: {
-    //   goerli: `${process.env.ETHERSCAN_API_KEY}`,
-    //   tokamakGoerli: "verify"
-    // },
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      goerli: `${process.env.ETHERSCAN_API_KEY}`,
+      tokamakGoerli: "verify"
+    },
+    // apiKey: process.env.ETHERSCAN_API_KEY,
     customChains: [
       {
         network: "tokamakGoerli",

@@ -11,25 +11,25 @@ async function DeployPublicSale() {
     await l2PublicProxy.deployed();
     console.log('deploying "L2PublicSaleVaultProxy" at' , l2PublicProxy.address)
 
-    //==== LibPublicSaleVault =================================
-    const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
-    const libL2Public = (await libL2PublicSale.deploy())
-    await libL2Public.deployed();
-    console.log('deploying "LibPublicSaleVault" at' , libL2Public.address)
+    // //==== LibPublicSaleVault =================================
+    // const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
+    // const libL2Public = (await libL2PublicSale.deploy())
+    // await libL2Public.deployed();
+    // console.log('deploying "LibPublicSaleVault" at' , libL2Public.address)
 
-    //==== LibPublicSaleVault =================================
-    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
-      signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
-    })
-    const l2PublicLogic = await l2PublicSaleLogic.deploy();
-    await l2PublicLogic.deployed();
-    console.log('deploying "L2PublicSaleVault" at' , l2PublicLogic.address)
+    // //==== LibPublicSaleVault =================================
+    // const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+    //   signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
+    // })
+    // const l2PublicLogic = await l2PublicSaleLogic.deploy();
+    // await l2PublicLogic.deployed();
+    // console.log('deploying "L2PublicSaleVault" at' , l2PublicLogic.address)
 
-    await (await l2PublicProxy.upgradeTo(l2PublicLogic.address)).wait()
-    
-    // titan-goerli
-    // l2PublicProxy 0xff3fc41f2069731AfEd8881fee3A49C242427F4F
-    // l2PublicLogic 0x2F81b06b63d33Af6c3b3B5F4C5efC340b3111A55
+    // await (await l2PublicProxy.upgradeTo(l2PublicLogic.address)).wait()
+
+    // deploying "L2PublicSaleVaultProxy" at 0xF4B6ab8280f1c53e2059Dc9E5b62482c86128AC9
+    // deploying "LibPublicSaleVault" at 0x3B75d3f628C29d357b484EA7d091faEd63419267
+    // deploying "L2PublicSaleVault" at 0xd8B707652182ABe1181C6a2ef8355Ac050C83168
 }
 
 async function DeployVestingFund() {
@@ -48,14 +48,13 @@ async function DeployVestingFund() {
 
 
     await (await l2vestingFundProxy.upgradeTo(l2vestingFund.address)).wait()
-
-    // titan-goerli
-    // l2vestingFundProxy 0x9f4282cea29432724BbefF6ab4394B338e0fabB6
-    // l2vestingFund 0xE3f634F2AeaaEDb094A34B795A5a8E532Bdda853
+    
+    // deploying "L2VestingFundVaultProxy" at 0x17985dc326661c7F43Dd79d216D4027f453704F7
+    // deploying "L2VestingFundVault" at 0xC55E3A821f9F7C2C27A2ca9D7059d22C9DA75700
 }
 
 const main = async () => {
-  // await DeployPublicSale()
+  await DeployPublicSale()
   // await DeployVestingFund()
   // await initializeStaking()
 }
