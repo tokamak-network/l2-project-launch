@@ -143,9 +143,8 @@ contract L1StosToL2 is ProxyStorage2, L1StosToL2Storage {
         bytes memory syncPackets ;
         uint256 syncIdsCount ;
 
-        // packet {address: count to sync: 1st sync packet: 2nd sync packet: .....}
+        // packet {address: 1st sync packet: 2nd sync packet: .....}
         // address : 20 bytes
-        // count to sync : 1 byte (max 256 sync packets) but it is less than maxLockCountPerSync
         // sync packets : count to sync * 104 bytes ( count * 104 )
         // one sync packets : 104 bytes:  (32 byte) uint256 lockId, (32+32+4+4) syncInfo -> total 104
 
