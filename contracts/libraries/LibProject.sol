@@ -65,6 +65,7 @@ library LibProject {
     struct InitalParameterPublicSale {
         InitalParameterPublicSaleVault vaultParams;
         InitalParameterPublicSaleClaim claimParams;
+        InitalParameterVestingFundVault vestingParma;
     }
 
     struct InitalParameterPublicSaleVault {
@@ -89,12 +90,24 @@ library LibProject {
         uint256 snapshotTime;
         uint256 start2roundTime;
         uint256 end2roundTime;
-        uint256 claimCounts;
     }
 
     struct InitalParameterPublicSaleClaim {
-        uint256[] claimTimes;
-        uint256[] claimPercents;
+        uint256 claimCounts;
+        uint256 firstClaimPercent;
+        uint256 firstClaimTime;
+        uint256 secondClaimTime;
+        uint256 roundInterval;
+    }
+
+    struct InitalParameterVestingFundVault {
+        address receiveAddress;
+        uint256 totalClaimCount;
+        uint256 firstClaimPercent;
+        uint256 firstClaimTime;
+        uint256 secondClaimTime;
+        uint256 roundIntervalTime;
+        uint24 fee;
     }
 
     struct InitalParameterInitialLiquidityVault {

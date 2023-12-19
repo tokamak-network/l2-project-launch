@@ -29,7 +29,8 @@ interface IL2PublicSaleVault {
     function vaultInitialize(
         address l2Token,
         LibProject.InitalParameterPublicSaleVault memory vaultParams,
-        LibProject.InitalParameterPublicSaleClaim memory claimParams
+        LibProject.InitalParameterPublicSaleClaim memory claimParams,
+        LibProject.InitalParameterVestingFundVault memory vestingParma
     ) external;
 }
 
@@ -161,7 +162,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         address _nonScheduleVault
         )
         external onlyOwner
-        // nonZeroAddress(publicSale)
+        nonZeroAddress(publicSale)
         nonZeroAddress(initialLiquidity)
         nonZeroAddress(liquidityReward)
         nonZeroAddress(tosAirdrop)
@@ -316,7 +317,8 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
             IL2PublicSaleVault(publicSaleVault).vaultInitialize(
                 info.l2Token,
                 tokamakVaults.publicSaleParams.vaultParams,
-                tokamakVaults.publicSaleParams.claimParams
+                tokamakVaults.publicSaleParams.claimParams,
+                tokamakVaults.publicSaleParams.vestingParma
             );
         }
 
