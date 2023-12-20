@@ -36,6 +36,7 @@ import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVa
 import { LibPublicSaleVault } from '../../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
 import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy.sol'
 import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
+import { L2PublicSaleProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleProxy.sol'
 
 import { L2InitialLiquidityVaultProxy } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVaultProxy"
 import { L2InitialLiquidityVault } from "../../typechain-types/contracts/L2/vaults/L2InitialLiquidityVault.sol"
@@ -193,6 +194,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
     const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
 
+    const l2PublicVaultProxyContract = await ethers.getContractFactory('L2PublicSaleProxy')
+    const l2PublicVaultProxy = (await l2PublicVaultProxyContract.connect(deployer).deploy()) as L2PublicSaleProxy 
+
     //==== L2InitialLiquidityVault =================================
     
     const L2InitialLiquidityVaultProxy = await ethers.getContractFactory('L2InitialLiquidityVaultProxy')
@@ -239,6 +243,7 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l2PublicProxy: l2PublicProxy,
       libL2Public: libL2Public,
       l2PublicProxyLogic: l2PublicProxyLogic,
+      l2PublicVaultProxy: l2PublicVaultProxy,
       l2ProjectManagerAddr: L2projectManagerAddr,
       l2VaultAdmin: L2vaultAdmin,
       l2LiquidityProxy: l2liquidityProxy,
