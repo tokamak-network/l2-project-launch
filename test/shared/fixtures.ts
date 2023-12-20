@@ -190,10 +190,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
       signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
     })
-    const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+    // const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+    const l2PublicProxyLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
 
     // await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
-    const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
+    // const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
 
     const l2PublicVaultProxyContract = await ethers.getContractFactory('L2PublicSaleProxy')
     let l2PublicVaultProxy = (await l2PublicVaultProxyContract.connect(deployer).deploy()) as L2PublicSaleProxy 

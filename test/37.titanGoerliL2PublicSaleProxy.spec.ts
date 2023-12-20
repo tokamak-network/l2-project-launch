@@ -15,6 +15,8 @@ import snapshotGasCost from './shared/snapshotGasCost'
 
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
+import l2PublicSaleJson from "../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
+
 const Web3EthAbi = require('web3-eth-abi');
 const TON_ABI = require("../abis/TON.json");
 const TOS_ABI = require("../abis/TOS.json");
@@ -51,7 +53,7 @@ describe('L2TokenFactory', () => {
 
     let tier1Amount: BigNumber;
 
-    let l2PublicVaultProxyLogic: any;
+    let l2PublicVaultLogic: any;
 
     //mainnet
     // let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
@@ -234,10 +236,120 @@ describe('L2TokenFactory', () => {
     })
 
     describe("# setting PublicSaleVaultProxy after deploy", () => {
-        it("PublicSaleVaultProxy selectorImplementations2 PublicSaleProxy", async () => {
 
+        // it("PublicSaleVaultProxy setAliveImplementation2 PublicSaleProxyLogic", async () => {
+        //     await deployed.l2PublicProxy.connect(deployer).setAliveImplementation2(deployed.l2PublicVaultProxy.address, true)
+        // })
 
+        // it("PublicSaleVaultProxy setImplementation2 PublicSaleProxyLogic", async () => {
+        //     await deployed.l2PublicProxy.connect(deployer).setImplementation2(deployed.l2PublicVaultProxy.address, 0, true)
+        // })
+
+        // it("PublicSaleVaultProxy setAliveImplementation2 PublicSaleVaultLogic", async () => {
+        //     await deployed.l2PublicProxy.connect(deployer).setAliveImplementation2(deployed.l2PublicProxyLogic.address, true)
+        // })
+
+        it("DAOProxyV2 setImplementation2 DAOv2CommitteeV2", async () => {
+            await deployed.l2PublicProxy.connect(deployer).setImplementation2(deployed.l2PublicProxyLogic.address, 1, true)
         })
+
+        it("PublicSaleVaultProxy selectorImplementations2 PublicSaleLogic", async () => {
+            const _addWhiteList = Web3EthAbi.encodeFunctionSignature(
+                "addWhiteList(address)"
+            )
+
+            const _round1Sale = Web3EthAbi.encodeFunctionSignature(
+                "round1Sale(address,uint256)"
+            )
+
+            const _round2Sale = Web3EthAbi.encodeFunctionSignature(
+                "round2Sale(address,uint256)"
+            )
+
+            const _claim = Web3EthAbi.encodeFunctionSignature(
+                "claim(address)"
+            )
+
+            const _depositWithdraw = Web3EthAbi.encodeFunctionSignature(
+                "depositWithdraw(address)"
+            )
+
+            const _exchangeWTONtoTOS = Web3EthAbi.encodeFunctionSignature(
+                "exchangeWTONtoTOS(address,uint256)"
+            )
+
+            const _parseRevertReason = Web3EthAbi.encodeFunctionSignature(
+                "parseRevertReason(bytes)"
+            )
+
+            const _hardcapCalcul = Web3EthAbi.encodeFunctionSignature(
+                "hardcapCalcul(address)"
+            )
+
+            const _calculSaleToken = Web3EthAbi.encodeFunctionSignature(
+                "calculSaleToken(address,uint256)"
+            )
+
+            const _calculPayToken = Web3EthAbi.encodeFunctionSignature(
+                "calculPayToken(address,uint256)"
+            )
+
+            const _calculTier = Web3EthAbi.encodeFunctionSignature(
+                "calculTier(address,address)"
+            )
+            const _calculTierAmount = Web3EthAbi.encodeFunctionSignature(
+                "calculTierAmount(address,address,uint8)"
+            )
+            const _calcul1RoundAmount = Web3EthAbi.encodeFunctionSignature(
+                "calcul1RoundAmount(address,address)"
+            )
+            const _calculOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
+                "calculOpenSaleAmount(address,address,uint256)"
+            )
+            const _currentRound = Web3EthAbi.encodeFunctionSignature(
+                "currentRound(address)"
+            )
+            const _calculClaimAmount = Web3EthAbi.encodeFunctionSignature(
+                "calculClaimAmount(address,address,uint256)"
+            )
+            const _totalSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
+                "totalSaleUserAmount(address,address)"
+            )
+            const _openSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
+                "openSaleUserAmount(address,address)"
+            )
+            const _totalOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
+                "totalOpenSaleAmount(address)"
+            )
+            const _totalOpenPurchasedAmount = Web3EthAbi.encodeFunctionSignature(
+                "totalOpenPurchasedAmount(address)"
+            )
+            const _totalWhitelists = Web3EthAbi.encodeFunctionSignature(
+                "totalWhitelists(address)"
+            )
+            const _totalExpectOpenSaleAmountView = Web3EthAbi.encodeFunctionSignature(
+                "totalExpectOpenSaleAmountView(address)"
+            )
+            const _totalRound1NonSaleAmount = Web3EthAbi.encodeFunctionSignature(
+                "totalRound1NonSaleAmount(address)"
+            )
+
+            await deployed.l2PublicProxy.connect(deployer).setSelectorImplementations2(
+                [
+                    _addWhiteList,_round1Sale,_round2Sale,_claim,_depositWithdraw,_exchangeWTONtoTOS,
+                    _parseRevertReason,_hardcapCalcul,_calculSaleToken,_calculPayToken,_calculTier,_calculTierAmount,
+                    _calcul1RoundAmount,_calculOpenSaleAmount,_currentRound,_calculClaimAmount,
+                    _totalSaleUserAmount,_openSaleUserAmount,_totalOpenSaleAmount,_totalOpenPurchasedAmount,
+                    _totalWhitelists,_totalExpectOpenSaleAmountView,_totalRound1NonSaleAmount
+                ],
+                deployed.l2PublicProxyLogic.address
+            )
+        })
+
+        it("connect L2PublicSaleProxy & Logic", async () => {
+            l2PublicVaultLogic = await ethers.getContractAt(l2PublicSaleJson.abi, deployed.l2PublicProxy.address, deployer); 
+        })
+
 
     })
 
@@ -938,85 +1050,85 @@ describe('L2TokenFactory', () => {
         })
     })
 
-    // describe("# set VestingFundVault", () => {
-    //     // describe("# set VaultAdmin", () => {
-    //     //     it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
-    //     //         await expect(
-    //     //             deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
-    //     //                 lydaContract.address,
-    //     //                 l2vaultAdminAddress
-    //     //             )
-    //     //         ).to.be.revertedWith("caller is not l2ProjectManager")
-    //     //     })
+    describe("# set VestingFundVault", () => {
+        // describe("# set VaultAdmin", () => {
+        //     it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
+        //         await expect(
+        //             deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
+        //                 lydaContract.address,
+        //                 l2vaultAdminAddress
+        //             )
+        //         ).to.be.revertedWith("caller is not l2ProjectManager")
+        //     })
 
-    //     //     it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-    //     //         await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-    //     //             lydaContract.address,
-    //     //             l2vaultAdminAddress
-    //     //         )
-    //     //         expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
-    //     //         expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
-    //     //     })
+        //     it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
+        //         await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+        //             lydaContract.address,
+        //             l2vaultAdminAddress
+        //         )
+        //         expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
+        //         expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
+        //     })
 
-    //     //     it('cannot be changed to the same value', async () => {
-    //     //         await expect(
-    //     //             deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-    //     //                 lydaContract.address,
-    //     //                 l2vaultAdminAddress
-    //     //             )
-    //     //         ).to.be.revertedWith("same")
-    //     //     })
-    //     // })
+        //     it('cannot be changed to the same value', async () => {
+        //         await expect(
+        //             deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
+        //                 lydaContract.address,
+        //                 l2vaultAdminAddress
+        //             )
+        //         ).to.be.revertedWith("same")
+        //     })
+        // })
 
-    //     describe("# set initialize about l2Token", () => {
-    //         // it("not vaultAdmin not initialize", async () => {
-    //         //     fundClaimTime1 = secondClaimTime + 3000
-    //         //     fundClaimTime2 = fundClaimTime1 + 100
-    //         //     fundClaimTime3 = fundClaimTime2 + 100
+        describe("# set initialize about l2Token", () => {
+            // it("not vaultAdmin not initialize", async () => {
+            //     fundClaimTime1 = secondClaimTime + 3000
+            //     fundClaimTime2 = fundClaimTime1 + 100
+            //     fundClaimTime3 = fundClaimTime2 + 100
 
-    //         //     await expect(
-    //         //         deployed.l2VestingFund.connect(addr1).initialize(
-    //         //             lyda,
-    //         //             l2vaultAdminAddress,
-    //         //             3,
-    //         //             firstClaimPercent,
-    //         //             fundClaimTime1,
-    //         //             fundClaimTime2,
-    //         //             roundInterval,
-    //         //             3000
-    //         //         )
-    //         //     ).to.be.revertedWith("caller is not a vaultAdmin")
-    //         // })
+            //     await expect(
+            //         deployed.l2VestingFund.connect(addr1).initialize(
+            //             lyda,
+            //             l2vaultAdminAddress,
+            //             3,
+            //             firstClaimPercent,
+            //             fundClaimTime1,
+            //             fundClaimTime2,
+            //             roundInterval,
+            //             3000
+            //         )
+            //     ).to.be.revertedWith("caller is not a vaultAdmin")
+            // })
         
-    //         // it("if claimCounts == 0, not initialize", async () => {
-    //         //     await expect(
-    //         //         deployed.l2VestingFund.connect(l2vaultAdmin).initialize(
-    //         //             lyda,
-    //         //             l2vaultAdminAddress,
-    //         //             0,
-    //         //             firstClaimPercent,
-    //         //             fundClaimTime1,
-    //         //             fundClaimTime2,
-    //         //             roundInterval,
-    //         //             3000
-    //         //         )
-    //         //     ).to.be.revertedWith("claimCounts must be greater than zero")
-    //         // })
+            // it("if claimCounts == 0, not initialize", async () => {
+            //     await expect(
+            //         deployed.l2VestingFund.connect(l2vaultAdmin).initialize(
+            //             lyda,
+            //             l2vaultAdminAddress,
+            //             0,
+            //             firstClaimPercent,
+            //             fundClaimTime1,
+            //             fundClaimTime2,
+            //             roundInterval,
+            //             3000
+            //         )
+            //     ).to.be.revertedWith("claimCounts must be greater than zero")
+            // })
             
-    //         it("can initialize only vaultAdmin about l2Token", async () => {
-    //             expect(await deployed.l2VestingFund.receivedAddress(lyda)).to.be.equal(l2vaultAdminAddress)
-    //             expect(await deployed.l2VestingFund.fees(lyda)).to.be.equal(fee)
-    //             expect(await deployed.l2VestingFund.settingChecks(lyda)).to.be.equal(true)
-    //             let tx = await deployed.l2VestingFund.vaultInfo(lyda)
-    //             expect(tx.totalClaimCount).to.be.equal(3)
-    //             expect(tx.firstClaimPercents).to.be.equal(firstClaimPercent)
-    //             expect(tx.firstClaimTime).to.be.equal(fundClaimTime1)
-    //             expect(tx.secondClaimTime).to.be.equal(fundClaimTime2)
-    //             expect(tx.roundInterval).to.be.equal(roundInterval)
+            it("can initialize only vaultAdmin about l2Token", async () => {
+                expect(await deployed.l2VestingFund.receivedAddress(lyda)).to.be.equal(l2vaultAdminAddress)
+                expect(await deployed.l2VestingFund.fees(lyda)).to.be.equal(fee)
+                expect(await deployed.l2VestingFund.settingChecks(lyda)).to.be.equal(true)
+                let tx = await deployed.l2VestingFund.vaultInfo(lyda)
+                expect(tx.totalClaimCount).to.be.equal(3)
+                expect(tx.firstClaimPercents).to.be.equal(firstClaimPercent)
+                expect(tx.firstClaimTime).to.be.equal(fundClaimTime1)
+                expect(tx.secondClaimTime).to.be.equal(fundClaimTime2)
+                expect(tx.roundInterval).to.be.equal(roundInterval)
 
-    //         })
-    //     })
-    // })
+            })
+        })
+    })
 
     // describe("# PublicSale Test", () => {
     //     describe("# whiteList", () => {
