@@ -15,6 +15,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
+const Web3EthAbi = require('web3-eth-abi');
 const TON_ABI = require("../abis/TON.json");
 const TOS_ABI = require("../abis/TOS.json");
 const ERC20_ABI = require("../abis/TestERC20.json");
@@ -232,6 +233,14 @@ describe('L2TokenFactory', () => {
         richLYDA = await ethers.getSigner(lydaRich);        //lyda주인
     })
 
+    describe("# setting PublicSaleVaultProxy after deploy", () => {
+        it("PublicSaleVaultProxy selectorImplementations2 PublicSaleProxy", async () => {
+
+
+        })
+
+    })
+
     describe("# deploy L1BurnVault, MockL2Bridge", () => {
         it("deploy L2StandardBridge", async () => {
             const mockBridge = await ethers.getContractFactory('mockL2StandardBridge')
@@ -444,18 +453,18 @@ describe('L2TokenFactory', () => {
         describe("# set L2ProjectManager", () => {
             it('setL2ProjectManager can not be executed by not owner', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
+                    deployed.l2PublicVaultProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("Accessible: Caller is not an admin")
             })
     
             it('setL2ProjectManager can be executed by only owner ', async () => {
-                await deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
-                expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
+                await deployed.l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
+                expect(await deployed.l2PublicVaultProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
             })
     
             it('cannot be changed to the same value', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
+                    deployed.l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("same")
             })
         })
@@ -463,7 +472,7 @@ describe('L2TokenFactory', () => {
         describe("# set PublicSale basic value", () => {
             it("set initialize can not executed by not owner", async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(addr1).initialize(
+                    deployed.l2PublicVaultProxy.connect(addr1).initialize(
                         [
                             quoter,
                             deployed.l2VestingFundProxy.address,
@@ -484,7 +493,7 @@ describe('L2TokenFactory', () => {
             })
 
             it('set initialize can be executed by only Owner ', async () => {
-                await deployed.l2PublicProxy.connect(deployer).initialize(
+                await deployed.l2PublicVaultProxy.connect(deployer).initialize(
                     [
                         quoter,
                         deployed.l2VestingFundProxy.address,
@@ -522,7 +531,7 @@ describe('L2TokenFactory', () => {
         describe("# PublicSale setVaultAdmin", () => {
             it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(addr1).setVaultAdmin(
+                    deployed.l2PublicVaultProxy.connect(addr1).setVaultAdmin(
                         lydaContract.address,
                         l2vaultAdminAddress
                         )
@@ -530,7 +539,7 @@ describe('L2TokenFactory', () => {
             })
     
             it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-                await deployed.l2PublicProxy.connect(l2ProjectManager).setVaultAdmin(
+                await deployed.l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
                     lydaContract.address,
                     l2vaultAdminAddress
                 )
@@ -539,7 +548,7 @@ describe('L2TokenFactory', () => {
     
             it('cannot be changed to the same value', async () => {
                 await expect(
-                    deployed.l2PublicProxy.connect(l2ProjectManager).setVaultAdmin(
+                    deployed.l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
                         lydaContract.address,
                         l2vaultAdminAddress
                     )
@@ -594,14 +603,14 @@ describe('L2TokenFactory', () => {
     describe("# setL2PublicSale the Bridge and l1burnVault", () => {
         it("setBurnBridge can not be executed by not owner", async () => {
             await expect(
-                deployed.l2PublicProxy.connect(addr1).setBurnBridge(
+                deployed.l2PublicVaultProxy.connect(addr1).setBurnBridge(
                     l2bridge.address,
                     l1BurnVaultProxyContract.address
                 )).to.be.revertedWith("Accessible: Caller is not an admin")
         })
 
         it("setL2ProjectManager can be executed by only owner", async () => {
-            await deployed.l2PublicProxy.connect(deployer).setBurnBridge(
+            await deployed.l2PublicVaultProxy.connect(deployer).setBurnBridge(
                 l2bridge.address,
                 l1BurnVaultProxyContract.address
             )
@@ -611,7 +620,7 @@ describe('L2TokenFactory', () => {
 
         it("cannot be changed to the same value", async () => {
             await expect(
-                deployed.l2PublicProxy.connect(deployer).setBurnBridge(
+                deployed.l2PublicVaultProxy.connect(deployer).setBurnBridge(
                     l2bridge.address,
                     l1BurnVaultProxyContract.address
                 )
@@ -720,14 +729,14 @@ describe('L2TokenFactory', () => {
 
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
         it("check the is L2Token", async () => {
-            expect(await deployed.l2PublicProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
-            expect(await deployed.l2PublicProxy.isL2Token(lydaContract.address)).to.be.equal(true);
+            expect(await deployed.l2PublicVaultProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
+            expect(await deployed.l2PublicVaultProxy.isL2Token(lydaContract.address)).to.be.equal(true);
         })
 
         it("check the isVaultAdmin", async () => {
-            expect(await deployed.l2PublicProxy.isVaultAdmin(lydaContract.address,l2ProjectManagerAddresss)).to.be.equal(false)
-            expect(await deployed.l2PublicProxy.isVaultAdmin(ton,l2vaultAdminAddress)).to.be.equal(false)
-            expect(await deployed.l2PublicProxy.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
+            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(lydaContract.address,l2ProjectManagerAddresss)).to.be.equal(false)
+            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(ton,l2vaultAdminAddress)).to.be.equal(false)
+            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
         })
         
         it("vaultInitialize can not be executed by not vaultAdmin", async () => {
@@ -766,7 +775,7 @@ describe('L2TokenFactory', () => {
             )
 
             await expect(
-                deployed.l2PublicProxy.connect(addr1).vaultInitialize(
+                deployed.l2PublicVaultProxy.connect(addr1).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
@@ -777,7 +786,7 @@ describe('L2TokenFactory', () => {
 
         it("vaultInitialize can not be executed by input not L2TokenAddr", async () => {
             await expect(
-                deployed.l2PublicProxy.connect(addr1).vaultInitialize(
+                deployed.l2PublicVaultProxy.connect(addr1).vaultInitialize(
                     addr1Address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
@@ -788,7 +797,7 @@ describe('L2TokenFactory', () => {
 
         it("vaultInitialize can not be executed by not input token", async () => {
             await expect(
-                deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                deployed.l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
@@ -802,7 +811,7 @@ describe('L2TokenFactory', () => {
             await lydaContract.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
 
             await expect(
-                deployed.l2PublicProxy.connect(l2vaultAdmin).vaultInitialize(
+                deployed.l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
                     lydaContract.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
@@ -873,7 +882,7 @@ describe('L2TokenFactory', () => {
             // console.log("claimPercent4 : ",claimPercent4)
             // console.log("claimPercent5 : ",claimPercent5)
 
-            await deployed.l2PublicProxy.connect(l2ProjectManager).vaultInitialize(
+            await deployed.l2PublicVaultProxy.connect(l2ProjectManager).vaultInitialize(
                 lydaContract.address,
                 publicSaleParams.vaultParams,
                 publicSaleParams.claimParams,
