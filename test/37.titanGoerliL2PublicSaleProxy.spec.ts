@@ -1693,275 +1693,271 @@ describe('L2TokenFactory', () => {
             })
         })
 
-    //     describe("# claim", () => {
-    //         it("currentRound test", async () => {
-    //             expect(await deployed.l2PublicProxyLogic.currentRound(lydaContract.address)).to.be.equal(0)
-    //         })
-    //         it("calculClaimAmount test", async () => {
-    //             let tx = await deployed.l2PublicProxyLogic.calculClaimAmount(
-    //                 lydaContract.address,
-    //                 addr1Address,
-    //                 0
-    //             )
-    //             console.log("calculAmount :", tx);
+        describe("# claim", () => {
+            it("currentRound test", async () => {
+                expect(await l2PublicVaultLogic.currentRound(lydaContract.address)).to.be.equal(0)
+            })
+            it("calculClaimAmount test", async () => {
+                let tx = await l2PublicVaultLogic.calculClaimAmount(
+                    lydaContract.address,
+                    addr1Address,
+                    0
+                )
+                console.log("calculAmount :", tx);
 
-    //         })
-    //         it("claim fail before claimTime1", async () => {
-    //             let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-    //             await expect(tx).to.be.revertedWith("not claimTime")
-    //         })
+            })
+            it("claim fail before claimTime1", async () => {
+                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("not claimTime")
+            })
 
-    //         it("duration the time to period end", async () => {
-    //             await ethers.provider.send('evm_setNextBlockTimestamp', [firstClaimTime+1]);
-    //             await ethers.provider.send('evm_mine');
-    //         })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [firstClaimTime+1]);
+                await ethers.provider.send('evm_mine');
+            })
 
-    //         it("claim success after firstClaimTime", async () => {
-    //             expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(0)
-    //             let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,1)
-    //             console.log()
-    //             await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-    //             expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
-    //         })
+            it("claim success after firstClaimTime", async () => {
+                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(0)
+                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,1)
+                console.log()
+                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
+                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
+            })
 
-    //         it("claim fail after claimTime1 because no buy", async () => {
-    //             let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).claim(lydaContract.address)
-    //             await expect(tx).to.be.revertedWith("no purchase amount")
-    //         })
+            it("claim fail after claimTime1 because no buy", async () => {
+                let tx = l2PublicVaultLogic.connect(l2ProjectManager).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+            })
 
-    //         it("if already get reward about round, claim fail", async () => {
-    //             let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-    //             await expect(tx).to.be.revertedWith("no reward")
-    //         })
+            it("if already get reward about round, claim fail", async () => {
+                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no reward")
+            })
 
-    //         it("duration the time to period end", async () => {
-    //             await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1]);
-    //             await ethers.provider.send('evm_mine');
-    //         })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1]);
+                await ethers.provider.send('evm_mine');
+            })
 
-    //         it("claim success after secondClaimTime", async () => {
-    //             expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(0)
-    //             let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,2)
-    //             let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,0)
+            it("claim success after secondClaimTime", async () => {
+                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,2)
+                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,0)
                 
-    //             await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
 
-    //             let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-    //             expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
-    //         })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
+            })
 
-    //         it("duration the time to period end", async () => {
-    //             await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+601]);
-    //             await ethers.provider.send('evm_mine');
-    //         })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+601]);
+                await ethers.provider.send('evm_mine');
+            })
 
-    //         it("claim success after claimTime3", async () => {
-    //             expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(0)
-    //             let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-    //             let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,3)
-    //             let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,3)
-    //             let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,0)
+            it("claim success after claimTime3", async () => {
+                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,3)
+                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,3)
+                let getAddr3Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr3Address,0)
                 
-    //             await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr3).claim(lydaContract.address);
 
-    //             let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-    //             expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-    //             expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-    //             expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
-    //         })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
+            })
 
-    //         it("duration the time to period end", async () => {
-    //             await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1201]);
-    //             await ethers.provider.send('evm_mine');
-    //         })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1201]);
+                await ethers.provider.send('evm_mine');
+            })
 
-    //         it("claim success after claimTime4", async () => {
-    //             expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(0)
-    //             let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-    //             let beforeAddr3Amount = await lydaContract.balanceOf(addr3Address)
-    //             let beforeAddr4Amount = await lydaContract.balanceOf(addr4Address)
-    //             let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,4)
-    //             let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,4)
-    //             let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,4)
-    //             let getAddr4Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr4Address,0)
-    //             let getAddr5Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr5Address,0)
+            it("claim success after claimTime4", async () => {
+                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let beforeAddr3Amount = await lydaContract.balanceOf(addr3Address)
+                let beforeAddr4Amount = await lydaContract.balanceOf(addr4Address)
+                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,4)
+                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,4)
+                let getAddr3Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr3Address,4)
+                let getAddr4Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr4Address,0)
+                let getAddr5Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr5Address,0)
                 
                 
-    //             await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr4).claim(lydaContract.address);
-    //             await deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr3).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr4).claim(lydaContract.address);
+                await l2PublicVaultLogic.connect(addr5).claim(lydaContract.address);
 
-    //             let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-    //             let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-    //             let afterAddr3Amount = await lydaContract.balanceOf(addr3Address)
-    //             expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-    //             expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-    //             expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
-    //             expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
-    //             expect(await lydaContract.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
-    //         })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let afterAddr3Amount = await lydaContract.balanceOf(addr3Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
+                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
+                expect(await lydaContract.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
+            })
 
-    //         it("if already get Allreward, claim fail", async () => {
-    //             let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-    //             await expect(tx).to.be.revertedWith("no purchase amount")
-    //             let tx2 = deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address)
-    //             await expect(tx2).to.be.revertedWith("no purchase amount")
-    //         })
+            it("if already get Allreward, claim fail", async () => {
+                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+                let tx2 = l2PublicVaultLogic.connect(addr5).claim(lydaContract.address)
+                await expect(tx2).to.be.revertedWith("no purchase amount")
+            })
 
-    //         it("PublicSale have TON for saleToken", async () => {
-    //             expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
-    //         })
+            it("PublicSale have TON for saleToken", async () => {
+                expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
+            })
 
-    //         it("check the saleToken amount", async () => {
-    //             let amount1 = await lydaContract.balanceOf(addr1Address)
-    //             let amount2 = await lydaContract.balanceOf(addr2Address)
-    //             let amount3 = await lydaContract.balanceOf(addr3Address)
-    //             let amount4 = await lydaContract.balanceOf(addr4Address)
-    //             let amount5 = await lydaContract.balanceOf(addr5Address)
-    //             console.log("amount1 : ", amount1)
-    //             console.log("amount2 : ", amount2)
-    //             console.log("amount3 : ", amount3)
-    //             console.log("amount4 : ", amount4)
-    //             console.log("amount5 : ", amount5)
-    //         })
-    //     })
+            it("check the saleToken amount", async () => {
+                let amount1 = await lydaContract.balanceOf(addr1Address)
+                let amount2 = await lydaContract.balanceOf(addr2Address)
+                let amount3 = await lydaContract.balanceOf(addr3Address)
+                let amount4 = await lydaContract.balanceOf(addr4Address)
+                let amount5 = await lydaContract.balanceOf(addr5Address)
+                console.log("amount1 : ", amount1)
+                console.log("amount2 : ", amount2)
+                console.log("amount3 : ", amount3)
+                console.log("amount4 : ", amount4)
+                console.log("amount5 : ", amount5)
+            })
+        })
 
-    //     describe("# exchangeWTONtoTOS", () => {
-    //         it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
-    //             let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
-    //             await expect(tx).to.be.revertedWith("need the exchangeWTONtoTOS")
-    //         })
+        describe("# exchangeWTONtoTOS", () => {
+            it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
+                let tx = l2PublicVaultLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
+                await expect(tx).to.be.revertedWith("need the exchangeWTONtoTOS")
+            })
 
-    //         it("hardcapCalcul(how much TON change to TOS) view test", async () => {
-    //             let changeTONamount = await deployed.l2PublicProxyLogic.hardcapCalcul(lydaContract.address)
-    //             expect(changeTONamount).to.be.gte(0)
-    //         })
+            it("hardcapCalcul(how much TON change to TOS) view test", async () => {
+                let changeTONamount = await l2PublicVaultLogic.hardcapCalcul(lydaContract.address)
+                expect(changeTONamount).to.be.gte(0)
+            })
 
-    //         it("anybody can execute exchangeWTONtoTOS", async () => {
-    //             let amount1 = ethers.utils.parseUnits("1", 27);
-    //             expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
-    //             let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
-    //             await expect(tx).to.be.revertedWith("amountIn over")
-    //         })
+            it("anybody can execute exchangeWTONtoTOS", async () => {
+                let amount1 = ethers.utils.parseUnits("1", 27);
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
+                let tx = l2PublicVaultLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
+                await expect(tx).to.be.revertedWith("amountIn over")
+            })
 
-    //         it("anybody can execute exchangeWTONtoTOS", async () => {
-    //             // let changeTick = await deployed.l2PublicProxyLogic.changeTick();
-    //             // console.log("changeTick :", changeTick)
-    //             let amount1 = ethers.utils.parseUnits("1", 18);
-    //             expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
-    //             await deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
-    //             // console.log(await tosContract.balanceOf(deployed.l2LiquidityProxy.address))
-    //             expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.gt(0)
-    //         })
-    //     })
-    // })
+            it("anybody can execute exchangeWTONtoTOS", async () => {
+                // let changeTick = await deployed.l2PublicProxyLogic.changeTick();
+                // console.log("changeTick :", changeTick)
+                let amount1 = ethers.utils.parseUnits("1", 18);
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
+                await l2PublicVaultLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
+                // console.log(await tosContract.balanceOf(deployed.l2LiquidityProxy.address))
+                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.gt(0)
+            })
+        })
+    })
 
-    // describe("depositWithdraw (execute to funding)", () => {
-    //     it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
-    //         expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(0)
-    //         console.log("depositWithdraw")
-    //         await deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
-    //         console.log("2")
-    //         let round1TONAmount = await deployed.l2PublicProxyLogic.saleInfo(lydaContract.address);
-    //         let round2TONAmount = await deployed.l2PublicProxyLogic.totalOpenPurchasedAmount(lydaContract.address)
-    //         let liquidityTON = await deployed.l2PublicProxyLogic.hardcapCalcul(lydaContract.address)
-    //         let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
-    //         console.log("3")
-    //         expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
-    //         console.log("4")
-    //     })
-    // })
+    describe("depositWithdraw (execute to funding)", () => {
+        it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
+            expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(0)
+            console.log("depositWithdraw")
+            await l2PublicVaultLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
+            let round1TONAmount = await l2PublicVaultLogic.saleInfo(lydaContract.address);
+            let round2TONAmount = await l2PublicVaultLogic.totalOpenPurchasedAmount(lydaContract.address)
+            let liquidityTON = await l2PublicVaultLogic.hardcapCalcul(lydaContract.address)
+            let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
+            expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
+        })
+    })
 
-    // describe("L2VestingFundVault claim", () => {
-    //     it("can not claim before claimTIme", async () => {
-    //         await expect(
-    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-    //                 lyda
-    //             )
-    //         ).to.be.revertedWith("Vault: not started yet")
-    //     })
+    describe("L2VestingFundVault claim", () => {
+        it("can not claim before claimTIme", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("Vault: not started yet")
+        })
 
-    //     it("duration the time", async () => {
-    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
-    //         await ethers.provider.send('evm_mine');
-    //     })
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
+            await ethers.provider.send('evm_mine');
+        })
 
-    //     it("can claim after claimTime1", async () => {
-    //         let round = await deployed.l2VestingFund.currentRound(lyda)
-    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
-    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+        it("can claim after claimTime1", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-    //     })
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+        })
 
-    //     it("can't claim already get reward", async () => {
-    //         await expect(
-    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-    //                 lyda
-    //             )
-    //         ).to.be.revertedWith("claimable amount is zero")
-    //     })
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("claimable amount is zero")
+        })
 
-    //     it("duration the time", async () => {
-    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
-    //         await ethers.provider.send('evm_mine');
-    //     })
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
+            await ethers.provider.send('evm_mine');
+        })
 
-    //     it("can claim after claimTime2", async () => {
-    //         let round = await deployed.l2VestingFund.currentRound(lyda)
-    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
-    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+        it("can claim after claimTime2", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-    //     })
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+        })
 
-    //     it("can't claim already get reward", async () => {
-    //         await expect(
-    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-    //                 lyda
-    //             )
-    //         ).to.be.revertedWith("claimable amount is zero")
-    //     })
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("claimable amount is zero")
+        })
 
 
-    //     it("duration the time", async () => {
-    //         await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+601]);
-    //         await ethers.provider.send('evm_mine');
-    //     })
+        it("duration the time", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+601]);
+            await ethers.provider.send('evm_mine');
+        })
 
-    //     it("can claim after claimTime3", async () => {
-    //         let round = await deployed.l2VestingFund.currentRound(lyda)
-    //         let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-    //         let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-    //         await deployed.l2VestingFund.connect(addr1).claim(lyda)
-    //         let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+        it("can claim after claimTime3", async () => {
+            let round = await deployed.l2VestingFund.currentRound(lyda)
+            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
+            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
+            await deployed.l2VestingFund.connect(addr1).claim(lyda)
+            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
 
-    //         expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-    //         expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
-    //     })
+            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
+            expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
+        })
 
-    //     it("can't claim already get reward", async () => {
-    //         await expect(
-    //             deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-    //                 lyda
-    //             )
-    //         ).to.be.revertedWith("Vault: already All get")
-    //     })
-
+        it("can't claim already get reward", async () => {
+            await expect(
+                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
+                    lyda
+                )
+            ).to.be.revertedWith("Vault: already All get")
+        })
     })
 
 });

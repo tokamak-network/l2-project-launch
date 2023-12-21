@@ -10,7 +10,7 @@ import "../../libraries/LibPublicSaleVault.sol";
 
 import "../interfaces/ISwapRouter.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface IILockTOS {
     function balanceOfAt(address _addr, uint256 _timestamp)
@@ -198,17 +198,14 @@ contract L2PublicSaleVault is
         require(getAmount <= IERC20(ton).balanceOf(address(this)), "haven't token");        
 
         manageInfos.adminWithdraw = true;
-        console.log("contract 1");
         uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
         
         if (burnAmount != 0) {
-            console.log("in");
             IIL2ERC20Bridge(l2Bridge).withdrawTo(_l2token, l1burnVault, burnAmount, 0, '0x');
         }
         
         IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
         IIVestingPublicFundAction(vestingFund).funding(_l2token,getAmount);
-        console.log("contract 4");
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
