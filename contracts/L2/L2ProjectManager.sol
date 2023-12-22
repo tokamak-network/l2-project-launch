@@ -74,6 +74,14 @@ interface IL2AirdropVault {
 }
 
 
+interface IVault {
+    function setVaultAdmin(
+        address l2Token,
+        address _newAdmin
+    )
+        external;
+}
+
 /**
  * @title L2ProjectManager
  * @dev

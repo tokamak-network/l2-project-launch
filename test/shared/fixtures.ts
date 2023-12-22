@@ -33,6 +33,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { TON } from '../../typechain-types/contracts/test/TON.sol'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
@@ -139,21 +140,28 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
     tosInfo.name, tosInfo.symbol, tosInfo.version
   )) as TOS
 
-  await (await lockTOS.connect(deployer).initialize(
-    tos.address,
-    lockTosInitializeIfo.epochUnit,
-    lockTosInitializeIfo.maxTime
-  )).wait()
+  // await (await lockTOS.connect(deployer).initialize(
+  //   tos.address,
+  //   lockTosInitializeIfo.epochUnit,
+  //   lockTosInitializeIfo.maxTime
+  // )).wait()
 
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
+  const TON_ = await ethers.getContractFactory('TON');
+  const ton = (await TON_.connect(deployer).deploy()) as TON
+
+  await (await ton.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
+  await (await ton.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
 
   return  {
     deployer: deployer,
     addr1: addr1,
     addr2: addr2,
     tos: tos,
-    lockTOS: lockTOS
+    lockTOS: lockTOS,
+    ton: ton
   }
 }
 
@@ -260,6 +268,9 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       deployer: deployer,
       addr1: addr1,
       addr2: addr2,
+      addr3: addr3,
+      addr4: addr4,
+      addr5: addr5,
       // factoryDeployer: create2Signer,
       addressManager: addressManager,
       l1Messenger: l1Messenger,

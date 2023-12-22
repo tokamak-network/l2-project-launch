@@ -56,7 +56,6 @@ export const getPublicSaleParams = (
         secondClaimTime: ethers.BigNumber.from(""+secondClaimTime),
         roundInterval: ethers.BigNumber.from(""+roundInterval),
     }
-
     let InitialParameterVestingClaim = {
         receiveAddress: receiveAddress,
         totalClaimCount: ethers.BigNumber.from(""+vestingClaimCounts),

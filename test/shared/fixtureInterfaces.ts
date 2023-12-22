@@ -25,6 +25,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { TON } from '../../typechain-types/contracts/test/TON.sol'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
@@ -79,6 +80,9 @@ interface L2ProjectLaunchFixture  {
     deployer: Signer,
     addr1: Signer,
     addr2: Signer,
+    addr3: Signer,
+    addr4: Signer,
+    addr5: Signer,
     // factoryDeployer: Signer,
     addressManager: Lib_AddressManager,
     l1Messenger: MockL1Messenger,
@@ -157,7 +161,8 @@ interface L1Fixture {
     addr1: Signer,
     addr2: Signer,
     tos: TOS,
-    lockTOS: LockTOS
+    lockTOS: LockTOS,
+    ton: TON
 }
 
 interface Point {
