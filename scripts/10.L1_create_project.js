@@ -1,4 +1,3 @@
-
 const {ethers} = require("ethers")
 const { Wallet }  = require("ethers")
 const Promise = require('bluebird');
@@ -26,9 +25,9 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test11',
-    tokenName: 'Test11',
-    tokenSymbol: 'T11T',
+    projectName: 'Test12',
+    tokenName: 'Test12',
+    tokenSymbol: 'T12T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,

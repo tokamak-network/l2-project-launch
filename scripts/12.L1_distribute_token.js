@@ -33,18 +33,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test11',
-    tokenName: 'Test11',
-    tokenSymbol: 'T11T',
+    projectName: 'Test12',
+    tokenName: 'Test12',
+    tokenSymbol: 'T12T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("11");
+let projectId = ethers.BigNumber.from("32");
 
-const L2Token = "0x1fac3ff465d5d6a25bd6aa56b5b12bca6d3a6d01"
+const L2Token = "0x3a5342bda1b8fdadfcd0936cc21adb9a6d6d62f8"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -100,32 +100,54 @@ async function main() {
 
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
-    let firstClaimTime = sTime
+
+    const setSnapshot = Math.floor(Date.now() / 1000) + (60*60*1);
+    const whitelistStartTime = setSnapshot + 400;
+    const whitelistEndTime = whitelistStartTime + (86400*7);
+    const round1StartTime = whitelistEndTime + 1;
+    const round1EndTime = round1StartTime + (86400*7);
+    const round2StartTime = round1EndTime + 1;
+    const round2EndTime = round2StartTime + (86400*7);
+
+    const firstClaimTime = round2EndTime + (86400 * 20);
     let totalClaimCount = BigNumber.from("4")
-    let firstClaimAmount = teamAmount.div(totalClaimCount)
+    let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
     let roundIntervalTime = 60*60*24*7;
     let secondClaimTime =  firstClaimTime + roundIntervalTime
+    const fundClaimTime1 = secondClaimTime + 3000
+    const fundClaimTime2 = fundClaimTime1 + 100
+    let changeTOS = 10;
+    let firstClaimPercent = 4000;
+    let roundInterval = 600;      //1분
+    let fee = 3000;
+
+
+    // let firstClaimTime = sTime
+    // let totalClaimCount = BigNumber.from("4")
+    // let firstClaimAmount = teamAmount.div(totalClaimCount)
+    // let roundIntervalTime = 60*60*24*7;
+    // let secondClaimTime =  firstClaimTime + roundIntervalTime
 
     let publicSaleParams =  getPublicSaleParams (
-        [0,0,0,0], //tier
-        [0,0,0,0], // percentage
-        [0,0], //amount
-        [0,0], // price saleTokenPrice, payTokenPrice
-        0, //hardcapAmount
-        0, //changeTOSPercent
-        [0,0,0,0,0,0,0], //times
-        0, //claimCounts
-        0, //firstClaimPercent
-        0, //firstClaimTime
-        0, //secondClaimTime: number,
-        0, //roundInterval: number,
-        ethers.constants.AddressZero,  // receiveAddress,
-        0, // vestingClaimCounts: number,
-        0, // vestingfirstClaimPercent: number,
-        0, // vestingClaimTime1: number,
-        0, // vestingClaimTime2: number,
-        0, // vestingRoundInterval: number,
-        0, // fee: number
+        [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
+                [initialLiquidityAmount,initialLiquidityAmount], //amount
+                [200,2000], // price saleTokenPrice, payTokenPrice
+                100*1e18, //hardcapAmount
+                changeTOS, //changeTOSPercent
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot, round2StartTime,round2EndTime], //times
+                totalClaimCount.toNumber(), //claimCounts
+                firstClaimPercent, //firstClaimPercent
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime: number,
+                roundIntervalTime, //roundInterval: number,
+                ourAddr,  // receiveAddress,
+                4, // vestingClaimCounts: number,
+                firstClaimPercent, // vestingfirstClaimPercent: number,
+                fundClaimTime1, // vestingClaimTime1: number,
+                fundClaimTime2, // vestingClaimTime2: number,
+                roundInterval, // vestingRoundInterval: number,
+                fee, // fee: number
         );
     let tosPrice = 1e18;
     let tokenPrice = 10e18;
@@ -152,7 +174,7 @@ async function main() {
         L2TOS,
         3000,
         rewardTonTosPoolAmount,
-        totalClaimCount,
+        totalClaimCount.toNumber(),
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -164,7 +186,7 @@ async function main() {
         L2TOS,
         3000,
         rewardProjectTosPoolAmount,
-        totalClaimCount,
+        totalClaimCount.toNumber(),
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime

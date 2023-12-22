@@ -112,6 +112,18 @@ const config: HardhatUserConfig = {
       hardhat: '0x770e0d682277A4a9167971073f1Aa6d6403bb315',
       titangoerli: '0x770e0d682277A4a9167971073f1Aa6d6403bb315',
     },
+    quoter:{
+      default: 17,
+      goerli: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
+      hardhat: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
+      titangoerli: '0xfD0c2ACFE71af67BC150cCd13dF3BEd6A3c22875',
+    },
+    uniswapRouter: {
+      default: 18,
+      goerli: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
+      hardhat: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
+      titangoerli: '0xf28cfA043766e4Fe9e390D66e0cd07991290fdD8',
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -210,12 +222,12 @@ const config: HardhatUserConfig = {
     // apiKey: `${process.env.ETHERSCAN_API_KEY}`
     apiKey: {
       goerli: `${process.env.ETHERSCAN_API_KEY}`,
-      tokamakGoerli: "verify"
+      titangoerli: "verify"
     },
     // apiKey: process.env.ETHERSCAN_API_KEY,
     customChains: [
       {
-        network: "tokamakGoerli",
+        network: "titangoerli",
         chainId: 5050,
         urls: {
           apiURL: "https://goerli.explorer.tokamak.network/api",

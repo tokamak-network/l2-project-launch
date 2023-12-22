@@ -10,6 +10,9 @@ import { L1ProjectManagerProxy } from '../typechain-types/contracts/L1/L1Project
 import { L1StosToL2Proxy } from '../typechain-types/contracts/L1/L1StosToL2Proxy'
 import { L1StosToL2 } from '../typechain-types/contracts/L1/L1StosToL2.sol'
 
+import { L1BurnVaultProxy } from  "../typechain-types/contracts/L1/L1BurnVaultProxy"
+import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
+
 // "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
 const L1StosInL2_Address = "0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF"
 
@@ -204,6 +207,30 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         await (await l1StosToL2.connect(deploySigner).setL2Register(L1StosInL2_Address)).wait()
     }
 
+    //==== L1BurnVault =================================
+     const L1BurnVaultDeployment = await deploy("L1BurnVault", {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+
+    //==== L1BurnVaultProxy =================================
+    const L1BurnVaultProxyDeployment = await deploy("L1BurnVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    const l1BurnVaultProxy = (await hre.ethers.getContractAt(
+        L1BurnVaultProxyDeployment.abi,
+        L1BurnVaultProxyDeployment.address
+    )) as L1BurnVaultProxy;
+
+    //==== l1BurnVaultProxy upgradeTo =================================
+    let impl2 = await l1BurnVaultProxy.implementation()
+    if (impl2 != L1BurnVaultDeployment.address) {
+        await (await l1BurnVaultProxy.connect(deploySigner).upgradeTo(L1BurnVaultDeployment.address)).wait()
+    }
 
     //==== verify =================================
     if (hre.network.name != "hardhat") {
