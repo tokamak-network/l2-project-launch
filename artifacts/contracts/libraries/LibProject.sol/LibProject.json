@@ -344,7 +344,7 @@
                     }
                   ],
                   "internalType": "struct LibProject.InitalParameterVestingFundVault",
-                  "name": "vestingParma",
+                  "name": "vestingParams",
                   "type": "tuple"
                 }
               ],

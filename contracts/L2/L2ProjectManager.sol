@@ -9,7 +9,7 @@ import {IERC20} from "../interfaces/IERC20.sol";
 import "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface IL2CrossDomainMessenger {
     function xDomainMessageSender() external view returns (address);
@@ -30,7 +30,7 @@ interface IL2PublicSaleVault {
         address l2Token,
         LibProject.InitalParameterPublicSaleVault memory vaultParams,
         LibProject.InitalParameterPublicSaleClaim memory claimParams,
-        LibProject.InitalParameterVestingFundVault memory vestingParma
+        LibProject.InitalParameterVestingFundVault memory vestingParams
     ) external;
 }
 
@@ -321,15 +321,17 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         _approveVaults(info.l2Token, tosAirdropVault, tokamakVaults.tosAirdropParams.totalAllocatedAmount);
 
         if (publicTotal != 0) {
-            IL2CustomVaultBase(publicSaleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+
+            if(!IL2CustomVaultBase(publicSaleVault).isVaultAdmin(info.l2Token, info.projectOwner)) {
+                IL2CustomVaultBase(publicSaleVault).setVaultAdmin(info.l2Token, info.projectOwner);
+            }
             IL2PublicSaleVault(publicSaleVault).vaultInitialize(
                 info.l2Token,
                 tokamakVaults.publicSaleParams.vaultParams,
                 tokamakVaults.publicSaleParams.claimParams,
-                tokamakVaults.publicSaleParams.vestingParma
+                tokamakVaults.publicSaleParams.vestingParams
             );
         }
-
         if (tokamakVaults.initialVaultParams.totalAllocatedAmount != 0) {
 
             if(!IL2CustomVaultBase(initialLiquidityVault).isVaultAdmin(info.l2Token, info.projectOwner)) IL2CustomVaultBase(initialLiquidityVault).setVaultAdmin(info.l2Token, info.projectOwner);
@@ -338,7 +340,6 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
                 info.l2Token,
                 tokamakVaults.initialVaultParams);
         }
-
 
         if (tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount != 0) {
             if(!IL2CustomVaultBase(liquidityRewardVault).isVaultAdmin(info.l2Token, info.projectOwner))
@@ -417,7 +418,6 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
 
         emit DistributedL2Token(info.l1Token, info.l2Token, projectId_, total);
     }
-
 
     /* ========== Anyone can execute ========== */
 

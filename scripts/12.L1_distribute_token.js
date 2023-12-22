@@ -86,7 +86,7 @@ async function main() {
     // test vaults :
     // initialLiquidityVault, tontosReward, prokectTokenTosReward, DAO,
     // Team, Marketing , airdropStos, airdropTon
-    let vaultCount = BigNumber.from("8")
+    let vaultCount = BigNumber.from("10")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let rewardTonTosPoolAmount = initialLiquidityAmount
@@ -96,6 +96,7 @@ async function main() {
     let marketingAmount = initialLiquidityAmount
     let airdropStosAmount = initialLiquidityAmount
     let airdropTonAmount = initialLiquidityAmount
+    let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
 
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)

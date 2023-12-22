@@ -10,6 +10,8 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
+// import "hardhat/console.sol";
+
 interface L2ProjectManagerI {
     function distributesL2Token(
         address l1Token,
@@ -184,7 +186,6 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     )
         external nonZeroAddress(l2Token) nonZero(totalAmount)
     {
-
         LibProject.ProjectInfo memory info = projects[projectId];
         require(info.projectOwner != address(0) && msg.sender == info.projectOwner, "caller is not projectOwner.");
         require(info.l2Token == address(0), "already launched");

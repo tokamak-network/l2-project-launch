@@ -241,7 +241,7 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can not be executed by not owner', async () => {
                 await expect(
                     deployed.l2ProjectManager.connect(addr1).setTokamakVaults(
-                        ethers.constants.AddressZero,
+                        deployed.l2PublicSaleProxy.address,
                         deployed.initialLiquidityVaultProxy.address,
                         deployed.l2LpRewardVaultProxy.address,
                         deployed.airdropTonVault.address,
@@ -255,7 +255,7 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can be executed by only owner ', async () => {
 
                 await deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
-                    ethers.constants.AddressZero,
+                    deployed.l2PublicSaleProxy.address,
                     deployed.initialLiquidityVaultProxy.address,
                     deployed.l2LpRewardVaultProxy.address,
                     deployed.airdropTonVault.address,
@@ -264,6 +264,7 @@ describe('L1ProjectManager', () => {
                     deployed.nonScheduleVaultProxy.address
                 )
 
+                expect(await deployed.l2ProjectManager.publicSaleVault()).to.be.eq(deployed.l2PublicSaleProxy.address)
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
@@ -313,10 +314,10 @@ describe('L1ProjectManager', () => {
                     l2UniswapInfo.tos
                 )
 
-                expect(await deployed.initialLiquidityVault.uniswapV3Factory()).to.be.eq(l2UniswapInfo.uniswapV3Factory)
-                expect(await deployed.initialLiquidityVault.nonfungiblePositionManager()).to.be.eq(l2UniswapInfo.npm)
-                expect(await deployed.initialLiquidityVault.ton()).to.be.eq(l2UniswapInfo.ton)
-                expect(await deployed.initialLiquidityVault.tos()).to.be.eq(l2UniswapInfo.tos)
+                expect((await deployed.initialLiquidityVault.uniswapV3Factory()).toUpperCase()).to.be.eq(l2UniswapInfo.uniswapV3Factory.toUpperCase())
+                expect((await deployed.initialLiquidityVault.nonfungiblePositionManager()).toUpperCase()).to.be.eq(l2UniswapInfo.npm.toUpperCase())
+                expect((await deployed.initialLiquidityVault.ton()).toUpperCase()).to.be.eq(l2UniswapInfo.ton.toUpperCase())
+                expect((await deployed.initialLiquidityVault.tos()).toUpperCase()).to.be.eq(l2UniswapInfo.tos.toUpperCase())
 
             })
 
@@ -425,10 +426,10 @@ describe('L1ProjectManager', () => {
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
             let publicSaleParams =  getPublicSaleParams (
-                [0,0,0,0], //tier
-                [0,0,0,0], // percentage
+                [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
                 [0,0], //amount
-                [0,0], // price saleTokenPrice, payTokenPrice
+                [200,2000], // price saleTokenPrice, payTokenPrice
                 0, //hardcapAmount
                 0, //changeTOSPercent
                 [0,0,0,0,0,0,0], //times
@@ -543,7 +544,7 @@ describe('L1ProjectManager', () => {
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
 
-            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("8"))
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("10"))
             let rewardTonTosPoolAmount = initialLiquidityAmount
             let rewardProjectTosPoolAmount = initialLiquidityAmount
             let daoAmount = initialLiquidityAmount
@@ -551,37 +552,56 @@ describe('L1ProjectManager', () => {
             let marketingAmount = initialLiquidityAmount
             let airdropStosAmount = initialLiquidityAmount
             let airdropTonAmount = initialLiquidityAmount
-
+            let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
 
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
-            let firstClaimTime = sTime
+
+            const block = await ethers.provider.getBlock('latest')
+
+            const setSnapshot = block.timestamp + (60*60*1);
+            const whitelistStartTime = setSnapshot + 400;
+            const whitelistEndTime = whitelistStartTime + (86400*7);
+            const round1StartTime = whitelistEndTime + 1;
+            const round1EndTime = round1StartTime + (86400*7);
+            const round2StartTime = round1EndTime + 1;
+            const round2EndTime = round2StartTime + (86400*7);
+
+            const firstClaimTime = round2EndTime + (86400 * 20);
             let totalClaimCount = 4
             let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
             let roundIntervalTime = 60*60*24*7;
             let secondClaimTime =  firstClaimTime + roundIntervalTime
+            const fundClaimTime1 = secondClaimTime + 3000
+            const fundClaimTime2 = fundClaimTime1 + 100
+            let changeTOS = 10;
+            let firstClaimPercent = 4000;
+            let roundInterval = 600;      //1분
+            let fee = 3000;
+
 
             let publicSaleParams =  getPublicSaleParams (
-                [0,0,0,0], //tier
-                [0,0,0,0], // percentage
-                [0,0], //amount
-                [0,0], // price saleTokenPrice, payTokenPrice
-                0, //hardcapAmount
-                0, //changeTOSPercent
-                [0,0,0,0,0,0,0], //times
-                0, //claimCounts
-                0, //firstClaimPercent
-                0, //firstClaimTime
-                0, //secondClaimTime: number,
-                0, //roundInterval: number,
-                ethers.constants.AddressZero,  // receiveAddress,
-                0, // vestingClaimCounts: number,
-                0, // vestingfirstClaimPercent: number,
-                0, // vestingClaimTime1: number,
-                0, // vestingClaimTime2: number,
-                0, // vestingRoundInterval: number,
-                0, // fee: number
+                [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
+                [initialLiquidityAmount,initialLiquidityAmount], //amount
+                [200,2000], // price saleTokenPrice, payTokenPrice
+                100*1e18, //hardcapAmount
+                changeTOS, //changeTOSPercent
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot, round2StartTime,round2EndTime], //times
+                totalClaimCount, //claimCounts
+                firstClaimPercent, //firstClaimPercent
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime: number,
+                roundIntervalTime, //roundInterval: number,
+                deployer.address,  // receiveAddress,
+                4, // vestingClaimCounts: number,
+                firstClaimPercent, // vestingfirstClaimPercent: number,
+                fundClaimTime1, // vestingClaimTime1: number,
+                fundClaimTime2, // vestingClaimTime2: number,
+                roundInterval, // vestingRoundInterval: number,
+                fee, // fee: number
                 );
 
+            // console.log(publicSaleParams)
 
             let tosPrice = 1e18;
             let tokenPrice = 10e18;

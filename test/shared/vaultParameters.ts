@@ -6,7 +6,7 @@ import { BigNumber} from 'ethers'
 export const getPublicSaleParams = (
     tier:Array<number>,
     percents:Array<number>,
-    saleAmount:Array<number>,
+    saleAmount:Array<BigNumber>,
     price:Array<number>,
     hardcapAmount: number,
     changeTOSPercent:number,
@@ -34,8 +34,8 @@ export const getPublicSaleParams = (
          tier2Percents: ethers.BigNumber.from(""+percents[1]),
          tier3Percents: ethers.BigNumber.from(""+percents[2]),
          tier4Percents: ethers.BigNumber.from(""+percents[3]),
-         total1roundSaleAmount: ethers.BigNumber.from(""+saleAmount[0]),
-         total2roundSaleAmount: ethers.BigNumber.from(""+saleAmount[1]),
+         total1roundSaleAmount: saleAmount[0],
+         total2roundSaleAmount: saleAmount[1],
          saleTokenPrice: ethers.BigNumber.from(""+price[0]),
          payTokenPrice: ethers.BigNumber.from(""+price[1]),
          hardcapAmount: ethers.BigNumber.from(""+hardcapAmount),
@@ -63,7 +63,7 @@ export const getPublicSaleParams = (
         firstClaimTime: ethers.BigNumber.from(""+vestingClaimTime1),
         secondClaimTime: ethers.BigNumber.from(""+vestingClaimTime2),
         roundIntervalTime: ethers.BigNumber.from(""+vestingRoundInterval),
-        fee: ethers.BigNumber.from(""+fee)
+        fee: fee
     }
 
     return {

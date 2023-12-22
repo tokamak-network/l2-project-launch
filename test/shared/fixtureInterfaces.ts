@@ -61,6 +61,20 @@ import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2
 import { L2AirdropTonVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
 import { L2AirdropTonVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
 
+
+import { LibPublicSaleVault } from '../../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
+import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
+import { L2PublicSaleProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleProxy.sol'
+
+
+import { L1BurnVaultProxy } from  "../../typechain-types/contracts/L1/L1BurnVaultProxy"
+import { L1BurnVault } from  "../../typechain-types/contracts/L1/L1BurnVault.sol"
+
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
+
 // LpReward
 // TonAirdrop
 // TosAirDrop
@@ -95,7 +109,6 @@ interface L2ProjectLaunchFixture  {
     paymasterAddress: string,
     l2PaymasterDeposit: L2PaymasterDeposit
 }
-
 
 interface SetL2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -141,7 +154,10 @@ interface SetL2ProjectLaunchFixture  {
     airdropTonVaultProxy: L2AirdropTonVaultProxy,
     tosAddress: string,
     tosAdminAddress: string,
-    tonAddress: string
+    tonAddress: string,
+    l2PublicSaleProxy: L2PublicSaleProxy,
+    l2VestingFundVault: L2VestingFundVault,
+    l1BurnVault: L1BurnVault
 }
 
 interface ProjectInfo {

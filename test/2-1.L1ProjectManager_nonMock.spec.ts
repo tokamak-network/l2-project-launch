@@ -241,7 +241,7 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can not be executed by not owner', async () => {
                 await expect(
                     deployed.l2ProjectManager.connect(addr1).setTokamakVaults(
-                        ethers.constants.AddressZero,
+                        deployed.l2PublicSaleProxy.address,
                         deployed.initialLiquidityVaultProxy.address,
                         ethers.constants.AddressZero,
                         ethers.constants.AddressZero,
@@ -255,19 +255,21 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can be executed by only owner ', async () => {
 
                 await deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
-                    ethers.constants.AddressZero,
+                    deployed.l2PublicSaleProxy.address,
                     deployed.initialLiquidityVaultProxy.address,
-                    ethers.constants.AddressZero,
-                    ethers.constants.AddressZero,
+                    deployed.l2LpRewardVaultProxy.address,
+                    deployed.airdropTonVault.address,
                     deployed.airdropStosVault.address,
                     deployed.scheduleVaultProxy.address,
                     deployed.nonScheduleVaultProxy.address
                 )
 
+                expect(await deployed.l2ProjectManager.publicSaleVault()).to.be.eq(deployed.l2PublicSaleProxy.address)
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.tosAirdropVault()).to.be.eq(deployed.airdropStosVault.address)
+                expect(await deployed.l2ProjectManager.tonAirdropVault()).to.be.eq(deployed.airdropTonVault.address)
 
             })
 

@@ -9,9 +9,11 @@ import "./L2PublicSaleVaultStorage.sol";
 import "../../libraries/SafeERC20.sol";
 import '../../libraries/LibProject.sol';
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface IVestingFund {
+    function publicSaleVault() external view returns(address);
+    function isVaultAdmin(address l2Token, address account) external view returns (bool);
     function setVaultAdmin(address l2Token, address newAdmin) external;
     function initialize(
         address l2Token,
@@ -26,9 +28,9 @@ interface IVestingFund {
         external;
 }
 
-contract L2PublicSaleProxy is 
+contract L2PublicSaleProxy is
     ProxyStorage,
-    AccessibleCommon, 
+    AccessibleCommon,
     L2PublicSaleVaultStorage
 {
     using SafeERC20 for IERC20;
@@ -65,7 +67,7 @@ contract L2PublicSaleProxy is
         uint256 _tier4,
         uint256 _delayTime
     )
-        external 
+        external
         onlyOwner
     {
         setAddress(_setAddress);
@@ -121,9 +123,9 @@ contract L2PublicSaleProxy is
         uint256 _tier2,
         uint256 _tier3,
         uint256 _tier4
-    )   
+    )
         public
-        onlyOwner 
+        onlyOwner
     {
         require(
             (_tier1 < _tier2) &&
@@ -140,8 +142,8 @@ contract L2PublicSaleProxy is
     function setDelayTime(
         uint256 _delay
     )
-        public 
-        onlyOwner 
+        public
+        onlyOwner
     {
         require(delayTime != _delay, "same delayTime");
         delayTime = _delay;
@@ -157,8 +159,7 @@ contract L2PublicSaleProxy is
     {
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
         vaultAdminOfToken[l2Token] = _newAdmin;
-        //vestinfFundVault의 setVaultAdmin세팅
-        IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
+        if(!IVestingFund(vestingFund).isVaultAdmin(l2Token, _newAdmin))  IVestingFund(vestingFund).setVaultAdmin(l2Token,_newAdmin);
         emit SetVaultAdmin(l2Token, _newAdmin);
     }
 
@@ -169,23 +170,24 @@ contract L2PublicSaleProxy is
         LibProject.InitalParameterPublicSaleVault memory params,
         LibProject.InitalParameterPublicSaleClaim memory params2,
         LibProject.InitalParameterVestingFundVault memory params3
-    ) 
+    )
         external
-        onlyVaultAdminOfToken(_l2token) 
-    {   
+        onlyVaultAdminOfToken(_l2token)
+    {
+
         setTier(
-            _l2token, 
-            params.stosTier1, 
-            params.stosTier2, 
-            params.stosTier3, 
+            _l2token,
+            params.stosTier1,
+            params.stosTier2,
+            params.stosTier3,
             params.stosTier4
         );
-        
+
         setTierPercents(
-            _l2token, 
-            params.tier1Percents, 
-            params.tier2Percents, 
-            params.tier3Percents, 
+            _l2token,
+            params.tier1Percents,
+            params.tier2Percents,
+            params.tier3Percents,
             params.tier4Percents
         );
 
@@ -197,7 +199,7 @@ contract L2PublicSaleProxy is
             params.payTokenPrice,
             params.hardcapAmount,
             params.changeTOSPercent,
-            params.changeTOSPercent
+            0
         );
 
         set1RoundTime(
@@ -212,7 +214,7 @@ contract L2PublicSaleProxy is
             _l2token,
             params.snapshotTime,
             params.start2roundTime,
-            params.end2roundTime 
+            params.end2roundTime
         );
 
         setClaimTime(
@@ -223,6 +225,7 @@ contract L2PublicSaleProxy is
             params2.secondClaimTime,
             params2.roundInterval
         );
+
         IVestingFund(vestingFund).initialize(
             _l2token,
             params3.receiveAddress,
@@ -233,10 +236,12 @@ contract L2PublicSaleProxy is
             params3.roundIntervalTime,
             params3.fee
         );
+
         IERC20(_l2token).approve(
             address(l2Bridge),
             type(uint256).max
         );
+
     }
 
     function setTier(
@@ -261,7 +266,7 @@ contract L2PublicSaleProxy is
         tiers[_l2token][2] = _tier2;
         tiers[_l2token][3] = _tier3;
         tiers[_l2token][4] = _tier4;
-    } 
+    }
 
     function setTierPercents(
         address _l2token,
@@ -310,16 +315,16 @@ contract L2PublicSaleProxy is
             IERC20(_l2token).safeTransferFrom(l2ProjectManager, address(this), (_totalExpectSaleAmount+_totalExpectOpenSaleAmount) );
             balance = IERC20(_l2token).balanceOf(address(this));
         }
+
         require((_totalExpectSaleAmount + _totalExpectOpenSaleAmount) <= balance && 1 ether <= balance, "not input token");
         require(_changePercent <= maxPer && _changePercent >= minPer,"need to set min,max");
         require((_totalExpectSaleAmount+(_totalExpectOpenSaleAmount)) >= (_hardcapAmount*(_payTokenPrice)/(_saleTokenPrice)), "over hardcap");
 
         LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
-        
+
         if(manageInfos.set1rdTokenAmount != 0) {
             require(isL2ProjectManager(), "only DAO");
         }
-        
         manageInfos.set1rdTokenAmount = _totalExpectSaleAmount;
         manageInfos.set2rdTokenAmount = _totalExpectOpenSaleAmount;
         manageInfos.saleTokenPrice = _saleTokenPrice;
@@ -360,9 +365,9 @@ contract L2PublicSaleProxy is
         } else {
             timeInfos.deployTime = block.timestamp;
         }
-        console.log("timeInfos.deployTime :", timeInfos.deployTime);
-        console.log("delayTime :", delayTime);
-        console.log("_startAddWhiteTime :", _startAddWhiteTime);
+        // console.log("timeInfos.deployTime :", timeInfos.deployTime);
+        // console.log("delayTime :", delayTime);
+        // console.log("_startAddWhiteTime :", _startAddWhiteTime);
         require((timeInfos.deployTime + delayTime) < _startAddWhiteTime, "snapshot need later");
 
         timeInfos.whiteListStartTime = _startAddWhiteTime;
@@ -396,7 +401,7 @@ contract L2PublicSaleProxy is
 
         timeInfos.snapshot = _snapshot;
         timeInfos.round2StartTime = _startDepositTime;
-        timeInfos.round2EndTime = _endDepositTime;    
+        timeInfos.round2EndTime = _endDepositTime;
     }
 
     function setClaimTime(
@@ -418,7 +423,7 @@ contract L2PublicSaleProxy is
         if(claimInfos.totalClaimCounts != 0) {
             require(isL2ProjectManager(), "only DAO");
         }
-        
+
         claimInfos.totalClaimCounts = _claimCounts;
         claimInfos.firstClaimPercent = _firstClaimPercents;
         claimInfos.firstClaimTime = _firstClaimTime;

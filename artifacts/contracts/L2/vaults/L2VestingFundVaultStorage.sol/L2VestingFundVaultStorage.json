@@ -1,0 +1,415 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L2VestingFundVaultStorage",
+  "sourceName": "contracts/L2/vaults/L2VestingFundVaultStorage.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Claimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Funded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "totalClaimCount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "firstClaimPercents",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "firstClaimTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "secondClaimTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "roundInterval",
+          "type": "uint256"
+        }
+      ],
+      "name": "InitializedL2VestingFundVault",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newInitializer",
+          "type": "address"
+        }
+      ],
+      "name": "SetInitializer",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAdmin",
+          "type": "address"
+        }
+      ],
+      "name": "SetVaultAdmin",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimAmounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimTimes",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "fees",
+      "outputs": [
+        {
+          "internalType": "uint24",
+          "name": "",
+          "type": "uint24"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2ProjectManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "nowClaimRound",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "publicSaleVault",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "receivedAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "settingChecks",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tonToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tosToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "totalAllocatedAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "totalClaimsAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "uniswapV3Factory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaultAdminOfToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaultInfo",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalClaimCount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstClaimPercents",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "firstClaimTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "secondClaimTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "roundInterval",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040526000805460ff1916600117905534801561001d57600080fd5b506103f48061002d6000396000f3fe608060405234801561001057600080fd5b50600436106100f55760003560e01c80637fc46ba811610097578063aa2c814711610066578063aa2c8147146102b3578063c0f22d4b146102d3578063faaebd21146102e6578063ff9460531461031f57600080fd5b80637fc46ba8146101e9578063877aaf4f146102125780639164359a14610225578063a40041081461028a57600080fd5b806335eee583116100d357806335eee5831461018b57806352351e85146101ab5780635b549182146101c3578063781a4852146101d657600080fd5b806304b6a0f5146100fa5780631ce2b85e146101325780632c8917c814610160575b600080fd5b61011d61010836600461039b565b60086020526000908152604090205460ff1681565b60405190151581526020015b60405180910390f35b61015261014036600461039b565b600d6020526000908152604090205481565b604051908152602001610129565b600154610173906001600160a01b031681565b6040516001600160a01b039091168152602001610129565b61015261019936600461039b565b600c6020526000908152604090205481565b6000546101739061010090046001600160a01b031681565b600454610173906001600160a01b031681565b600254610173906001600160a01b031681565b6101736101f736600461039b565b6005602052600090815260409020546001600160a01b031681565b600354610173906001600160a01b031681565b61026261023336600461039b565b600e60205260009081526040902080546001820154600283015460038401546004909401549293919290919085565b604080519586526020860194909452928401919091526060830152608082015260a001610129565b61017361029836600461039b565b6006602052600090815260409020546001600160a01b031681565b6101526102c136600461039b565b600b6020526000908152604090205481565b6101526102e13660046103bd565b610332565b61030b6102f436600461039b565b60076020526000908152604090205462ffffff1681565b60405162ffffff9091168152602001610129565b61015261032d3660046103bd565b610363565b6009602052816000526040600020818154811061034e57600080fd5b90600052602060002001600091509150505481565b600a602052816000526040600020818154811061034e57600080fd5b80356001600160a01b038116811461039657600080fd5b919050565b6000602082840312156103ad57600080fd5b6103b68261037f565b9392505050565b600080604083850312156103d057600080fd5b6103d98361037f565b94602093909301359350505056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100f55760003560e01c80637fc46ba811610097578063aa2c814711610066578063aa2c8147146102b3578063c0f22d4b146102d3578063faaebd21146102e6578063ff9460531461031f57600080fd5b80637fc46ba8146101e9578063877aaf4f146102125780639164359a14610225578063a40041081461028a57600080fd5b806335eee583116100d357806335eee5831461018b57806352351e85146101ab5780635b549182146101c3578063781a4852146101d657600080fd5b806304b6a0f5146100fa5780631ce2b85e146101325780632c8917c814610160575b600080fd5b61011d61010836600461039b565b60086020526000908152604090205460ff1681565b60405190151581526020015b60405180910390f35b61015261014036600461039b565b600d6020526000908152604090205481565b604051908152602001610129565b600154610173906001600160a01b031681565b6040516001600160a01b039091168152602001610129565b61015261019936600461039b565b600c6020526000908152604090205481565b6000546101739061010090046001600160a01b031681565b600454610173906001600160a01b031681565b600254610173906001600160a01b031681565b6101736101f736600461039b565b6005602052600090815260409020546001600160a01b031681565b600354610173906001600160a01b031681565b61026261023336600461039b565b600e60205260009081526040902080546001820154600283015460038401546004909401549293919290919085565b604080519586526020860194909452928401919091526060830152608082015260a001610129565b61017361029836600461039b565b6006602052600090815260409020546001600160a01b031681565b6101526102c136600461039b565b600b6020526000908152604090205481565b6101526102e13660046103bd565b610332565b61030b6102f436600461039b565b60076020526000908152604090205462ffffff1681565b60405162ffffff9091168152602001610129565b61015261032d3660046103bd565b610363565b6009602052816000526040600020818154811061034e57600080fd5b90600052602060002001600091509150505481565b600a602052816000526040600020818154811061034e57600080fd5b80356001600160a01b038116811461039657600080fd5b919050565b6000602082840312156103ad57600080fd5b6103b68261037f565b9392505050565b600080604083850312156103d057600080fd5b6103d98361037f565b94602093909301359350505056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

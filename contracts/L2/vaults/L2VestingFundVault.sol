@@ -9,7 +9,7 @@ import { L2VestingFundVaultStorage } from "./L2VestingFundVaultStorage.sol";
 
 import { LibVestingFundVault } from "../../libraries/LibVestingFundVault.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 interface IIUniswapV3Pool {
     function slot0()
@@ -26,10 +26,10 @@ interface IIUniswapV3Pool {
         );
 }
 
-contract L2VestingFundVault is 
+contract L2VestingFundVault is
     ProxyStorage,
-    AccessibleCommon, 
-    L2VestingFundVaultStorage 
+    AccessibleCommon,
+    L2VestingFundVaultStorage
 {
     // using SafeERC20 for IERC20;
 
@@ -61,7 +61,7 @@ contract L2VestingFundVault is
     )
         external
         onlyOwner
-    {   
+    {
         _initialize(
             _l2Token,
             _claimCounts,
@@ -87,10 +87,11 @@ contract L2VestingFundVault is
         external
         nonZeroAddress(_l2Token)
         nonZeroAddress(_receivedAddress)
-        onlyVaultAdminOfToken(_l2Token)
+        // onlyVaultAdminOfToken(_l2Token)
+        onlyL2PublicSale
     {
+
         require(settingChecks[_l2Token] != true, "Already initalized");
-        
         receivedAddress[_l2Token] = _receivedAddress;
         fees[_l2Token] = _fee;
 
@@ -116,6 +117,7 @@ contract L2VestingFundVault is
     )
         internal
     {
+
         require(_claimCounts != 0,
                 "claimCounts must be greater than zero");
 
@@ -131,8 +133,8 @@ contract L2VestingFundVault is
 
     function claim(
         address _l2Token
-    ) 
-        public 
+    )
+        public
     {
         // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
         LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
@@ -143,7 +145,7 @@ contract L2VestingFundVault is
 
     function _claim(
         address _l2Token
-    ) 
+    )
         internal
     {
         uint256 curRound = currentRound(_l2Token);
@@ -163,7 +165,7 @@ contract L2VestingFundVault is
     function funding(
         address _l2Token,
         uint256 amount
-    ) 
+    )
         external
         onlyL2PublicSale
     {
@@ -192,10 +194,10 @@ contract L2VestingFundVault is
 
     function currentRound(
         address _l2Token
-    ) 
-        public 
-        view 
-        returns (uint256 round) 
+    )
+        public
+        view
+        returns (uint256 round)
     {
         LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
         if(info.firstClaimTime == 0) return 0;
@@ -210,10 +212,10 @@ contract L2VestingFundVault is
 
     function calculClaimAmount(
         address _l2Token
-    ) 
-        public 
-        view 
-        returns (uint256 amount) 
+    )
+        public
+        view
+        returns (uint256 amount)
     {
         uint256 curRound = currentRound(_l2Token);
         if (curRound == 0) return 0;
@@ -243,9 +245,9 @@ contract L2VestingFundVault is
 
     function getPoolAddress(
         address _l2Token
-    ) 
-        public 
-        view 
+    )
+        public
+        view
         returns (address pool)
     {
         //L2에서는 변경되어야함
@@ -278,14 +280,14 @@ contract L2VestingFundVault is
 
     function currentSqrtPriceX96(
         address _l2Token
-    ) 
-        public 
-        view 
+    )
+        public
+        view
         returns (uint160 sqrtPriceX96)
     {
         sqrtPriceX96 = 0;
         address pool = getPoolAddress(_l2Token);
-        console.log("pool", pool);
+        // console.log("pool", pool);
         if (pool != address(0) && isContract(pool)) {
             // (,tick,,,,,) = IIUniswapV3Pool(pool).slot0();
             (sqrtPriceX96,,,,,,) = IIUniswapV3Pool(pool).slot0();
@@ -303,10 +305,10 @@ contract L2VestingFundVault is
     // function availableInitializer(
     //     address _l2Token,
     //     address _addr
-    // ) 
-    //     external 
-    //     view 
-    //     returns (bool result) 
+    // )
+    //     external
+    //     view
+    //     returns (bool result)
     // {
     //     if (!settingCheck && (_addr == receivedAddress || isAdmin(_addr))) result = true;
     // }

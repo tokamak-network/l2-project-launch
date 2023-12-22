@@ -4,8 +4,7 @@ pragma solidity ^0.8.4;
 import "../../proxy/Proxy.sol";
 import "./L2VestingFundVaultStorage.sol";
 
-
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
 {
@@ -20,14 +19,14 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
         address _l2ProjectManager,
         address _publicSaleVault,
         address _uniswapV3Factory
-    ) 
-        external 
+    )
+        external
         nonZeroAddress(_tonToken)
         nonZeroAddress(_tosToken)
         nonZeroAddress(_l2ProjectManager)
         nonZeroAddress(_publicSaleVault)
         nonZeroAddress(_uniswapV3Factory)
-        onlyOwner 
+        onlyOwner
     {
         tonToken = _tonToken;
         tosToken = _tosToken;
@@ -35,16 +34,16 @@ contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
         publicSaleVault = _publicSaleVault;
         uniswapV3Factory = _uniswapV3Factory;
     }
-    
+
     /* ========== only L2ProjectManager ========== */
-    
+
     function setVaultAdmin(
         address l2Token,
         address _newAdmin
     )
-        external 
-        nonZeroAddress(l2Token) 
-        nonZeroAddress(_newAdmin) 
+        external
+        nonZeroAddress(l2Token)
+        nonZeroAddress(_newAdmin)
         onlyL2PublicSale
     {
         require(vaultAdminOfToken[l2Token] != _newAdmin, "same");
