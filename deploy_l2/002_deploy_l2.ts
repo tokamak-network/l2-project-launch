@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-
+import Web3EthAbi from "web3-eth-abi"
 import { L2TokenFactory } from '../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../typechain-types/contracts/L2/L2ProjectManager.sol'
 import { L2ProjectManagerProxy } from '../typechain-types/contracts/L2/L2ProjectManagerProxy'
@@ -475,6 +475,119 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (minPer == 0) {
         await (await l2PublicSaleProxy.connect(deploySigner).setMaxMinPercent(5,10)).wait()
     }
+
+     //==== L2PublicSaleVault =================================
+     const L2PublicSaleVaultDeployment = await deploy("L2PublicSaleVault", {
+            from: deployer,
+            args: [],
+            log: true,
+            libraries: { LibPublicSaleVault: LibPublicSaleVaultDeployment.address }
+    });
+
+    let logic1 = await l2PublicSaleVaultProxy.implementation2(1)
+    if (logic1 != L2PublicSaleVaultDeployment.address){
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).setImplementation2(
+            L2PublicSaleVaultDeployment.address, 1, true
+        )).wait()
+    }
+
+    const _addWhiteList = Web3EthAbi.encodeFunctionSignature("addWhiteList(address)")
+    let _addWhiteList1 = await l2PublicSaleVaultProxy.getSelectorImplementation2(_addWhiteList)
+    if (_addWhiteList1 != L2PublicSaleVaultDeployment.address){
+
+        const _round1Sale = Web3EthAbi.encodeFunctionSignature(
+            "round1Sale(address,uint256)"
+        )
+
+        const _round2Sale = Web3EthAbi.encodeFunctionSignature(
+            "round2Sale(address,uint256)"
+        )
+
+        const _claim = Web3EthAbi.encodeFunctionSignature(
+            "claim(address)"
+        )
+
+        const _depositWithdraw = Web3EthAbi.encodeFunctionSignature(
+            "depositWithdraw(address)"
+        )
+
+        const _exchangeWTONtoTOS = Web3EthAbi.encodeFunctionSignature(
+            "exchangeWTONtoTOS(address,uint256)"
+        )
+
+        const _parseRevertReason = Web3EthAbi.encodeFunctionSignature(
+            "parseRevertReason(bytes)"
+        )
+
+        const _hardcapCalcul = Web3EthAbi.encodeFunctionSignature(
+            "hardcapCalcul(address)"
+        )
+
+        const _calculSaleToken = Web3EthAbi.encodeFunctionSignature(
+            "calculSaleToken(address,uint256)"
+        )
+
+        const _calculPayToken = Web3EthAbi.encodeFunctionSignature(
+            "calculPayToken(address,uint256)"
+        )
+
+        const _calculTier = Web3EthAbi.encodeFunctionSignature(
+            "calculTier(address,address)"
+        )
+        const _calculTierAmount = Web3EthAbi.encodeFunctionSignature(
+            "calculTierAmount(address,address,uint8)"
+        )
+        const _calcul1RoundAmount = Web3EthAbi.encodeFunctionSignature(
+            "calcul1RoundAmount(address,address)"
+        )
+        const _calculOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
+            "calculOpenSaleAmount(address,address,uint256)"
+        )
+        const _currentRound = Web3EthAbi.encodeFunctionSignature(
+            "currentRound(address)"
+        )
+        const _calculClaimAmount = Web3EthAbi.encodeFunctionSignature(
+            "calculClaimAmount(address,address,uint256)"
+        )
+        const _totalSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
+            "totalSaleUserAmount(address,address)"
+        )
+        const _openSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
+            "openSaleUserAmount(address,address)"
+        )
+        const _totalOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
+            "totalOpenSaleAmount(address)"
+        )
+        const _totalOpenPurchasedAmount = Web3EthAbi.encodeFunctionSignature(
+            "totalOpenPurchasedAmount(address)"
+        )
+        const _totalWhitelists = Web3EthAbi.encodeFunctionSignature(
+            "totalWhitelists(address)"
+        )
+        const _totalExpectOpenSaleAmountView = Web3EthAbi.encodeFunctionSignature(
+            "totalExpectOpenSaleAmountView(address)"
+        )
+        const _totalRound1NonSaleAmount = Web3EthAbi.encodeFunctionSignature(
+            "totalRound1NonSaleAmount(address)"
+        )
+
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).setSelectorImplementations2(
+            [
+                _addWhiteList,_round1Sale,_round2Sale,_claim,_depositWithdraw,_exchangeWTONtoTOS,
+                _parseRevertReason,_hardcapCalcul,_calculSaleToken,_calculPayToken,_calculTier,_calculTierAmount,
+                _calcul1RoundAmount,_calculOpenSaleAmount,_currentRound,_calculClaimAmount,
+                _totalSaleUserAmount,_openSaleUserAmount,_totalOpenSaleAmount,_totalOpenPurchasedAmount,
+                _totalWhitelists,_totalExpectOpenSaleAmountView,_totalRound1NonSaleAmount
+            ],
+            L2PublicSaleVaultDeployment.address
+        )).wait();
+
+    }
+
+
+
+
+    //==============
 
     // L2VestingFundVaultProxy
     const L2VestingFundVaultProxyDep = await deploy("L2VestingFundVaultProxy", {
