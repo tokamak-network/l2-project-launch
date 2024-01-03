@@ -708,6 +708,17 @@ describe('L1ProjectManager', () => {
             let customNonScheduleVaults = [daoParams]
             // console.log('customScheduleVaults' ,customScheduleVaults )
             // console.log('customNonScheduleVaults' ,customNonScheduleVaults )
+
+            // validation check
+            let validationVaultsParameters = await deployed.l1ProjectManager.validationVaultsParameters(
+                projectInfo.initialTotalSupply,
+                tokamakVaults,
+                customScheduleVaults,
+                customNonScheduleVaults
+            )
+
+            expect(validationVaultsParameters.valid).to.be.eq(true)
+
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
                     projectInfo.l2Token,

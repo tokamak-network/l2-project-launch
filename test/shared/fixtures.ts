@@ -456,7 +456,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   const l1BurnVaultLogic = (await L1BurnVaultDep.connect(deployer).deploy()) as L1BurnVault
 
   await (await l1BurnVaultProxy.connect(deployer).upgradeTo(l1BurnVaultLogic.address)).wait()
-  const l1BurnVault = await ethers.getContractAt(l1BurnVaultJson.abi, l1BurnVaultProxy.address, deployer) as L1BurnVaultProxy
+  const l1BurnVault = await ethers.getContractAt(l1BurnVaultJson.abi, l1BurnVaultProxy.address, deployer) as L1BurnVault
 
   //==== L2InitialLiquidityVault =================================
   const initialLiquidityVaultDeployment = await ethers.getContractFactory("L2InitialLiquidityVault")
