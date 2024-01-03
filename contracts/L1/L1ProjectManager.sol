@@ -243,7 +243,6 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         // 3. L2로 디파짓 한다.
         _depositL1TokenToL2(
-            address(this),
             info.addressManager,
             info.l1Token,
             info.l2Token,
@@ -269,10 +268,44 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         return l2Info[_l2Type];
     }
 
+    function validationVaultsParameters(
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    ) public pure returns(bool valid, string memory resean) {
+
+        uint256 totalAllocatedAmount = 0;
+
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
+        if(!boolValidateTokamakVaults) {
+            return (false, "F1");
+        }
+
+        totalAllocatedAmount += tokamakVaultsTotalAmount;
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+            totalAllocatedAmount += custom1TotalAmount;
+            if(!boolValidateCustom1) {
+                return (false, "F2");
+            }
+        }
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+            totalAllocatedAmount += custom2TotalAmount;
+            if(!boolValidateCustom2) {
+                return (false, "F3");
+            }
+        }
+
+        if(totalAmount != totalAllocatedAmount) return (false, 'F4');
+        return (true, '');
+    }
 
     /* === ======= internal ========== */
     function _depositL1TokenToL2(
-        address sender,
         address addressManager, address l1Token, address l2Token, address depositTo,
         uint256 amount, uint32 _minGasLimit, bytes memory data)
         internal
