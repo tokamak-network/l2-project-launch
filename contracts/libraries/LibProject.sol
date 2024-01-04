@@ -275,6 +275,16 @@ library LibProject {
             )
         ) return (boolValidate, totalAmount);
 
+        if (
+            tokamakVaults.publicSaleParams.vaultParams.endWhiteTime < tokamakVaults.publicSaleParams.vaultParams.startWhiteTime ||
+            tokamakVaults.publicSaleParams.vaultParams.start1roundTime < tokamakVaults.publicSaleParams.vaultParams.endWhiteTime ||
+            tokamakVaults.publicSaleParams.vaultParams.end1roundTime < tokamakVaults.publicSaleParams.vaultParams.start1roundTime ||
+            tokamakVaults.publicSaleParams.vaultParams.start2roundTime < tokamakVaults.publicSaleParams.vaultParams.end1roundTime ||
+            tokamakVaults.publicSaleParams.vaultParams.end2roundTime < tokamakVaults.publicSaleParams.vaultParams.start2roundTime ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimTime < tokamakVaults.publicSaleParams.vaultParams.end2roundTime ||
+            tokamakVaults.publicSaleParams.claimParams.secondClaimTime < tokamakVaults.publicSaleParams.claimParams.firstClaimTime
+        ) (boolValidate, totalAmount);
+
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +
