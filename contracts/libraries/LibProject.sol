@@ -259,6 +259,15 @@ library LibProject {
             tokamakVaults.publicSaleParams.vestingParams.fee == 0 
         ) return (boolValidate, totalAmount);
 
+        if (
+            (tokamakVaults.publicSaleParams.vaultParams.tier1Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier2Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier3Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier4Percents) != 10000
+        ) return (boolValidate, totalAmount);
+
+        
+
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +
