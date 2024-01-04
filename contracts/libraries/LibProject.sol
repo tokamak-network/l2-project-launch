@@ -266,7 +266,14 @@ library LibProject {
             tokamakVaults.publicSaleParams.vaultParams.tier4Percents) != 10000
         ) return (boolValidate, totalAmount);
 
-        
+        if (
+            (tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) >= (
+                tokamakVaults.publicSaleParams.vaultParams.hardcapAmount *
+                tokamakVaults.publicSaleParams.vaultParams.payTokenPrice /
+                tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice 
+            )
+        ) return (boolValidate, totalAmount);
 
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
