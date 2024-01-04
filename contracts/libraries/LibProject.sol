@@ -145,6 +145,12 @@ library LibProject {
         uint256 totalAllocatedAmount;
     }
 
+    struct PublicSaleSet {
+        uint8 minPercents;
+        uint8 maxPercents;
+        uint256 delayTime;
+    }
+
     function getL1CommunicationMessenger(address addressManager) external view returns(address _address) {
         if (addressManager == address(0)) return address(0);
         try
@@ -283,7 +289,13 @@ library LibProject {
             tokamakVaults.publicSaleParams.vaultParams.end2roundTime < tokamakVaults.publicSaleParams.vaultParams.start2roundTime ||
             tokamakVaults.publicSaleParams.claimParams.firstClaimTime < tokamakVaults.publicSaleParams.vaultParams.end2roundTime ||
             tokamakVaults.publicSaleParams.claimParams.secondClaimTime < tokamakVaults.publicSaleParams.claimParams.firstClaimTime
-        ) (boolValidate, totalAmount);
+        ) return (boolValidate, totalAmount);
+
+        if (
+            tokamakVaults.publicSaleParams.vestingParams.secondClaimTime < tokamakVaults.publicSaleParams.vestingParams.firstClaimTime
+        ) return (boolValidate, totalAmount);
+
+
 
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +

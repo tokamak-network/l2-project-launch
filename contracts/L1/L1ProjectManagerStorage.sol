@@ -24,6 +24,9 @@ contract L1ProjectManagerStorage {
     // l2type - l2TokenFactory
     mapping(uint8 => LibProject.L2Info) public l2Info;
 
+    // PublicSaleCheck
+    mapping(uint8 => LibProject.PublicSaleSet) public publicInfo;
+
 
     modifier onlyProjectOwner(uint256 projectid) {
         require(projects[projectid].projectOwner != address(0) &&

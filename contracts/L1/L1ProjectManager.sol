@@ -124,6 +124,23 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         }
     }
 
+    function setL2PublicSaleValue(
+        uint8 _min,
+        uint8 _max,
+        uint256 _delayTime
+    )
+        external
+        onlyOwner
+    {
+        LibProject.PublicSaleSet memory set = LibProject.PublicSaleSet({
+            minPercents: _min,
+            maxPercents: _max,
+            delayTime: _delayTime
+        });
+
+        publicInfo[0] = set;
+    }
+
     /* ========== Only ProjectOwner ========== */
 
     /// @dev 프로젝트 생성
@@ -273,7 +290,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         LibProject.TokamakVaults memory tokamakVaults,
         LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
-    ) public pure returns(bool valid, string memory resean) {
+    ) external pure returns(bool valid, string memory resean) {
 
         uint256 totalAllocatedAmount = 0;
 
