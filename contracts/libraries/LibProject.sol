@@ -225,6 +225,40 @@ library LibProject {
             )
             return (boolValidate, totalAmount);
 
+        if (
+            tokamakVaults.publicSaleParams.vaultParams.stosTier1 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier2 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier3 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier4 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier1Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier2Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier3Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier4Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.payTokenPrice == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.startWhiteTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.endWhiteTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.start1roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.end1roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.snapshotTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.start2roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.end2roundTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.claimCounts == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimPercent == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.secondClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.roundInterval == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.totalClaimCount == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.firstClaimPercent == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.firstClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.secondClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.roundIntervalTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.fee == 0 
+        ) return (boolValidate, totalAmount);
+
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +
