@@ -324,6 +324,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
 
   //==== LibProject =================================
+  console.log("2")
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
@@ -713,6 +714,13 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   await (await l2PublicSaleProxy.connect(deployer).setBurnBridge(
     l1Bridge.address,
     l1BurnVault.address
+  )).wait()
+  
+  console.log("1")
+  await (await l1ProjectManager.connect(deployer).setL2PublicSaleValue(
+    5,
+    10,
+    100
   )).wait()
 
   return  {
