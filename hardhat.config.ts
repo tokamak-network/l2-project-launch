@@ -141,6 +141,7 @@ const config: HardhatUserConfig = {
       },
       allowUnlimitedContractSize: false,
       // deploy: ['deploy_l1', 'deploy_l2'],
+      deploy: ['deploy_l1'],
       companionNetworks: {
         l2: 'hardhat',
       },

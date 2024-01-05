@@ -274,7 +274,7 @@ library LibProject {
 
         if (
             (tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
-            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) >= (
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) < (
                 tokamakVaults.publicSaleParams.vaultParams.hardcapAmount *
                 tokamakVaults.publicSaleParams.vaultParams.payTokenPrice /
                 tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice 
