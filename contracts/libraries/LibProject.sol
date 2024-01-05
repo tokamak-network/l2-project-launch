@@ -295,8 +295,6 @@ library LibProject {
             tokamakVaults.publicSaleParams.vestingParams.secondClaimTime < tokamakVaults.publicSaleParams.vestingParams.firstClaimTime
         ) return (boolValidate, totalAmount);
 
-
-
         totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
                     tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
                     tokamakVaults.initialVaultParams.totalAllocatedAmount +

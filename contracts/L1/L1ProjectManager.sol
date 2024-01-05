@@ -321,6 +321,29 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         return (true, '');
     }
 
+    function validationPublicSaleVaults(
+        LibProject.TokamakVaults memory tokamakVaults
+    ) external view returns(bool valid, string memory resean) {
+        (bool boolValidateTokamakVaults,) = LibProject.validateTokamakVaults(tokamakVaults);
+        if(!boolValidateTokamakVaults) {
+            return (false, "F1");
+        }
+
+        LibProject.PublicSaleSet memory sale = publicInfo[0];
+        
+        if (
+            sale.minPercents > tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent ||
+            sale.maxPercents < tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent 
+        ) return (false, "F1");
+
+        if (
+            (block.timestamp + sale.delayTime) > tokamakVaults.publicSaleParams.vaultParams.startWhiteTime
+        ) return (false, "F1");
+
+
+        return (true, '');
+    }
+
     /* === ======= internal ========== */
     function _depositL1TokenToL2(
         address addressManager, address l1Token, address l2Token, address depositTo,
