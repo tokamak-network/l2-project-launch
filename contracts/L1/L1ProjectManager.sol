@@ -225,6 +225,9 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         // 입력 데이타 검증
         (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
         require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "PublicVault vaildate fail");
+        
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
         if(customScheduleVaults.length != 0){
@@ -290,15 +293,18 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         LibProject.TokamakVaults memory tokamakVaults,
         LibProject.InitalParameterSchedule[] memory customScheduleVaults,
         LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
-    ) external pure returns(bool valid, string memory resean) {
+    ) external view returns(bool valid, string memory resean) {
 
         uint256 totalAllocatedAmount = 0;
-
+        
         (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
         if(!boolValidateTokamakVaults) {
             return (false, "F1");
         }
 
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "F1-1");
+        
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
         if(customScheduleVaults.length != 0){
@@ -322,22 +328,17 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     }
 
     function validationPublicSaleVaults(
-        LibProject.TokamakVaults memory tokamakVaults
-    ) external view returns(bool valid, string memory resean) {
-        (bool boolValidateTokamakVaults,) = LibProject.validateTokamakVaults(tokamakVaults);
-        if(!boolValidateTokamakVaults) {
-            return (false, "F1");
-        }
-
+        LibProject.InitalParameterPublicSale memory publicSaleParams
+    ) public view returns(bool valid, string memory resean) {
         LibProject.PublicSaleSet memory sale = publicInfo[0];
         
         if (
-            sale.minPercents > tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent ||
-            sale.maxPercents < tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent 
+            sale.minPercents > publicSaleParams.vaultParams.changeTOSPercent ||
+            sale.maxPercents < publicSaleParams.vaultParams.changeTOSPercent 
         ) return (false, "F1");
 
         if (
-            (block.timestamp + sale.delayTime) > tokamakVaults.publicSaleParams.vaultParams.startWhiteTime
+            (block.timestamp + sale.delayTime) > publicSaleParams.vaultParams.startWhiteTime
         ) return (false, "F1");
 
 
