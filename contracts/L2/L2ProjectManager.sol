@@ -47,6 +47,10 @@ interface IL2LiquidityRewardVault {
         LibPool.PoolInfo memory poolParams,
         LibProject.InitalParameterScheduleVault memory params
     ) external;
+    function claim(address l2Token, address pool) external  ;
+    function getPoolAddress(address token0, address token1, uint24 _fee) external view returns(address) ;
+    function availableClaimAmount(address l2Token, address pool) external view returns (uint256 amount);
+
 }
 
 interface IL2ScheduleVault {
@@ -55,6 +59,10 @@ interface IL2ScheduleVault {
         string memory vaultName,
         LibProject.InitalParameterScheduleVault memory params
     ) external;
+
+    function claim(address l2Token, string calldata vaultName) external ;
+    function availableClaimAmount(address l2Token, string calldata vaultName) external view returns (uint256 amount);
+
 }
 
 interface IL2NonScheduleVault {
@@ -71,6 +79,9 @@ interface IL2AirdropVault {
         address l2Token,
         LibProject.InitalParameterScheduleVault memory params
     ) external;
+
+    function availableClaimAmount(address l2Token) external view returns (uint256 amount);
+     function claim(address l2Token) external ;
 }
 
 
@@ -274,6 +285,44 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         );
     }
 
+    function claimAll(
+        address l2Token,
+        string[] memory scheduleVaultNames
+    )
+        external nonZeroAddress(l2Token)
+    {
+        address poolTosL2Token = IL2LiquidityRewardVault(liquidityRewardVault).getPoolAddress(tos, l2Token, poolFee);
+        address poolWtonTos = IL2LiquidityRewardVault(liquidityRewardVault).getPoolAddress(wton, tos, poolFee);
+
+        // tos-l2token rewardProjectTosPoolParams
+        if (poolTosL2Token != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolTosL2Token) != 0 ){
+            IL2LiquidityRewardVault(liquidityRewardVault).claim(l2Token, poolTosL2Token);
+        }
+
+        // wton-tos  rewardTonTosPoolParams
+        if (poolWtonTos != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolWtonTos)  != 0 ){
+            IL2LiquidityRewardVault(liquidityRewardVault).claim(l2Token, poolWtonTos);
+        }
+
+        // tosAirdropParams
+        if (IL2AirdropVault(tosAirdropVault).availableClaimAmount(l2Token) != 0 ){
+            IL2AirdropVault(tosAirdropVault).claim(l2Token);
+        }
+
+        // tonAirdropParams
+        if (IL2AirdropVault(tonAirdropVault).availableClaimAmount(l2Token) != 0 ){
+            IL2AirdropVault(tonAirdropVault).claim(l2Token);
+        }
+
+        // scheduleVaultNames
+        if(scheduleVaultNames.length != 0) {
+            for(uint256 i ; i < scheduleVaultNames.length ; i++) {
+                if (IL2ScheduleVault(scheduleVault).availableClaimAmount(l2Token, scheduleVaultNames[i]) != 0 )
+                    IL2ScheduleVault(scheduleVault).claim(l2Token, scheduleVaultNames[i]);
+            }
+        }
+    }
+
     function _distributesL2Token(
         address l1Token,
         address l2Token,
@@ -426,6 +475,48 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
     function viewProject(address l2token) external view returns (LibProject.L2ProjectInfo memory) {
         return projects[l2token];
     }
+
+    function avaialbleClaimAll(
+        address l2Token,
+        string[] memory scheduleVaultNames
+    ) public view returns (bool) {
+
+        if (l2Token == address(0)) return false;
+
+        address poolTosL2Token = IL2LiquidityRewardVault(liquidityRewardVault).getPoolAddress(tos, l2Token, poolFee);
+        address poolWtonTos = IL2LiquidityRewardVault(liquidityRewardVault).getPoolAddress(wton, tos, poolFee);
+
+        // tos-l2token rewardProjectTosPoolParams
+        if (poolTosL2Token != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolTosL2Token) != 0 )
+            return true;
+
+
+        // wton-tos  rewardTonTosPoolParams
+        if (poolWtonTos != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolWtonTos)  != 0 )
+            return true;
+
+
+        // tosAirdropParams
+        if (IL2AirdropVault(tosAirdropVault).availableClaimAmount(l2Token) != 0 )
+            return true;
+
+
+        // tonAirdropParams
+        if (IL2AirdropVault(tonAirdropVault).availableClaimAmount(l2Token) != 0 )
+            return true;
+
+
+        // scheduleVaultNames
+        if(scheduleVaultNames.length != 0) {
+            for(uint256 i ; i < scheduleVaultNames.length ; i++) {
+                if (IL2ScheduleVault(scheduleVault).availableClaimAmount(l2Token, scheduleVaultNames[i]) != 0 )
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     /* === ======= internal ========== */
 
 }
