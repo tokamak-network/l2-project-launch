@@ -605,8 +605,10 @@ describe('L1ProjectManager', () => {
             let publicVaultcheck = await deployed.l1ProjectManager.validationPublicSaleVaults(
                 publicSaleParams
             )
+            // console.log("publicCheck")
             // console.log(publicVaultcheck)
             expect(publicVaultcheck.valid).to.be.equal(true)
+            // console.log("publicCheck After")
 
             let tosPrice = 1e18;
             let tokenPrice = 10e18;
@@ -721,9 +723,8 @@ describe('L1ProjectManager', () => {
                 customScheduleVaults,
                 customNonScheduleVaults
             )
-            console.log("1")
+
             expect(validationVaultsParameters.valid).to.be.eq(true)
-            console.log("2")
 
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
