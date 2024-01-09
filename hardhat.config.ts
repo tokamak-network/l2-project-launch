@@ -68,9 +68,17 @@ const config: HardhatUserConfig = {
     },
     l2TonAddress: {
       default: 10,
-      goerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
-      hardhat: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+      goerli: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+      hardhat: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
       titangoerli: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+    },
+    l2TosAddress: {
+      default: 11,
+      goerli: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
+      hardhat: '0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9',
+      // hardhat: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+      titan: '0xD08a2917653d4E460893203471f0000826fb4034',
+      titangoerli: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
     },
     tosAddress: {
       default: 11,

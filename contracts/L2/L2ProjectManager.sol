@@ -155,6 +155,27 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         l1ProjectManager = _l1ProjectManager;
     }
 
+    function setL2Addresses(
+        address _l2TokenFactory,
+        address _l2CrossDomainMessenger,
+        address _l2Wton,
+        address _l2tos,
+        uint24 _poolFee
+        )
+        external
+        nonZeroAddress(_l2TokenFactory)
+        nonZeroAddress(_l2CrossDomainMessenger)
+        nonZeroAddress(_l2Wton)
+        nonZeroAddress(_l2tos)
+        onlyOwner
+    {
+        l2TokenFactory = _l2TokenFactory;
+        l2CrossDomainMessenger = _l2CrossDomainMessenger;
+        wton = _l2Wton;
+        tos = _l2tos;
+        poolFee = _poolFee;
+    }
+
     /// @dev l2TokenFactory 주소 설정
     function setL2TokenFactory(address _l2TokenFactory)
         external nonZeroAddress(_l2TokenFactory) onlyOwner
@@ -476,7 +497,7 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         return projects[l2token];
     }
 
-    function avaialbleClaimAll(
+    function availableClaimAll(
         address l2Token,
         string[] memory scheduleVaultNames
     ) public view returns (bool) {
@@ -490,21 +511,17 @@ contract L2ProjectManager is ProxyStorage, AccessibleCommon, L2ProjectManagerSto
         if (poolTosL2Token != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolTosL2Token) != 0 )
             return true;
 
-
         // wton-tos  rewardTonTosPoolParams
         if (poolWtonTos != address(0) && IL2LiquidityRewardVault(liquidityRewardVault).availableClaimAmount(l2Token, poolWtonTos)  != 0 )
             return true;
-
 
         // tosAirdropParams
         if (IL2AirdropVault(tosAirdropVault).availableClaimAmount(l2Token) != 0 )
             return true;
 
-
         // tonAirdropParams
         if (IL2AirdropVault(tonAirdropVault).availableClaimAmount(l2Token) != 0 )
             return true;
-
 
         // scheduleVaultNames
         if(scheduleVaultNames.length != 0) {

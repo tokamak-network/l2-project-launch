@@ -320,11 +320,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boolean): Promise<SetL2ProjectLaunchFixture> {
 
   const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-  const {tonAddress, uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
+  const {l2TonAddress, l2TosAddress, tonAddress, uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
   const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
 
   //==== LibProject =================================
-  console.log("2")
+  // console.log("2")
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
@@ -388,7 +388,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     await (await l2ProjectManagerProxy.connect(deployer).upgradeTo(l2ProjectManagerImpl.address)).wait()
   }
   const l2ProjectManager = await ethers.getContractAt(l2ProjectManagerJson.abi, l2ProjectManagerProxy.address, deployer) as L2ProjectManager;
-  console.log('l2ProjectManager', l2ProjectManager.address)
+  // console.log('l2ProjectManager', l2ProjectManager.address)
   //---- L2
   const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
   const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
@@ -413,7 +413,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   //=================================
   //===== set Vaults
-  console.log(' set Vaults'  )
+  // console.log(' set Vaults'  )
 
   //==== L2PublicSaleVault =================================
 
@@ -690,6 +690,14 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     )).wait()
   }
 
+  //==== For Test , set setDividendPool of L2AirdropTonVault =========================
+  //  아직 L2DividendPoolForTon 개발이 되지 않아서, stos용으로 테스트를 한다 .
+  let dividendPool_airdropTonVaultProxy = await airdropTonVault.dividendPool()
+  if (dividendPool_airdropTonVaultProxy != l2DividendPoolForStosProxy.address) {
+    await (await airdropTonVault.connect(deployer).setDividendPool(l2DividendPoolForStosProxy.address)).wait()
+  }
+
+  //======================
   // for test (npx hardhat test test/2.L1ProjectManager.spec.ts로 테스트할때는 토큰도 L2StandardERC20 로 맏들수없는데.. )
   if (mockL2FactoryFlag) {
     await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
@@ -715,8 +723,8 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     l1Bridge.address,
     l1BurnVault.address
   )).wait()
-  
-  console.log("1")
+
+  // console.log("1")
   await (await l1ProjectManager.connect(deployer).setL2PublicSaleValue(
     5,
     10,
@@ -770,7 +778,9 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
       tonAddress: tonAddress,
       l2PublicSaleProxy: l2PublicSaleProxy,
       l2VestingFundVault: l2VestingFundVault,
-      l1BurnVault: l1BurnVault
+      l1BurnVault: l1BurnVault,
+      l2TonAddress: l2TonAddress,
+      l2TosAddress: l2TosAddress
   }
 }
 
@@ -997,14 +1007,14 @@ export const stosFixture = async function (): Promise<StosFixture> {
   const lockTOS = (await ethers.getContractAt(lockTOSAbi.abi, lockTOSAddress, deployer)) as LockTOS
   const tos = (await ethers.getContractAt(TOSAbi.abi, tosAddress, deployer)) as TOS
 
-  console.log('lockTOS', lockTOS.address)
-  console.log('tos', tos.address)
+  // console.log('lockTOS', lockTOS.address)
+  // console.log('tos', tos.address)
 
   //==== LibProject =================================
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
-  console.log('libProject', libProject.address)
+  // console.log('libProject', libProject.address)
   //---- for L2 message
   // const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
   // const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
@@ -1031,11 +1041,11 @@ export const stosFixture = async function (): Promise<StosFixture> {
   const l1StosToL2Logic = (await L1StosToL2_.connect(deployer).deploy()) as L1StosToL2
   const l1StosToL2Proxy = (await L1StosToL2Proxy_.connect(deployer).deploy()) as L1StosToL2Proxy
 
-  console.log('l1StosToL2Logic', l1StosToL2Logic.address)
-  console.log('l1StosToL2Proxy', l1StosToL2Proxy.address)
+  // console.log('l1StosToL2Logic', l1StosToL2Logic.address)
+  // console.log('l1StosToL2Proxy', l1StosToL2Proxy.address)
 
   let impl_l1StosToL2Proxy = await l1StosToL2Proxy.implementation()
-  console.log('impl_l1StosToL2Proxy', impl_l1StosToL2Proxy)
+  // console.log('impl_l1StosToL2Proxy', impl_l1StosToL2Proxy)
 
 
   if(impl_l1StosToL2Proxy != l1StosToL2Logic.address) {
@@ -1043,7 +1053,7 @@ export const stosFixture = async function (): Promise<StosFixture> {
   }
 
   const l1StosToL2 = (await ethers.getContractAt(L1StosToL2Json.abi, l1StosToL2Proxy.address, deployer)) as L1StosToL2
-  console.log('l1StosToL2', l1StosToL2.address)
+  // console.log('l1StosToL2', l1StosToL2.address)
 
   let lockTosAddr = await l1StosToL2Proxy.lockTos()
   if(lockTosAddr != lockTOS.address) {

@@ -157,7 +157,9 @@ interface SetL2ProjectLaunchFixture  {
     tonAddress: string,
     l2PublicSaleProxy: L2PublicSaleProxy,
     l2VestingFundVault: L2VestingFundVault,
-    l1BurnVault: L1BurnVault
+    l1BurnVault: L1BurnVault,
+    l2TonAddress: string,
+    l2TosAddress: string
 }
 
 interface ProjectInfo {
