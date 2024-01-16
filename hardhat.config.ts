@@ -135,12 +135,16 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
+      // forking: {
+      //   url: `${process.env.ETH_NODE_URI_GOERLI}`,
+      //   blockNumber: 9448400
+      // },
       forking: {
-        url: `${process.env.ETH_NODE_URI_GOERLI}`,
-        blockNumber: 9448400
+        url: `${process.env.ETH_NODE_URI_TITANGOERLI}`,
+        blockNumber: 23885
       },
       allowUnlimitedContractSize: false,
-      // deploy: ['deploy_l1', 'deploy_l2'],
+      deploy: ['deploy_l1', 'deploy_l2'],
       companionNetworks: {
         l2: 'hardhat',
       },

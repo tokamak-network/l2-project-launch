@@ -201,7 +201,7 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1, addr3, addr4, addr5] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin, vestingFundAddr, addr3, addr4, addr5] = await ethers.getSigners();
     const { paymasterAddress, l1AddressManagerAddress, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
 
     //==== LibProject =================================
@@ -284,6 +284,48 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1CrossDomainMessenger", l1Messenger.address);
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1StandardBridge", l1Bridge.address);
 
+    //==== L2PublicSaleVault =================================
+    const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
+    const l2PublicProxy = (await l2PublicSaleProxy.connect(deployer).deploy()) as L2PublicSaleVaultProxy
+
+    const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
+    const libL2Public = (await libL2PublicSale.connect(deployer).deploy()) as LibPublicSaleVault
+
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+      signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
+    })
+    // const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+    const l2PublicProxyLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+
+    // await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
+    // const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
+
+    const l2PublicVaultProxyContract = await ethers.getContractFactory('L2PublicSaleProxy')
+    let l2PublicVaultProxy = (await l2PublicVaultProxyContract.connect(deployer).deploy()) as L2PublicSaleProxy 
+
+    await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicVaultProxy.address)).wait()
+
+    l2PublicVaultProxy = await ethers.getContractAt(l2PublicSaleProxyJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleProxy 
+
+    //==== L2InitialLiquidityVault =================================
+    
+    const L2InitialLiquidityVaultProxy = await ethers.getContractFactory('L2InitialLiquidityVaultProxy')
+    const l2liquidityProxy = (await L2InitialLiquidityVaultProxy.connect(deployer).deploy()) as L2InitialLiquidityVaultProxy
+
+    const L2InitialLiquidityVault = await ethers.getContractFactory('L2InitialLiquidityVault')
+    const l2liquidity = (await L2InitialLiquidityVault.connect(deployer).deploy()) as L2InitialLiquidityVault
+
+    //==== L2VestingFundVault =================================
+
+    const L2VestingFundVaultProxy = await ethers.getContractFactory('L2VestingFundVaultProxy')
+    const l2vestingFundProxy = (await L2VestingFundVaultProxy.connect(deployer).deploy()) as L2VestingFundVaultProxy
+
+    const L2VestingFundVault = await ethers.getContractFactory('L2VestingFundVault')
+    const l2vestingFund = (await L2VestingFundVault.connect(deployer).deploy()) as L2VestingFundVault
+
+    await (await l2vestingFundProxy.connect(deployer).upgradeTo(l2vestingFund.address)).wait()
+    const l2VestingFundLogic = await ethers.getContractAt(l2VestingFundJson.abi, l2vestingFundProxy.address, deployer) as L2VestingFundVault
+
 
     //----- set L2ProjectManager
 
@@ -310,6 +352,17 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       l2Messenger: l2Messenger,
       l1Bridge: l1Bridge,
       l2Bridge: l2Bridge,
+      l2PublicProxy: l2PublicProxy,
+      libL2Public: libL2Public,
+      l2PublicProxyLogic: l2PublicProxyLogic,
+      l2PublicVaultProxy: l2PublicVaultProxy,
+      l2ProjectManagerAddr: L2projectManagerAddr,
+      l2VaultAdmin: L2vaultAdmin,
+      l2LiquidityProxy: l2liquidityProxy,
+      l2Liquidity: l2liquidity,
+      vestingFundAddr: vestingFundAddr,
+      l2VestingFundProxy: l2vestingFundProxy,
+      l2VestingFund: l2VestingFundLogic,
       // factory: factory,
       l1toL2Message : l1toL2Message,
       paymasterAddress: paymasterAddress,

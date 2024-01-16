@@ -205,8 +205,11 @@ describe('L2TokenFactory', () => {
         tonContract = l1deployed.ton;
 
         addr1Address = await addr1.getAddress();
+        console.log(addr1Address)
         addr2Address = await addr2.getAddress();
+        console.log(addr2Address)
         addr3Address = await addr3.getAddress();
+        console.log(addr3Address)
         addr4Address = await addr4.getAddress();
         addr5Address = await addr5.getAddress();
         l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
@@ -470,20 +473,25 @@ describe('L2TokenFactory', () => {
             const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
             const deployedEvent = deployed.l2TokenFactory.interface.parseLog(log);
             projectInfo.l2Token = deployedEvent.args.l2Token;
-
+            
             expect(deployedEvent.args.l1Token).to.eq(projectInfo.l1Token)
             expect(projectInfo.l2Token).to.not.eq(ethers.constants.AddressZero)
-
+            
             const tokenContract = await ethers.getContractAt(L2StandardERC20.abi, projectInfo.l2Token, addr1);
             expect(await tokenContract.totalSupply()).to.be.eq(ethers.constants.Zero)
             expect(await tokenContract.name()).to.be.eq(projectInfo.tokenName)
             expect(await tokenContract.symbol()).to.be.eq(projectInfo.tokenSymbol)
-
+            console.log("1")
+            
             const addProject = await deployed.l2ProjectManager.projects(projectInfo.l2Token)
-            expect(addProject[0]).to.be.eq(projectInfo.projectOwner);
-            expect(addProject[1]).to.be.eq(projectInfo.l1Token);
-            expect(addProject[2]).to.be.eq(projectInfo.l2Token);
-            expect(addProject[3]).to.be.eq(projectInfo.projectName);
+            console.log(addProject)
+            console.log(projectInfo.projectOwner)
+            console.log("2")
+            expect(addProject[1]).to.be.eq(projectInfo.projectOwner);
+            console.log("3")
+            expect(addProject[2]).to.be.eq(projectInfo.l1Token);
+            expect(addProject[3]).to.be.eq(projectInfo.l2Token);
+            expect(addProject[4]).to.be.eq(projectInfo.projectName);
         })
 
     });
