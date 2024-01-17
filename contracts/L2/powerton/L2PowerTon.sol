@@ -51,7 +51,9 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
     /*** Public ***/
 
     /// distribute the token that this contract is holding
-    /// @param token token address to dividend
+    /// @param token token address to dividend,
+    ///              if you want to distribute the native ton,
+    ///              you should use token address to 0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000
     function distribute(address token) public {
         uint256 stosTotal = IUniversalStos(universalStos).totalSupply();
         // require(stosTotal != 0, "distribute: zero universalStos\' totalSupply");
