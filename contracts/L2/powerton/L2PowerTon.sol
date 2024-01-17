@@ -65,7 +65,7 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
                     IL2DividendPoolForStos.distribute.selector,
                     token,
                     amount);
-                (bool success,) = l2DividendPoolForStos.call{value:amount}(callData);
+                (bool success,) = payable(l2DividendPoolForStos).call{value:amount}(callData);
                 require(success, "fail distribute");
             }
         }

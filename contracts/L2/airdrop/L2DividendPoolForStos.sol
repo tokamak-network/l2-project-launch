@@ -80,7 +80,13 @@ contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPool
         claimStartWeeklyEpoch[_token][msg.sender] = weeklyEpoch + 1;
         distr.lastBalance -= amountToClaim;
 
-        IERC20(_token).safeTransfer(msg.sender, amountToClaim);
+        if (_token == NativeTonAddress) {
+            require(address(this).balance >= amountToClaim, "insufficient balance");
+            payable(msg.sender).transfer(amountToClaim);
+        } else {
+            IERC20(_token).safeTransfer(msg.sender, amountToClaim);
+        }
+
         emit Claimed(_token, msg.sender, amountToClaim, weeklyEpoch, _timestamp);
     }
 
@@ -227,7 +233,7 @@ contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPool
         if (startEpoch > endEpoch) return 0;
         uint256 stime = genesis[_token];
         uint256 epochIterator = startEpoch;
-        while (startEpoch <= endEpoch) {
+        while (epochIterator <= endEpoch) {
             if (tokensPerWeek[_token][epochIterator] != 0 && stime != 0) {
                 amountToClaim += calculateClaimPerEpoch(
                     _account,
