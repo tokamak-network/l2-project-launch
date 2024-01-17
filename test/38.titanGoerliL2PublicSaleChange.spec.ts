@@ -312,6 +312,169 @@ describe('L2TokenFactory', () => {
 
             console.log("test select3 : ", _vaultInitialize3);
 
+            const _vaultInitialize4 = Web3EthAbi.encodeFunctionSignature({
+                name: 'vaultInitialize',
+                type: 'function',
+                inputs: [
+                    {
+                      name: "_l2token",
+                      type: "address"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "stosTier1",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier2",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier3",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier4",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier1Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier2Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier3Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier4Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "total1roundSaleAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "total2roundSaleAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "saleTokenPrice",
+                            type: "uint256"
+                          },
+                          {
+                            name: "payTokenPrice",
+                            type: "uint256"
+                          },
+                          {
+                            name: "hardcapAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "changeTOSPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "startWhiteTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "endWhiteTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "start1roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "end1roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "snapshotTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "start2roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "end2roundTime",
+                            type: "uint256"
+                          }
+                        ],
+                        name: "params",
+                        type: "tuple"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "claimCounts",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "secondClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "roundInterval",
+                            type: "uint256"
+                          }
+                        ],
+                        name: "params2",
+                        type: "tuple"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "receiveAddress",
+                            type: "address"
+                          },
+                          {
+                            name: "totalClaimCount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "secondClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "roundIntervalTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "fee",
+                            type: "uint24"
+                          }
+                        ],
+                        name: "params3",
+                        type: "tuple"
+                      }
+                  ]
+            })
+
+            console.log("_vaultInitialize4 select : ", _vaultInitialize4);
+
             const _setTier = Web3EthAbi.encodeFunctionSignature(
                 "setTier(address,uint256,uint256,uint256,uint256)"
             )
