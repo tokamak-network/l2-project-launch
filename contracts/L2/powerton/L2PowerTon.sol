@@ -52,15 +52,16 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
     /// @param token token address to dividend
     function distribute(address token) public {
         uint256 stosTotal = IUniversalStos(universalStos).totalSupply();
+        // require(stosTotal != 0, "distribute: zero universalStos\' totalSupply");
 
         if (stosTotal != 0) {
             if (token != NativeTonAddress) {
                 uint256 amount = IERC20(token).balanceOf(address(this));
-                require (amount > 1 ether, "balance is less than 1 ether.");
+                require (amount > 1 ether, "distribute: token balance is less than 1 ether.");
                 IL2DividendPoolForStos(l2DividendPoolForStos).distribute(token, amount);
             } else {
                 uint256 amount = address(this).balance;
-                require (amount != 0, "zero balance");
+                require (amount != 0, "distribute: zero balance");
                 bytes memory callData = abi.encodeWithSelector(
                     IL2DividendPoolForStos.distribute.selector,
                     token,
