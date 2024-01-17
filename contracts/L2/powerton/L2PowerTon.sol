@@ -23,6 +23,8 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
     using BytesLib for bytes;
     address constant NativeTonAddress = address(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000);
 
+    event Distributed(address indexed token, uint256 amount);
+
     modifier nonZero(uint256 _val) {
         require(_val != 0, "zero value");
         _;
@@ -55,12 +57,13 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
         // require(stosTotal != 0, "distribute: zero universalStos\' totalSupply");
 
         if (stosTotal != 0) {
+            uint256 amount = 0;
             if (token != NativeTonAddress) {
-                uint256 amount = IERC20(token).balanceOf(address(this));
+                amount = IERC20(token).balanceOf(address(this));
                 require (amount > 1 ether, "distribute: token balance is less than 1 ether.");
                 IL2DividendPoolForStos(l2DividendPoolForStos).distribute(token, amount);
             } else {
-                uint256 amount = address(this).balance;
+                amount = address(this).balance;
                 require (amount != 0, "distribute: zero balance");
                 bytes memory callData = abi.encodeWithSelector(
                     IL2DividendPoolForStos.distribute.selector,
@@ -69,6 +72,7 @@ contract L2PowerTon is ProxyStorage2, L2PowerTonStorage {
                 (bool success,) = payable(l2DividendPoolForStos).call{value:amount}(callData);
                 require(success, "fail distribute");
             }
+            emit Distributed(token, amount);
         }
     }
 
