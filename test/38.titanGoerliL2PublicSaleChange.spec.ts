@@ -306,6 +306,12 @@ describe('L2TokenFactory', () => {
 
             console.log("vaultInitialize select : ", _vaultInitialize2);
 
+            const _vaultInitialize3 = Web3EthAbi.encodeFunctionSignature(
+                "vaultInitialize(address,(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256,uint256,uint256,uint256,uint256),(address,uint256,uint256,uint256,uint256,uint256,uint24)"
+            )
+
+            console.log("test select3 : ", _vaultInitialize3);
+
             const _setTier = Web3EthAbi.encodeFunctionSignature(
                 "setTier(address,uint256,uint256,uint256,uint256)"
             )
