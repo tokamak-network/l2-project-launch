@@ -20,6 +20,7 @@ interface IUniversalStos {
 
 contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPoolForStosStorage {
     using SafeERC20 for IERC20;
+    address constant NativeTonAddress = address(0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000);
 
     event Claimed(address indexed token, address indexed account, uint256 amount, uint256 epochNumber, uint256 timestamp);
     event Distributed(address indexed token, uint256 wekklyEpoch, uint256 amount);
@@ -106,8 +107,12 @@ contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPool
 
 
     function distribute(address _token, uint256 _amount)
-        external nonZero(_amount) nonZeroAddress(_token) ifFree
+        external payable nonZero(_amount) nonZeroAddress(_token) ifFree
     {
+        if(_token == NativeTonAddress) {
+            require(msg.value == _amount, "differrent amount from msg.value");
+        }
+
         if (genesis[_token] == 0) genesis[_token] = block.timestamp / epochUnit * epochUnit;
         uint256 weeklyEpoch = getWeeklyEpoch(_token, block.timestamp);
 
@@ -115,7 +120,9 @@ contract L2DividendPoolForStos is ProxyStorage, AccessibleCommon, L2DividendPool
         if (distr.exists == false) distributedTokens.push(_token);
         distr.exists = true;
 
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        if(_token != NativeTonAddress) {
+            IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        }
 
         distr.lastBalance = IERC20(_token).balanceOf(address(this));
         distr.totalDistribution += _amount;
