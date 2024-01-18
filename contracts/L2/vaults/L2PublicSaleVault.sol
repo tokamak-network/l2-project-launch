@@ -100,6 +100,7 @@ contract L2PublicSaleVault is
         uint256 _amount
     )
         public
+        payable
     {
         _round1Sale(
             _l2token, 
@@ -113,6 +114,7 @@ contract L2PublicSaleVault is
         uint256 _amount
     )   
         public
+        payable
     {
         _round2Sale(
             _l2token,
@@ -187,6 +189,7 @@ contract L2PublicSaleVault is
         address _l2token
     ) 
         external
+        payable
     {
         LibPublicSaleVault.TokenSaleManage storage manageInfos = manageInfo[_l2token];
         require(manageInfos.adminWithdraw != true && manageInfos.exchangeTOS == true, "need the exchangeWTONtoTOS");
@@ -216,6 +219,7 @@ contract L2PublicSaleVault is
         uint256 amountIn
     ) 
         external
+        payable
         nonZero(amountIn)
     {
         LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
@@ -282,6 +286,7 @@ contract L2PublicSaleVault is
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
+        (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
 
         emit ExchangeSwap(l2token, msg.sender, _amountIn ,amountOut);
     }
@@ -400,7 +405,8 @@ contract L2PublicSaleVault is
     {
         LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
         uint256 tonAllowance = IERC20(ton).allowance(_sender, address(this));
-        uint256 tonBalance = IERC20(ton).balanceOf(_sender);
+        // uint256 tonBalance = IERC20(ton).balanceOf(_sender);
+        uint256 tonBalance = _sender.balance;
 
         require(tonAllowance >= _amount && tonBalance >= _amount, "ton exceeds allowance");
         IERC20(ton).safeTransferFrom(_sender, address(this), _amount);

@@ -114,7 +114,7 @@ contract Proxy is ProxyStorage, AccessibleCommon, IProxyEvent, IProxyAction
 
     /// @dev receive ether
     receive() external payable {
-        revert("cannot receive Ether");
+
     }
 
     /// @dev fallback function , execute on undefined function call
