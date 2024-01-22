@@ -122,7 +122,6 @@ contract L2PublicSaleVault is
             "don't over buy"
         );
 
-
         LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
         if (user1rds.payAmount == 0) {
             saleInfos.total1rdUsers = saleInfos.total1rdUsers+(1);
@@ -150,11 +149,37 @@ contract L2PublicSaleVault is
         public
         payable
     {
-        _round2Sale(
-            _l2token,
-            msg.sender,
-            _amount
+        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+        require(
+            block.timestamp >= timeInfos.round2StartTime,
+            "not depositTime"
         );
+        require(
+            block.timestamp < timeInfos.round2EndTime,
+            "end depositTime"
+        );
+
+        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[_sender];
+        LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][msg.sender];
+        LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
+
+        if (!user2rds.join) {
+            depositors[_l2token].push(msg.sender);
+            user2rds.join = true;
+
+            saleInfos.total2rdUsers = saleInfos.total2rdUsers+(1);
+            // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
+            LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][msg.sender];
+            if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
+        }
+
+        user2rds.depositAmount = user2rds.depositAmount+(_amount);
+        totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
+
+        require(msg.sender.balance >= msg.value, "Don't have TON");
+        payable(address(this)).call{value: msg.value};
+
+        emit Deposited(_l2token, msg.sender, msg.value);
     }
 
     function claim(
@@ -320,7 +345,7 @@ contract L2PublicSaleVault is
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
-        (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
+        // (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
 
         emit ExchangeSwap(l2token, msg.sender, _amountIn ,amountOut);
     }
@@ -328,130 +353,130 @@ contract L2PublicSaleVault is
 
     /* ========== INTERNAL ========== */
 
-    function _round1Sale(
-        address _l2token,
-        address _sender,
-        uint256 _amount
-    )
-        internal
-        nonZeroAddress(_l2token)
-        nonZeroAddress(_sender)
-        nonZero(_amount)
-    {
-        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+    // function _round1Sale(
+    //     address _l2token,
+    //     address _sender,
+    //     uint256 _amount
+    // )
+    //     internal
+    //     nonZeroAddress(_l2token)
+    //     nonZeroAddress(_sender)
+    //     nonZero(_amount)
+    // {
+    //     LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
 
-        require(
-            block.timestamp >= timeInfos.round1StartTime,
-            "not round1SaleTime"
-        );
-        require(
-            block.timestamp < timeInfos.round1EndTime,
-            "end round1SaleTime"
-        );
-        LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][_sender];
-        require(user1rds.join == true, "no whitelist");
-        uint8 tier = calculTier(_l2token, _sender);
-        uint256 tokenSaleAmount = calculSaleToken(_l2token, _amount);
-        // uint256 salePossible = calculTierAmount(_l2token, _sender,tier);
-        uint256 salePossible = calcul1RoundAmount(_l2token, _sender);
+    //     require(
+    //         block.timestamp >= timeInfos.round1StartTime,
+    //         "not round1SaleTime"
+    //     );
+    //     require(
+    //         block.timestamp < timeInfos.round1EndTime,
+    //         "end round1SaleTime"
+    //     );
+    //     LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][_sender];
+    //     require(user1rds.join == true, "no whitelist");
+    //     uint8 tier = calculTier(_l2token, _sender);
+    //     uint256 tokenSaleAmount = calculSaleToken(_l2token, _amount);
+    //     // uint256 salePossible = calculTierAmount(_l2token, _sender,tier);
+    //     uint256 salePossible = calcul1RoundAmount(_l2token, _sender);
 
-        require(
-            salePossible >= user1rds.saleAmount+(tokenSaleAmount),
-            "don't over buy"
-        );
+    //     require(
+    //         salePossible >= user1rds.saleAmount+(tokenSaleAmount),
+    //         "don't over buy"
+    //     );
 
 
-        LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
-        if (user1rds.payAmount == 0) {
-            saleInfos.total1rdUsers = saleInfos.total1rdUsers+(1);
-            saleInfos.totalUsers = saleInfos.totalUsers+(1);
-            tiers1stAccount[_l2token][tier] = tiers1stAccount[_l2token][tier]+(1);
-        }
+    //     LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
+    //     if (user1rds.payAmount == 0) {
+    //         saleInfos.total1rdUsers = saleInfos.total1rdUsers+(1);
+    //         saleInfos.totalUsers = saleInfos.totalUsers+(1);
+    //         tiers1stAccount[_l2token][tier] = tiers1stAccount[_l2token][tier]+(1);
+    //     }
 
-        user1rds.payAmount = user1rds.payAmount+(_amount);
-        user1rds.saleAmount = user1rds.saleAmount+(tokenSaleAmount);
+    //     user1rds.payAmount = user1rds.payAmount+(_amount);
+    //     user1rds.saleAmount = user1rds.saleAmount+(tokenSaleAmount);
 
-        saleInfos.total1rdTONAmount = saleInfos.total1rdTONAmount+(_amount);
-        saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
+    //     saleInfos.total1rdTONAmount = saleInfos.total1rdTONAmount+(_amount);
+    //     saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
         
 
-        _calculTONTransferAmount(
-            _l2token,
-            _sender,
-            _amount
-        );
-    }
+    //     _calculTONTransferAmount(
+    //         _l2token,
+    //         _sender,
+    //         _amount
+    //     );
+    // }
 
-    function _round2Sale(
-        address _l2token,
-        address _sender,
-        uint256 _amount
-    )
-        internal
-        nonZeroAddress(_l2token)
-        nonZeroAddress(_sender)
-        nonZero(_amount)
-    {
-        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
-        require(
-            block.timestamp >= timeInfos.round2StartTime,
-            "not depositTime"
-        );
-        require(
-            block.timestamp < timeInfos.round2EndTime,
-            "end depositTime"
-        );
+    // function _round2Sale(
+    //     address _l2token,
+    //     address _sender,
+    //     uint256 _amount
+    // )
+    //     internal
+    //     nonZeroAddress(_l2token)
+    //     nonZeroAddress(_sender)
+    //     nonZero(_amount)
+    // {
+    //     LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+    //     require(
+    //         block.timestamp >= timeInfos.round2StartTime,
+    //         "not depositTime"
+    //     );
+    //     require(
+    //         block.timestamp < timeInfos.round2EndTime,
+    //         "end depositTime"
+    //     );
 
-        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[_sender];
-        LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][_sender];
-        LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
+    //     // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[_sender];
+    //     LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][_sender];
+    //     LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
 
-        if (!user2rds.join) {
-            depositors[_l2token].push(_sender);
-            user2rds.join = true;
+    //     if (!user2rds.join) {
+    //         depositors[_l2token].push(_sender);
+    //         user2rds.join = true;
 
-            saleInfos.total2rdUsers = saleInfos.total2rdUsers+(1);
-            // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
-            LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_sender];
-            if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
-        }
+    //         saleInfos.total2rdUsers = saleInfos.total2rdUsers+(1);
+    //         // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
+    //         LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][_sender];
+    //         if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
+    //     }
 
-        user2rds.depositAmount = user2rds.depositAmount+(_amount);
-        totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
-        // saleInfos.total2rdDepositAmount = saleInfos.total2rdDepositAmount+(_amount);
+    //     user2rds.depositAmount = user2rds.depositAmount+(_amount);
+    //     totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
+    //     // saleInfos.total2rdDepositAmount = saleInfos.total2rdDepositAmount+(_amount);
 
-        _calculTONTransferAmount(
-            _l2token,
-            _sender, 
-            _amount
-        );
-    }
+    //     _calculTONTransferAmount(
+    //         _l2token,
+    //         _sender, 
+    //         _amount
+    //     );
+    // }
 
-    function _calculTONTransferAmount(
-        address _l2token,
-        address _sender,
-        uint256 _amount
-    )
-        internal
-        nonZeroAddress(_l2token)
-        nonZeroAddress(_sender)
-        nonZero(_amount)
-    {
-        LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
-        uint256 tonAllowance = IERC20(ton).allowance(_sender, address(this));
-        uint256 tonBalance = IERC20(ton).balanceOf(_sender);
-        // uint256 tonBalance = _sender.balance;
+    // function _calculTONTransferAmount(
+    //     address _l2token,
+    //     address _sender,
+    //     uint256 _amount
+    // )
+    //     internal
+    //     nonZeroAddress(_l2token)
+    //     nonZeroAddress(_sender)
+    //     nonZero(_amount)
+    // {
+    //     LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
+    //     uint256 tonAllowance = IERC20(ton).allowance(_sender, address(this));
+    //     uint256 tonBalance = IERC20(ton).balanceOf(_sender);
+    //     // uint256 tonBalance = _sender.balance;
 
-        require(tonAllowance >= _amount && tonBalance >= _amount, "ton exceeds allowance");
-        IERC20(ton).safeTransferFrom(_sender, address(this), _amount);
-        payable(address(this)).call{value: _amount}("");
+    //     require(tonAllowance >= _amount && tonBalance >= _amount, "ton exceeds allowance");
+    //     IERC20(ton).safeTransferFrom(_sender, address(this), _amount);
+    //     payable(address(this)).call{value: _amount}("");
 
-        if (block.timestamp < timeInfos.round1EndTime) {
-            emit ExclusiveSaled(_l2token, _sender, _amount);
-        } else {
-            emit Deposited(_l2token, _sender, _amount);
-        }
-    }
+    //     if (block.timestamp < timeInfos.round1EndTime) {
+    //         emit ExclusiveSaled(_l2token, _sender, _amount);
+    //     } else {
+    //         emit Deposited(_l2token, _sender, _amount);
+    //     }
+    // }
 
     /* ========== PRIVATE ========== */
 
