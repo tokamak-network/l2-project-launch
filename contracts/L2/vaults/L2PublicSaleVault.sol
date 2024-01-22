@@ -135,9 +135,9 @@ contract L2PublicSaleVault is
         saleInfos.total1rdTONAmount = saleInfos.total1rdTONAmount+(msg.value);
         saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
 
-        console.log("msg.sender.balance :", msg.sender.balance);
-        console.log("msg.sender :", msg.sender);
-        console.log("msg.value :", msg.value);
+        // console.log("msg.sender.balance :", msg.sender.balance);
+        // console.log("msg.sender :", msg.sender);
+        // console.log("msg.value :", msg.value);
 
         // require(msg.sender.balance >= msg.value, "Don't have TON");
         // payable(address(this)).transfer(msg.value);
@@ -147,8 +147,7 @@ contract L2PublicSaleVault is
     }
 
     function round2Sale(
-        address _l2token,
-        uint256 _amount
+        address _l2token
     )   
         public
         payable
@@ -177,8 +176,12 @@ contract L2PublicSaleVault is
             if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
         }
 
-        user2rds.depositAmount = user2rds.depositAmount+(_amount);
-        totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
+        user2rds.depositAmount = user2rds.depositAmount+(msg.value);
+        totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (msg.value);
+
+        console.log("msg.sender.balance :", msg.sender.balance);
+        console.log("msg.sender :", msg.sender);
+        console.log("msg.value :", msg.value);
 
         // require(msg.sender.balance >= msg.value, "Don't have TON");
         payable(address(this)).call{value: msg.value};
