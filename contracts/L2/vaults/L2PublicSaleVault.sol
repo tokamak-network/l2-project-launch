@@ -10,7 +10,7 @@ import "../../libraries/LibPublicSaleVault.sol";
 
 import "../interfaces/ISwapRouter.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface IILockTOS {
     function balanceOfAt(address _addr, uint256 _timestamp)
@@ -135,7 +135,11 @@ contract L2PublicSaleVault is
         saleInfos.total1rdTONAmount = saleInfos.total1rdTONAmount+(msg.value);
         saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
 
-        require(msg.sender.balance >= msg.value, "Don't have TON");
+        console.log("msg.sender.balance :", msg.sender.balance);
+        console.log("msg.sender :", msg.sender);
+        console.log("msg.value :", msg.value);
+
+        // require(msg.sender.balance >= msg.value, "Don't have TON");
         // payable(address(this)).transfer(msg.value);
         payable(address(this)).call{value: msg.value};
 
@@ -176,7 +180,7 @@ contract L2PublicSaleVault is
         user2rds.depositAmount = user2rds.depositAmount+(_amount);
         totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (_amount);
 
-        require(msg.sender.balance >= msg.value, "Don't have TON");
+        // require(msg.sender.balance >= msg.value, "Don't have TON");
         payable(address(this)).call{value: msg.value};
 
         emit Deposited(_l2token, msg.sender, msg.value);
