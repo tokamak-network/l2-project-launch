@@ -162,7 +162,6 @@ contract L2PublicSaleVault is
             "end depositTime"
         );
 
-        // LibPublicSale.UserInfoOpen storage userOpen = usersOpen[_sender];
         LibPublicSaleVault.UserInfo2rd storage user2rds = user2rd[_l2token][msg.sender];
         LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
 
@@ -171,7 +170,6 @@ contract L2PublicSaleVault is
             user2rds.join = true;
 
             saleInfos.total2rdUsers = saleInfos.total2rdUsers+(1);
-            // LibPublicSale.UserInfoEx storage userEx = usersEx[_sender];
             LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][msg.sender];
             if (user1rds.payAmount == 0) saleInfos.totalUsers = saleInfos.totalUsers+(1);
         }
@@ -179,9 +177,9 @@ contract L2PublicSaleVault is
         user2rds.depositAmount = user2rds.depositAmount+(msg.value);
         totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (msg.value);
 
-        console.log("msg.sender.balance :", msg.sender.balance);
-        console.log("msg.sender :", msg.sender);
-        console.log("msg.value :", msg.value);
+        // console.log("msg.sender.balance :", msg.sender.balance);
+        // console.log("msg.sender :", msg.sender);
+        // console.log("msg.value :", msg.value);
 
         // require(msg.sender.balance >= msg.value, "Don't have TON");
         payable(address(this)).call{value: msg.value};
@@ -209,7 +207,8 @@ contract L2PublicSaleVault is
             uint256 refundTON = user1rds.payAmount+(user2rds.depositAmount);
             userClaims.refund = true;
             userClaims.refundAmount = refundTON;
-            IERC20(ton).safeTransfer(msg.sender, refundTON);
+            payable(msg.sender).call{value: refundTON};
+            // IERC20(ton).safeTransfer(msg.sender, refundTON);
 
             emit Refunded(_l2token, msg.sender, refundTON);
         } else {
@@ -240,9 +239,11 @@ contract L2PublicSaleVault is
             }
 
             if (refundAmount > 0 && userClaims.refundAmount == 0){
-                require(refundAmount <= IERC20(ton).balanceOf(address(this)), "dont have refund ton");
+                // require(refundAmount <= IERC20(ton).balanceOf(address(this)), "dont have refund ton");
+                require(refundAmount <= address(this).balance, "dont have refund ton");
                 userClaims.refundAmount = refundAmount;
-                IERC20(ton).safeTransfer(msg.sender, refundAmount);
+                // IERC20(ton).safeTransfer(msg.sender, refundAmount);
+                payable(msg.sender).call{value: refundAmount};
 
                 emit Refunded(_l2token, msg.sender, refundAmount);
             }
