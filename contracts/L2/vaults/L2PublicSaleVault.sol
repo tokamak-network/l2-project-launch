@@ -192,6 +192,7 @@ contract L2PublicSaleVault is
     ) 
         external 
     {
+        // console.log("address(this).balance :", address(this).balance);
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
         require(
             block.timestamp >= claimInfos.firstClaimTime,

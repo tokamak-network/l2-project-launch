@@ -1,7 +1,7 @@
 import { expect } from './shared/expect'
 import { ethers, network } from 'hardhat'
 
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, Signer, providers } from 'ethers'
 import { l2ProjectLaunchFixtures, l1Fixtures } from './shared/fixtures'
 import { L2ProjectLaunchFixture, L1Fixture } from './shared/fixtureInterfaces'
 import { getPublicSaleParams } from './shared/vaultParameters'
@@ -194,7 +194,11 @@ describe('L2TokenFactory', () => {
     let richTOS: Signer;
     let richLYDA: Signer;
 
-    const provider = ethers.getDefaultProvider();
+    // const infuraUrl = 'https://rpc.titan-goerli.tokamak.network';
+    // const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
+    // const network = providers.getNetwork();
+    // const provider = ethers.getDefaultProvider();
+    const provider = ethers.provider;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
@@ -1834,148 +1838,150 @@ describe('L2TokenFactory', () => {
             })
         })
 
-        // describe("# claim", () => {
-        //     it("currentRound test", async () => {
-        //         expect(await deployed.l2PublicProxyLogic.currentRound(lydaContract.address)).to.be.equal(0)
-        //     })
-        //     it("calculClaimAmount test", async () => {
-        //         let tx = await deployed.l2PublicProxyLogic.calculClaimAmount(
-        //             lydaContract.address,
-        //             addr1Address,
-        //             0
-        //         )
-        //         console.log("calculAmount :", tx);
+        describe("# claim", () => {
+            it("currentRound test", async () => {
+                expect(await deployed.l2PublicProxyLogic.currentRound(lydaContract.address)).to.be.equal(0)
+            })
+            it("calculClaimAmount test", async () => {
+                let tx = await deployed.l2PublicProxyLogic.calculClaimAmount(
+                    lydaContract.address,
+                    addr1Address,
+                    0
+                )
+                console.log("calculAmount :", tx);
 
-        //     })
-        //     it("claim fail before claimTime1", async () => {
-        //         let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-        //         await expect(tx).to.be.revertedWith("not claimTime")
-        //     })
+            })
+            it("claim fail before claimTime1", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("not claimTime")
+            })
 
-        //     it("duration the time to period end", async () => {
-        //         await ethers.provider.send('evm_setNextBlockTimestamp', [firstClaimTime+1]);
-        //         await ethers.provider.send('evm_mine');
-        //     })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [firstClaimTime+1]);
+                await ethers.provider.send('evm_mine');
+            })
 
-        //     it("claim success after firstClaimTime", async () => {
-        //         expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(0)
-        //         let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,1)
-        //         console.log()
-        //         await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-        //         expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
-        //     })
+            it("claim success after firstClaimTime", async () => {
+                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(0)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,1)
+                console.log()
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
+                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
+            })
 
-        //     it("claim fail after claimTime1 because no buy", async () => {
-        //         let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).claim(lydaContract.address)
-        //         await expect(tx).to.be.revertedWith("no purchase amount")
-        //     })
+            it("claim fail after claimTime1 because no buy", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+            })
 
-        //     it("if already get reward about round, claim fail", async () => {
-        //         let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-        //         await expect(tx).to.be.revertedWith("no reward")
-        //     })
+            it("if already get reward about round, claim fail", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no reward")
+            })
 
-        //     it("duration the time to period end", async () => {
-        //         await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1]);
-        //         await ethers.provider.send('evm_mine');
-        //     })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1]);
+                await ethers.provider.send('evm_mine');
+            })
 
-        //     it("claim success after secondClaimTime", async () => {
-        //         expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(0)
-        //         let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,2)
-        //         let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,0)
+            it("claim success after secondClaimTime", async () => {
+                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,2)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,0)
                 
-        //         await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
 
-        //         let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-        //         expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
-        //     })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
+            })
 
-        //     it("duration the time to period end", async () => {
-        //         await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+601]);
-        //         await ethers.provider.send('evm_mine');
-        //     })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+601]);
+                await ethers.provider.send('evm_mine');
+            })
 
-        //     it("claim success after claimTime3", async () => {
-        //         expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(0)
-        //         let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-        //         let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,3)
-        //         let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,3)
-        //         let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,0)
+            it("claim success after claimTime3", async () => {
+                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,3)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,3)
+                let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,0)
                 
-        //         await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
 
-        //         let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-        //         expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-        //         expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-        //         expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
-        //     })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
+            })
 
-        //     it("duration the time to period end", async () => {
-        //         await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1201]);
-        //         await ethers.provider.send('evm_mine');
-        //     })
+            it("duration the time to period end", async () => {
+                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1201]);
+                await ethers.provider.send('evm_mine');
+            })
 
-        //     it("claim success after claimTime4", async () => {
-        //         expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(0)
-        //         let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-        //         let beforeAddr3Amount = await lydaContract.balanceOf(addr3Address)
-        //         let beforeAddr4Amount = await lydaContract.balanceOf(addr4Address)
-        //         let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,4)
-        //         let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,4)
-        //         let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,4)
-        //         let getAddr4Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr4Address,0)
-        //         let getAddr5Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr5Address,0)
+            it("claim success after claimTime4", async () => {
+                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(0)
+                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let beforeAddr3Amount = await lydaContract.balanceOf(addr3Address)
+                let beforeAddr4Amount = await lydaContract.balanceOf(addr4Address)
+                let getAddr1Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr1Address,4)
+                let getAddr2Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr2Address,4)
+                let getAddr3Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr3Address,4)
+                let getAddr4Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr4Address,0)
+                let getAddr5Amount = await deployed.l2PublicProxyLogic.calculClaimAmount(lydaContract.address,addr5Address,0)
                 
                 
-        //         await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr4).claim(lydaContract.address);
-        //         await deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr4).claim(lydaContract.address);
+                await deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address);
 
-        //         let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-        //         let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-        //         let afterAddr3Amount = await lydaContract.balanceOf(addr3Address)
-        //         expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-        //         expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-        //         expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
-        //         expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
-        //         expect(await lydaContract.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
-        //     })
+                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
+                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
+                let afterAddr3Amount = await lydaContract.balanceOf(addr3Address)
+                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
+                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
+                expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
+                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
+                expect(await lydaContract.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
+            })
 
-        //     it("if already get Allreward, claim fail", async () => {
-        //         let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
-        //         await expect(tx).to.be.revertedWith("no purchase amount")
-        //         let tx2 = deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address)
-        //         await expect(tx2).to.be.revertedWith("no purchase amount")
-        //     })
+            it("if already get Allreward, claim fail", async () => {
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(lydaContract.address)
+                await expect(tx).to.be.revertedWith("no purchase amount")
+                let tx2 = deployed.l2PublicProxyLogic.connect(addr5).claim(lydaContract.address)
+                await expect(tx2).to.be.revertedWith("no purchase amount")
+            })
 
-        //     it("PublicSale have TON for saleToken", async () => {
-        //         expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
-        //     })
+            it("PublicSale have TON for saleToken", async () => {
+                // expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
+                console.log(await provider.getBalance(deployed.l2PublicProxy.address));
+                expect(await provider.getBalance(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
+            })
 
-        //     it("check the saleToken amount", async () => {
-        //         let amount1 = await lydaContract.balanceOf(addr1Address)
-        //         let amount2 = await lydaContract.balanceOf(addr2Address)
-        //         let amount3 = await lydaContract.balanceOf(addr3Address)
-        //         let amount4 = await lydaContract.balanceOf(addr4Address)
-        //         let amount5 = await lydaContract.balanceOf(addr5Address)
-        //         console.log("amount1 : ", amount1)
-        //         console.log("amount2 : ", amount2)
-        //         console.log("amount3 : ", amount3)
-        //         console.log("amount4 : ", amount4)
-        //         console.log("amount5 : ", amount5)
-        //     })
-        // })
+            it("check the saleToken amount", async () => {
+                let amount1 = await lydaContract.balanceOf(addr1Address)
+                let amount2 = await lydaContract.balanceOf(addr2Address)
+                let amount3 = await lydaContract.balanceOf(addr3Address)
+                let amount4 = await lydaContract.balanceOf(addr4Address)
+                let amount5 = await lydaContract.balanceOf(addr5Address)
+                console.log("amount1 : ", amount1)
+                console.log("amount2 : ", amount2)
+                console.log("amount3 : ", amount3)
+                console.log("amount4 : ", amount4)
+                console.log("amount5 : ", amount5)
+            })
+        })
 
         // describe("# exchangeWTONtoTOS", () => {
         //     it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
