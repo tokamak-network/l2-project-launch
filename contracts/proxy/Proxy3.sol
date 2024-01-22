@@ -10,7 +10,7 @@ import "../interfaces/IProxyEvent.sol";
 import "../interfaces/IProxyAction.sol";
 // import "hardhat/console.sol";
 
-contract Proxy is ProxyStorage, AccessibleCommon, IProxyEvent, IProxyAction
+contract Proxy3 is ProxyStorage, AccessibleCommon, IProxyEvent, IProxyAction
 {
 
     /* ========== DEPENDENCIES ========== */
@@ -114,7 +114,7 @@ contract Proxy is ProxyStorage, AccessibleCommon, IProxyEvent, IProxyAction
 
     /// @dev receive ether
     receive() external payable {
-        revert("cannot receive Ether");
+
     }
 
     /// @dev fallback function , execute on undefined function call
