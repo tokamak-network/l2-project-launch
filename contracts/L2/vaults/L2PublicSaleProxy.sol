@@ -89,6 +89,7 @@ contract L2PublicSaleProxy is
         lockTOS = _setAddress[4];
         tos = _setAddress[5];
         ton = _setAddress[6];
+        _WETH = IWETH(ton);
 
         IERC20(ton).approve(
             address(uniswapRouter),

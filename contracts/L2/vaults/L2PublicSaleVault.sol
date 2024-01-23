@@ -19,11 +19,6 @@ interface IILockTOS {
         returns (uint256 balance);
 }
 
-interface IIWTON {
-    function swapToTON(uint256 wtonAmount) external returns (bool);
-    function swapFromTON(uint256 tonAmount) external returns (bool);
-}
-
 interface IIVestingPublicFundAction {
     function funding(address l2token,uint256 amount) external;
 }
@@ -297,22 +292,22 @@ contract L2PublicSaleVault is
         uint256 liquidityTON = hardcapCalcul(_l2token);
         require(liquidityTON > 0, "don't pass the hardCap");
         if (manageInfos.exchangeTOS == false) {
-            // IIWTON(wton).swapFromTON(liquidityTON);
-            // manageInfos.remainTON = liquidityTON*(1000000000);
-            // manageInfos.exchangeTOS = true;
             require(liquidityTON >= amountIn, "amountIn over");
             manageInfos.remainTON = liquidityTON;
             manageInfos.exchangeTOS = true;
         } else {
             require(manageInfos.remainTON >= amountIn, "amountIn over");
         }
+        console.log("1");
         address poolAddress = LibPublicSaleVault.getPoolAddress(ton,tos);
-        // console.log("TON-TOS PoolAddress :",poolAddress);
+        console.log("WETH-TOS PoolAddress :",poolAddress);
 
         (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
+        console.log("2");
         require(sqrtPriceX96 > 0, "pool not initial");
 
         int24 timeWeightedAverageTick = OracleLibrary.consult(poolAddress, 120);
+        console.log("3");
         require(
             tick < LibPublicSaleVault.acceptMaxTick(timeWeightedAverageTick, 60, 2),
             "over changed tick range."
@@ -320,13 +315,15 @@ contract L2PublicSaleVault is
 
         (uint256 amountOutMinimum, , uint160 sqrtPriceLimitX96)
             = LibPublicSaleVault.limitPrameters(amountIn, poolAddress, ton, tos, manageInfos.changeTick);
-    
+        console.log("4");
+
         (,bytes memory result) = address(quoter).call(
             abi.encodeWithSignature(
                 "quoteExactInputSingle(address,address,uint24,uint256,uint160)", 
                 ton,tos,poolFee,amountIn,0
             )
         );
+        console.log("5");
         
         uint256 amountOutMinimum2 = parseRevertReason(result);
         amountOutMinimum2 = amountOutMinimum2 * 995 / 1000; //slippage 0.5% apply
@@ -337,10 +334,12 @@ contract L2PublicSaleVault is
         // console.log("amountOutMinimum :", amountOutMinimum);
         // console.log("amountOutMinimum2 ", amountOutMinimum2);
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
-
+        console.log("6");
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
         manageInfos.remainTON = manageInfos.remainTON - _amountIn;
+        
+        _WETH.deposit{value: _amountIn}();
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({

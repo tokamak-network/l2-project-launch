@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import { LibPublicSaleVault } from "../../libraries/LibPublicSaleVault.sol";
+import "../interfaces/IWETH.sol";
 
 contract L2PublicSaleVaultStorage {
     uint24 public constant poolFee = 3000;
@@ -16,6 +17,8 @@ contract L2PublicSaleVaultStorage {
     address public lockTOS;
     address public tos;
     address public ton;
+
+    IWETH public _WETH;
 
     //L2PublicSaleContract을 manage하는 manager
     address public l2ProjectManager;
