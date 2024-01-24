@@ -298,6 +298,7 @@ contract L2PublicSaleVault is
         } else {
             require(manageInfos.remainTON >= amountIn, "amountIn over");
         }
+
         console.log("1");
         address poolAddress = LibPublicSaleVault.getPoolAddress(ton,tos);
         console.log("WETH-TOS PoolAddress :",poolAddress);
@@ -307,6 +308,7 @@ contract L2PublicSaleVault is
         require(sqrtPriceX96 > 0, "pool not initial");
 
         int24 timeWeightedAverageTick = OracleLibrary.consult(poolAddress, 120);
+        console.logInt(timeWeightedAverageTick);
         console.log("3");
         require(
             tick < LibPublicSaleVault.acceptMaxTick(timeWeightedAverageTick, 60, 2),
@@ -324,23 +326,24 @@ contract L2PublicSaleVault is
             )
         );
         console.log("5");
-        
         uint256 amountOutMinimum2 = parseRevertReason(result);
+        console.log("6");
         amountOutMinimum2 = amountOutMinimum2 * 995 / 1000; //slippage 0.5% apply
 
         //quoter 값이 더 크다면 quoter값이 minimum값으로 사용됨
         //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
 
-        // console.log("amountOutMinimum :", amountOutMinimum);
-        // console.log("amountOutMinimum2 ", amountOutMinimum2);
+        console.log("amountOutMinimum :", amountOutMinimum);
+        console.log("amountOutMinimum2 ", amountOutMinimum2);
+        console.log("7");
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
-        console.log("6");
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
         manageInfos.remainTON = manageInfos.remainTON - _amountIn;
         
         _WETH.deposit{value: _amountIn}();
 
+        console.log("8");
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: ton,
@@ -352,6 +355,7 @@ contract L2PublicSaleVault is
                 amountOutMinimum: amountOutMinimum2,
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
+        console.log("9");
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
         // (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
 
