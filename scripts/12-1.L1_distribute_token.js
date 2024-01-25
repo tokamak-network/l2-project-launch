@@ -34,18 +34,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test5',
-    tokenName: 'Test5',
-    tokenSymbol: 'T5T',
+    projectName: 'Test4',
+    tokenName: 'Test4',
+    tokenSymbol: 'T4T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("5");
+let projectId = ethers.BigNumber.from("4");
 
-const L2Token = "0x0f01de31AceBc72cb82846ed79F567a8D69FA589"
+const L2Token = "0x3A1a171065Af2C8D52dbcf7be47177e9e8110160"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -87,7 +87,7 @@ async function main() {
     // test vaults :
     // initialLiquidityVault, tontosReward, prokectTokenTosReward, DAO,
     // Team, Marketing , airdropStos, airdropTon
-    let vaultCount = BigNumber.from("10")
+    let vaultCount = BigNumber.from("8")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let rewardTonTosPoolAmount = initialLiquidityAmount
@@ -97,7 +97,7 @@ async function main() {
     let marketingAmount = initialLiquidityAmount
     let airdropStosAmount = initialLiquidityAmount
     let airdropTonAmount = initialLiquidityAmount
-    let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
+    let publisSaleAmount = ethers.BigNumber.from("0")
 
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
@@ -133,7 +133,7 @@ async function main() {
     let publicSaleParams =  getPublicSaleParams (
                 [100,200,1000,4000], //tier
                 [600,1200,2200,6000], // percentage
-                [initialLiquidityAmount,initialLiquidityAmount], //amount
+                [ethers.BigNumber.from("0"),ethers.BigNumber.from("0")], //amount
                 [200,2000], // price saleTokenPrice, payTokenPrice
                 100*1e18, //hardcapAmount
                 changeTOS, //changeTOSPercent
@@ -156,7 +156,7 @@ async function main() {
      let publicVaultcheck = await L1ProjectManager.validationPublicSaleVaults(
         publicSaleParams
     )
-    // console.log(publicVaultcheck.valid)
+    console.log(publicVaultcheck)
 
     if(publicVaultcheck.valid == false) {
         console.log('validationPublicSaleVaults false')
@@ -164,7 +164,6 @@ async function main() {
 
         return;
     }
-
 
     let tosPrice = 1e18;
     let tokenPrice = 10e18;
@@ -272,12 +271,13 @@ async function main() {
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
 
 
-    let validationVaultsParameters = await L1ProjectManager.validationVaultsParametersAll(
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
         projectInfo.initialTotalSupply,
         tokamakVaults,
         customScheduleVaults,
         customNonScheduleVaults
     )
+    console.log(validationVaultsParameters)
 
     if(validationVaultsParameters.valid == false) {
         console.log('validationVaultsParameters false')
@@ -285,7 +285,7 @@ async function main() {
         return;
     }
 
-    const gos = await L1ProjectManager.estimateGas.launchProjectAll(
+    const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,

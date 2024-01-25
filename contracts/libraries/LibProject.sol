@@ -240,7 +240,7 @@ library LibProject {
             tokamakVaults.publicSaleParams.vaultParams.tier2Percents == 0 ||
             tokamakVaults.publicSaleParams.vaultParams.tier3Percents == 0 ||
             tokamakVaults.publicSaleParams.vaultParams.tier4Percents == 0 ||
-            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount == 0 ||
             tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount == 0 ||
             tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice == 0 ||
             tokamakVaults.publicSaleParams.vaultParams.payTokenPrice == 0 ||
@@ -262,7 +262,7 @@ library LibProject {
             tokamakVaults.publicSaleParams.vestingParams.firstClaimTime == 0 ||
             tokamakVaults.publicSaleParams.vestingParams.secondClaimTime == 0 ||
             tokamakVaults.publicSaleParams.vestingParams.roundIntervalTime == 0 ||
-            tokamakVaults.publicSaleParams.vestingParams.fee == 0 
+            tokamakVaults.publicSaleParams.vestingParams.fee == 0
         ) return (boolValidate, totalAmount);
 
         if (
@@ -277,7 +277,7 @@ library LibProject {
             tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) < (
                 tokamakVaults.publicSaleParams.vaultParams.hardcapAmount *
                 tokamakVaults.publicSaleParams.vaultParams.payTokenPrice /
-                tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice 
+                tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice
             )
         ) return (boolValidate, totalAmount);
 
