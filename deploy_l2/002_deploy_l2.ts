@@ -39,11 +39,11 @@ import { L1BurnVaultProxy } from  "../typechain-types/contracts/L1/L1BurnVaultPr
 import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
 
 
-let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
-let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
+let  L1ProjectManagerProxy = "0x76B2435ED9A20f618a11616A3C8f57E592393826"
+let  L1StosToL2_Address = "0x86Ed13C79DB599e501AE9Ac21d047bcFA6B5a245"
 let  l2StakeV2_Address = null
 
-let L1BurnVaultProxy_Address = "0x63bBB9E20FB05d647c25BA5b86C5B53c8aA45D30"
+let L1BurnVaultProxy_Address = "0xAB901F0800ED2c151f3392EaA2d10E88cc67C933"
 
 /**
  * first
@@ -127,6 +127,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     //==== L2ProjectManagerProxy upgradeTo =================================
     let impl = await l2ProjectManagerProxy.implementation()
+    // console.log('impl', impl)
     if (impl != l2ProjectManagerDeployment.address) {
         await (await l2ProjectManagerProxy.connect(deploySigner).upgradeTo(l2ProjectManagerDeployment.address)).wait()
     }
@@ -136,6 +137,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2ProjectManagerDeployment.abi,
         L2ProjectManagerProxyDeployment.address
     )) as L2ProjectManager;
+    // console.log('l2ProjectManager', l2ProjectManager.address)
 
     //=================================
     //==== L2TokenFactory
@@ -144,17 +146,20 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2TokenFactoryDeployment.abi,
         l2TokenFactoryDeployment.address
     )) as L2TokenFactory;
+    // console.log('l2TokenFactory', l2TokenFactory.address)
 
     let l2ProjectManagerInTokenFactory = await l2TokenFactory.l2ProjectManager()
     if (l2ProjectManagerInTokenFactory != l2ProjectManager.address) {
         await (await l2TokenFactory.connect(deploySigner).setL2ProjectManager(l2ProjectManager.address)).wait()
     }
+    // console.log('l2ProjectManagerInTokenFactory', l2ProjectManagerInTokenFactory)
 
     //---- setL1Bridge =================================
     let l1Bridge = await l2TokenFactory.l1Bridge()
-    if (l1Bridge != l1BridgeAddress) {
+    if (l1BridgeAddress != null && l1Bridge != l1BridgeAddress) {
         await (await l2TokenFactory.connect(deploySigner).setL1Bridge(l1BridgeAddress)).wait()
     }
+    // console.log('l1Bridge', l1Bridge)
 
     //=================================
     //==== L2ProjectManager
@@ -163,20 +168,28 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (l2TokenFactoryInL2ProjectManager != l2TokenFactory.address) {
         await (await l2ProjectManager.connect(deploySigner).setL2TokenFactory(l2TokenFactory.address)).wait()
     }
+    // console.log('setL2TokenFactory')
 
     //---- setL1ProjectManager
     let l1ProjectManagerAddress = L1ProjectManagerProxy;
 
     let l1ProjectManagerInL2ProjectManager = await l2ProjectManager.l1ProjectManager()
-    if (l1ProjectManagerInL2ProjectManager != l1ProjectManagerAddress) {
+    if (l1ProjectManagerAddress != null && l1ProjectManagerAddress != "0x0000000000000000000000000000000000000000" &&
+        l1ProjectManagerInL2ProjectManager != l1ProjectManagerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL1ProjectManager(l1ProjectManagerAddress)).wait()
     }
+    // console.log('setL1ProjectManager')
 
     //---- setL2CrossDomainMessenger
     let l2CrossDomainMessenger = await l2ProjectManager.l2CrossDomainMessenger()
+    // console.log('l2CrossDomainMessenger',l2CrossDomainMessenger)
+    // console.log('l2MessengerAddress',l2MessengerAddress)
+
     if (l2CrossDomainMessenger != l2MessengerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL2CrossDomainMessenger(l2MessengerAddress)).wait()
     }
+    // console.log('setL2CrossDomainMessenger')
+
     //=================================
     //==== initialLiquidityVault
 
@@ -200,6 +213,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (impl != L2InitialLiquidityVaultDeployment.address) {
         await (await l2InitialLiquidityVaultProxy.connect(deploySigner).upgradeTo(L2InitialLiquidityVaultDeployment.address)).wait()
     }
+    // console.log('initialLiquidityVault upgradeTo')
 
     const l2InitialLiquidity  = (await hre.ethers.getContractAt(
         L2InitialLiquidityVaultDeployment.abi,
@@ -215,13 +229,16 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             tosAddress
             )).wait()
     }
+    // console.log('initialLiquidityVault setUniswapInfo')
+
+
     let l2ProjectManage1 = await l2InitialLiquidity.l2ProjectManager()
     if (l2ProjectManage1 != l2ProjectManager.address) {
         await (await l2InitialLiquidity.connect(deploySigner).setL2ProjectManager(
             l2ProjectManager.address
             )).wait()
     }
-
+    // console.log('initialLiquidityVault setL2ProjectManager')
     //=================================
     //==== LpRewardVault
     const L2LpRewardVaultDeployment = await deploy("L2LpRewardVault", {
@@ -402,7 +419,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         args: [],
         log: true
     });
-    console.log('L2AirdropTonVaultProxy', L2AirdropTonVaultProxyDeployment.address)
+    // console.log('L2AirdropTonVaultProxy', L2AirdropTonVaultProxyDeployment.address)
 
     const l2AirdropTonVaultProxy = (await hre.ethers.getContractAt(
         L2AirdropTonVaultProxyDeployment.abi,
@@ -625,7 +642,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     }
 
     let l1BurnVault_l2PublicSaleProxy = await l2PublicSaleProxy.l1burnVault()
-    if (l1BurnVault_l2PublicSaleProxy != L1BurnVaultProxy_Address) {
+    if (L1BurnVaultProxy_Address != null && L1BurnVaultProxy_Address != "0x0000000000000000000000000000000000000000"
+        && l1BurnVault_l2PublicSaleProxy != L1BurnVaultProxy_Address) {
         await (await l2PublicSaleProxy.connect(deploySigner).setBurnBridge(
             l1BridgeAddress,
             L1BurnVaultProxy_Address
@@ -771,7 +789,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     // set L1 register (L1StosToL2)
     let l1Register_l1StosInL2 = await l1StosInL2.l1Register()
 
-    if (L1StosToL2_Address != null && l1Register_l1StosInL2 != L1StosToL2_Address) {
+    if (L1StosToL2_Address != null && L1StosToL2_Address != "0x0000000000000000000000000000000000000000"
+         && l1Register_l1StosInL2 != L1StosToL2_Address) {
         await (await l1StosInL2.connect(deploySigner).setL1Register(L1StosToL2_Address)).wait()
     }
 
@@ -806,7 +825,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     )) as L2UniversalStos;
 
     let l2StakeV2_l2UniversalStos  = await l2UniversalStos.l2StakeV2()
-    if (l2StakeV2_Address != null && l2StakeV2_l2UniversalStos != l2StakeV2_Address) {
+    if (l2StakeV2_Address != null && l2StakeV2_Address != "0x0000000000000000000000000000000000000000"
+        && l2StakeV2_l2UniversalStos != l2StakeV2_Address) {
         await (await l2UniversalStos.connect(deploySigner).setL2Stakev2(
             l2StakeV2_Address
         )).wait()

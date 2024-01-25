@@ -14,7 +14,9 @@ import { L1BurnVaultProxy } from  "../typechain-types/contracts/L1/L1BurnVaultPr
 import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
 
 // "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
-const L1StosInL2_Address = "0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF"
+// const L1StosInL2_Address = "0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF"
+const L1StosInL2_Address = null
+const publicSaleInfoZero = {minPercents: 5, maxPercents: 10, delayTime: 100}
 
 /**
  * first
@@ -139,14 +141,14 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     //==== L1ProjectManager setL2Infos =================================
     let l2Info = {
-        l2TokenFactory: '0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A',
-        l2ProjectManager: '0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62',
+        l2TokenFactory: '0x52D3b95E94863590D9A366718C2C839510b68b60',
+        l2ProjectManager: '0xEaFa9b1436B9c25d40CA0e25ba142fc0C9C09b1a',
         depositMinGasLimit: 300000,
         sendMsgMinGasLimit: 1200000 // => 1021609.2
     }
     let viewl2Info = await l1ProjectManager.viewL2Info(0);
 
-    if (viewl2Info.sendMsgMinGasLimit == 0) {
+    if (viewl2Info.l2ProjectManager != l2Info.l2ProjectManager) {
         await l1ProjectManager.connect(deploySigner).setL2Infos(
             0,
             l2Info.l2TokenFactory,
@@ -203,7 +205,8 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     // set L2 register (L1StosInL2)
     let l2Register_l1StosToL2 = await l1StosToL2.l2Register()
-    if (L1StosInL2_Address != null && l2Register_l1StosToL2 != L1StosInL2_Address) {
+    if (L1StosInL2_Address != null && L1StosInL2_Address != '0x0000000000000000000000000000000000000000'
+        && l2Register_l1StosToL2 != L1StosInL2_Address) {
         await (await l1StosToL2.connect(deploySigner).setL2Register(L1StosInL2_Address)).wait()
     }
 
@@ -230,6 +233,16 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     let impl2 = await l1BurnVaultProxy.implementation()
     if (impl2 != L1BurnVaultDeployment.address) {
         await (await l1BurnVaultProxy.connect(deploySigner).upgradeTo(L1BurnVaultDeployment.address)).wait()
+    }
+    //==== l1ProjectManager setL2PublicSaleValue =================================
+    let publicInfo = await l1ProjectManager.publicInfo(0)
+
+    if (publicInfo.minPercents != publicSaleInfoZero.minPercents) {
+        await (await l1ProjectManager.connect(deploySigner).setL2PublicSaleValue(
+            publicSaleInfoZero.maxPercents,
+            publicSaleInfoZero.maxPercents,
+            publicSaleInfoZero.delayTime)
+        ).wait()
     }
 
     //==== verify =================================

@@ -227,7 +227,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
         (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
         require(boolValidatePublicVaults, "PublicVault vaildate fail");
-        
+
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
         if(customScheduleVaults.length != 0){
@@ -296,7 +296,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     ) external view returns(bool valid, string memory resean) {
 
         uint256 totalAllocatedAmount = 0;
-        
+
         (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
         if(!boolValidateTokamakVaults) {
             return (false, "F1");
@@ -304,7 +304,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
         require(boolValidatePublicVaults, "F1-1");
-        
+
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
         if(customScheduleVaults.length != 0){
@@ -331,10 +331,10 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         LibProject.InitalParameterPublicSale memory publicSaleParams
     ) public view returns(bool valid, string memory resean) {
         LibProject.PublicSaleSet memory sale = publicInfo[0];
-        
+
         if (
             sale.minPercents > publicSaleParams.vaultParams.changeTOSPercent ||
-            sale.maxPercents < publicSaleParams.vaultParams.changeTOSPercent 
+            sale.maxPercents < publicSaleParams.vaultParams.changeTOSPercent
         ) return (false, "F1");
 
         if (

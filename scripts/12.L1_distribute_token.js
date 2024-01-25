@@ -6,6 +6,7 @@ const fs = Promise.promisifyAll(require('fs'));
 require('dotenv').config()
 
 const {
+    getL1Provider,
   readContracts,
   deployedContracts,
   getSigners,
@@ -33,18 +34,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test12',
-    tokenName: 'Test12',
-    tokenSymbol: 'T12T',
+    projectName: 'Test2',
+    tokenName: 'Test2',
+    tokenSymbol: 'T2T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("32");
+let projectId = ethers.BigNumber.from("2");
 
-const L2Token = "0x3a5342bda1b8fdadfcd0936cc21adb9a6d6d62f8"
+const L2Token = "0xca713316aac62c9cc2335429bf009ed4713dd297"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -99,9 +100,10 @@ async function main() {
     let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
 
 
-    let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
+    let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
+    const block = await l1Signer.provider.getBlock('latest')
 
-    const setSnapshot = Math.floor(Date.now() / 1000) + (60*60*1);
+    const setSnapshot = block.timestamp + (60*60*7);
     const whitelistStartTime = setSnapshot + 400;
     const whitelistEndTime = whitelistStartTime + (86400*7);
     const round1StartTime = whitelistEndTime + 1;
@@ -129,7 +131,7 @@ async function main() {
     // let secondClaimTime =  firstClaimTime + roundIntervalTime
 
     let publicSaleParams =  getPublicSaleParams (
-        [100,200,1000,4000], //tier
+                [100,200,1000,4000], //tier
                 [600,1200,2200,6000], // percentage
                 [initialLiquidityAmount,initialLiquidityAmount], //amount
                 [200,2000], // price saleTokenPrice, payTokenPrice
@@ -149,6 +151,21 @@ async function main() {
                 roundInterval, // vestingRoundInterval: number,
                 fee, // fee: number
         );
+
+     // console.log(publicSaleParams)
+     let publicVaultcheck = await L1ProjectManager.validationPublicSaleVaults(
+        publicSaleParams
+    )
+    // console.log(publicVaultcheck.valid)
+
+    if(publicVaultcheck.valid == false) {
+        console.log('validationPublicSaleVaults false')
+        console.log('publicSaleParams ', publicSaleParams)
+
+        return;
+    }
+
+
     let tosPrice = 1e18;
     let tokenPrice = 10e18;
 
@@ -248,10 +265,26 @@ async function main() {
     let customScheduleVaults = [teamParams, marketingParams]
     let customNonScheduleVaults = [daoParams]
 
+
     // console.log('initialVaultParams' , initialVaultParams)
     // console.log('customScheduleVaults' , customScheduleVaults)
     // console.log('rewardTonTosPoolParams' , rewardTonTosPoolParams)
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
+
+
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
+        projectInfo.initialTotalSupply,
+        tokamakVaults,
+        customScheduleVaults,
+        customNonScheduleVaults
+    )
+
+    if(validationVaultsParameters.valid == false) {
+        console.log('validationVaultsParameters false')
+
+        return;
+    }
+
     const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
