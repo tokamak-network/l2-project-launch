@@ -144,7 +144,7 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2TokenFactory: '0x52D3b95E94863590D9A366718C2C839510b68b60',
         l2ProjectManager: '0xEaFa9b1436B9c25d40CA0e25ba142fc0C9C09b1a',
         depositMinGasLimit: 300000,
-        sendMsgMinGasLimit: 2000000 // => 1021609.2
+        sendMsgMinGasLimit: 3000000 // => 1021609.2
     }
     let viewl2Info = await l1ProjectManager.viewL2Info(0);
 

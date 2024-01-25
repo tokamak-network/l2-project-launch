@@ -271,7 +271,7 @@ async function main() {
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
 
 
-    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParametersExceptPublic(
         projectInfo.initialTotalSupply,
         tokamakVaults,
         customScheduleVaults,
@@ -285,7 +285,7 @@ async function main() {
         return;
     }
 
-    const gos = await L1ProjectManager.estimateGas.launchProject(
+    const gos = await L1ProjectManager.estimateGas.launchProjectExceptCheckPublic(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,
@@ -296,7 +296,7 @@ async function main() {
     console.log('gos', gos)
         //===
 
-    const receipt = await (await L1ProjectManager.launchProject(
+    const receipt = await (await L1ProjectManager.launchProjectExceptCheckPublic(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,

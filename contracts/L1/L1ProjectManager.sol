@@ -193,7 +193,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         return projectId;
     }
 
-    function launchProject(
+    function launchProjectExceptCheckPublic(
         uint256 projectId,
         address l2Token,
         uint256 totalAmount,
@@ -286,7 +286,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         emit LaunchedProject(id, info.l1Token, info.l2Token, info.initialTotalSupply);
     }
 
-    function launchProjectAll(
+    function launchProject(
         uint256 projectId,
         address l2Token,
         uint256 totalAmount,
@@ -391,14 +391,9 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         uint256 totalAllocatedAmount = 0;
 
-        // (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
-        // if(!boolValidateTokamakVaults) {
-        //     return (false, "F1");
-        // }
-
-        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = validateTokamakVaultsExceptPublic(tokamakVaults);
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
         if(!boolValidateTokamakVaults) {
-            return (false, "F0");
+            return (false, "F1");
         }
 
         (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
@@ -427,7 +422,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     }
 
 
-    function validationVaultsParametersAll(
+    function validationVaultsParametersExceptPublic(
         uint256 totalAmount,
         LibProject.TokamakVaults memory tokamakVaults,
         LibProject.InitalParameterSchedule[] memory customScheduleVaults,
@@ -436,9 +431,9 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         uint256 totalAllocatedAmount = 0;
 
-        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = validateTokamakVaultsExceptPublic(tokamakVaults);
         if(!boolValidateTokamakVaults) {
-            return (false, "F1");
+            return (false, "F0");
         }
 
         (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);

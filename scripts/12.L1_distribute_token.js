@@ -34,18 +34,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test5',
-    tokenName: 'Test5',
-    tokenSymbol: 'T5T',
+    projectName: 'Test7',
+    tokenName: 'Test7',
+    tokenSymbol: 'T7T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("5");
+let projectId = ethers.BigNumber.from("7");
 
-const L2Token = "0x0f01de31AceBc72cb82846ed79F567a8D69FA589"
+const L2Token = "0xD51a3581A1E64dFDFBE0dFa2d50B184b5f5e058a"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -272,7 +272,7 @@ async function main() {
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
 
 
-    let validationVaultsParameters = await L1ProjectManager.validationVaultsParametersAll(
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
         projectInfo.initialTotalSupply,
         tokamakVaults,
         customScheduleVaults,
@@ -285,7 +285,7 @@ async function main() {
         return;
     }
 
-    const gos = await L1ProjectManager.estimateGas.launchProjectAll(
+    const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,
