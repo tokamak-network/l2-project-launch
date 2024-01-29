@@ -20,7 +20,7 @@ interface IILockTOS {
 }
 
 interface IIVestingPublicFundAction {
-    function funding(address l2token,uint256 amount) external;
+    function funding(address l2token) external payable;
 }
 
 interface IIL2ERC20Bridge {
@@ -261,7 +261,7 @@ contract L2PublicSaleVault is
         uint256 liquidityTON = hardcapCalcul(_l2token);
         uint256 getAmount = saleInfos.total1rdTONAmount+(totalOpenPurchasedAmount(_l2token))-(liquidityTON);
         
-        require(getAmount <= IERC20(ton).balanceOf(address(this)), "haven't token");        
+        require(getAmount <= address(this).balance, "haven't token");        
 
         manageInfos.adminWithdraw = true;
         uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
@@ -270,8 +270,9 @@ contract L2PublicSaleVault is
             IIL2ERC20Bridge(l2Bridge).withdrawTo(_l2token, l1burnVault, burnAmount, 0, '0x');
         }
         
-        IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
-        IIVestingPublicFundAction(vestingFund).funding(_l2token,getAmount);
+        // IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
+        IIVestingPublicFundAction(vestingFund).funding{value: getAmount}(_l2token);
+        
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
@@ -299,17 +300,13 @@ contract L2PublicSaleVault is
             require(manageInfos.remainTON >= amountIn, "amountIn over");
         }
 
-        console.log("1");
         address poolAddress = LibPublicSaleVault.getPoolAddress(ton,tos);
-        console.log("WETH-TOS PoolAddress :",poolAddress);
+        // console.log("WETH-TOS PoolAddress :",poolAddress);
 
         (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
-        console.log("2");
         require(sqrtPriceX96 > 0, "pool not initial");
 
         int24 timeWeightedAverageTick = OracleLibrary.consult(poolAddress, 120);
-        console.logInt(timeWeightedAverageTick);
-        console.log("3");
         require(
             tick < LibPublicSaleVault.acceptMaxTick(timeWeightedAverageTick, 60, 2),
             "over changed tick range."
@@ -317,7 +314,6 @@ contract L2PublicSaleVault is
 
         (uint256 amountOutMinimum, , uint160 sqrtPriceLimitX96)
             = LibPublicSaleVault.limitPrameters(amountIn, poolAddress, ton, tos, manageInfos.changeTick);
-        console.log("4");
 
         (,bytes memory result) = address(quoter).call(
             abi.encodeWithSignature(
@@ -325,25 +321,21 @@ contract L2PublicSaleVault is
                 ton,tos,poolFee,amountIn,0
             )
         );
-        console.log("5");
         uint256 amountOutMinimum2 = parseRevertReason(result);
-        console.log("6");
         amountOutMinimum2 = amountOutMinimum2 * 995 / 1000; //slippage 0.5% apply
 
         //quoter 값이 더 크다면 quoter값이 minimum값으로 사용됨
         //quoter 값이 더 작으면 priceImpact가 더크게 작용하니 거래는 실패해야함
 
-        console.log("amountOutMinimum :", amountOutMinimum);
-        console.log("amountOutMinimum2 ", amountOutMinimum2);
-        console.log("7");
+        // console.log("amountOutMinimum :", amountOutMinimum);
+        // console.log("amountOutMinimum2 ", amountOutMinimum2);
+
         require(amountOutMinimum2 >= amountOutMinimum, "priceImpact over");
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
         manageInfos.remainTON = manageInfos.remainTON - _amountIn;
         
         _WETH.deposit{value: _amountIn}();
-
-        console.log("8");
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: ton,
@@ -355,7 +347,6 @@ contract L2PublicSaleVault is
                 amountOutMinimum: amountOutMinimum2,
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
-        console.log("9");
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
         // (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
 
