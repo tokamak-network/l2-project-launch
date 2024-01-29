@@ -17,6 +17,7 @@ import { time, setBalance } from "@nomicfoundation/hardhat-network-helpers";
 
 import l2PublicSaleJson from "../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
 import l2PublicSaleProxyJson from "../artifacts/contracts/L2/vaults/L2PublicSaleProxy.sol/L2PublicSaleProxy.json";
+import l1BurnVaultJson from "../artifacts/contracts/L1/L1BurnVault.sol/L1BurnVault.json";
 
 const Web3EthAbi = require('web3-eth-abi');
 const TON_ABI = require("../abis/TON.json");
@@ -632,6 +633,10 @@ describe('L2TokenFactory', () => {
             let impCheck = await l1BurnVaultProxyContract.implementation();
             expect(impCheck).to.be.equal(l1BurnVaultlogicContract.address)
         }) 
+
+        it("set L1BurnVaultLogic", async () => {
+            l1BurnVaultlogicContract = await ethers.getContractAt(l1BurnVaultJson.abi, l1BurnVaultProxyContract.address, deployer); 
+        })
     })
 
     describe("# set LYDA", () => {
@@ -2032,7 +2037,11 @@ describe('L2TokenFactory', () => {
         })
     })
 
-    describe("depositWithdraw (execute to funding)", () => {
+    describe("depositWithdraw (execute to funding) + L1BurnVault", () => {
+        it("check the L1BurnVault", async () => {
+            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.equal(0);
+        })
+
         it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
             expect(await provider.getBalance(deployed.l2VestingFundProxy.address)).to.be.equal(0)
             await deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(erc20Atoken.address);
@@ -2041,6 +2050,16 @@ describe('L2TokenFactory', () => {
             let liquidityTON = await deployed.l2PublicProxyLogic.hardcapCalcul(erc20Atoken.address)
             let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
             expect(await provider.getBalance(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
+        })
+
+        it("get token the L1BurnVault", async () => {
+            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.gt(0);
+        })
+
+        it("L1BurnVault can burn", async () => {
+            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.gt(0);
+            await l1BurnVaultlogicContract.connect(addr5).tokenBurn(erc20Atoken.address);
+            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.equal(0);
         })
     })
 
