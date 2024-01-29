@@ -163,10 +163,10 @@ contract L2VestingFundVault is
     }
 
     function funding(
-        address _l2Token,
-        uint256 amount
+        address _l2Token
     )
         external
+        payable
         onlyL2PublicSale
     {
         // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
@@ -174,11 +174,12 @@ contract L2VestingFundVault is
         require(info.totalClaimCount != 0, "set up a claim round for vesting");
 
         require(msg.sender == publicSaleVault, "caller is not publicSaleVault.");
-        require(IERC20(tonToken).allowance(publicSaleVault, address(this)) >= amount, "funding: insufficient allowance");
-        totalAllocatedAmount[_l2Token] += amount;
-        IERC20(tonToken).transferFrom(publicSaleVault, address(this), amount);
+        // require(IERC20(tonToken).allowance(publicSaleVault, address(this)) >= amount, "funding: insufficient allowance");
+        totalAllocatedAmount[_l2Token] += msg.value;
 
-        emit Funded(msg.sender, amount);
+        // IERC20(tonToken).transferFrom(publicSaleVault, address(this), amount);
+
+        emit Funded(msg.sender, msg.value);
 
         uint256 curRound = currentRound(_l2Token);
 
