@@ -2032,6 +2032,17 @@ describe('L2TokenFactory', () => {
         })
     })
 
-    
+    describe("depositWithdraw (execute to funding)", () => {
+        it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
+            expect(await provider.getBalance(deployed.l2VestingFundProxy.address)).to.be.equal(0)
+            await deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(erc20Atoken.address);
+            let round1TONAmount = await deployed.l2PublicProxyLogic.saleInfo(erc20Atoken.address);
+            let round2TONAmount = await deployed.l2PublicProxyLogic.totalOpenPurchasedAmount(erc20Atoken.address)
+            let liquidityTON = await deployed.l2PublicProxyLogic.hardcapCalcul(erc20Atoken.address)
+            let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
+            expect(await provider.getBalance(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
+        })
+    })
+
 });
 
