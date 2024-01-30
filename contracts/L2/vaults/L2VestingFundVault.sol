@@ -135,6 +135,7 @@ contract L2VestingFundVault is
         address _l2Token
     )
         public
+        payable
     {
         // require(currentSqrtPriceX96(_l2Token) != 0, "pool's current sqrtPriceX96 is zero.");
         LibVestingFundVault.VaultInfo memory info = vaultInfo[_l2Token];
@@ -151,13 +152,14 @@ contract L2VestingFundVault is
         uint256 curRound = currentRound(_l2Token);
         uint256 amount = calculClaimAmount(_l2Token);
         require(amount > 0, "claimable amount is zero");
-        require(IERC20(tonToken).balanceOf(address(this)) >= amount,"Vault: insufficient balance");
+        require(address(this).balance >= amount,"Vault: insufficient balance");
         require(remainAmount(_l2Token) >= amount,"Vault: over remain balance");
 
         nowClaimRound[_l2Token] = curRound;
         totalClaimsAmount[_l2Token] = totalClaimsAmount[_l2Token] + amount;
 
-        IERC20(tonToken).transfer(receivedAddress[_l2Token], amount);
+        // IERC20(tonToken).transfer(receivedAddress[_l2Token], amount);
+        payable(receivedAddress[_l2Token]).call{value: amount};
 
         emit Claimed(msg.sender, receivedAddress[_l2Token], amount);
     }
