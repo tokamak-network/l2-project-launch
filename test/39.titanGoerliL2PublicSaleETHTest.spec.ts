@@ -2063,5 +2063,50 @@ describe('L2TokenFactory', () => {
         })
     })
 
+    describe("L2VestingFundVault Test", () => {
+        it("check the L2VestingFundVault have TON", async () => {
+            expect(await provider.getBalance(deployed.l2VestingFundProxy.address)).to.be.gt(0);
+        })
+
+        it("check the calculClaimAmount before the time", async () => {
+            let check = await deployed.l2VestingFund.connect(l2ProjectManager).calculClaimAmount(erc20Atoken.address);
+            expect(check).to.be.equal(0);
+        })
+
+        it("claim revert", async () => {
+            let tx = deployed.l2VestingFund.connect(l2ProjectManager).claim(erc20Atoken.address)
+            await expect(tx).to.be.revertedWith("Vault: not started yet")
+        })
+
+        it("duration the time to period end", async () => {
+            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
+            await ethers.provider.send('evm_mine');
+        })
+
+        it("check the calculClaimAmount after the time", async () => {
+            let check = await deployed.l2VestingFund.connect(l2ProjectManager).calculClaimAmount(erc20Atoken.address);
+            expect(check).to.be.gt(0);
+        })
+
+        it("can claim after the Time", async () => {
+            let beforeAmount = await provider.getBalance(l2vaultAdminAddress);
+            console.log("beforeAmount : ", beforeAmount);
+
+            let beforeVaultAmount = await provider.getBalance(deployed.l2VestingFundProxy.address);
+            console.log("beforeVaultAmount : ", beforeVaultAmount);
+
+            await deployed.l2VestingFund.connect(l2ProjectManager).claim(erc20Atoken.address);
+
+            console.log("l2vaultAdminAddress :", l2vaultAdminAddress);
+            let afterAmount = await provider.getBalance(l2vaultAdminAddress);
+            console.log("afterAmount : ", afterAmount);
+
+            let afterVaultAmount = await provider.getBalance(deployed.l2VestingFundProxy.address);
+            console.log("afterVaultAmount : ", afterVaultAmount);
+
+            expect(afterAmount).to.be.gt(beforeAmount);
+        })
+    })
+
 });
 

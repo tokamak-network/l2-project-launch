@@ -1,12 +1,12 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.4;
 
-import "../../proxy/Proxy.sol";
+import "../../proxy/Proxy3.sol";
 import "./L2VestingFundVaultStorage.sol";
 
 // import "hardhat/console.sol";
 
-contract L2VestingFundVaultProxy is Proxy, L2VestingFundVaultStorage
+contract L2VestingFundVaultProxy is Proxy3, L2VestingFundVaultStorage
 {
     /* ========== DEPENDENCIES ========== */
 

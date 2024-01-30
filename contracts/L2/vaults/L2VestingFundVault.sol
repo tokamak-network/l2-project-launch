@@ -9,7 +9,7 @@ import { L2VestingFundVaultStorage } from "./L2VestingFundVaultStorage.sol";
 
 import { LibVestingFundVault } from "../../libraries/LibVestingFundVault.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface IIUniswapV3Pool {
     function slot0()
@@ -159,7 +159,9 @@ contract L2VestingFundVault is
         totalClaimsAmount[_l2Token] = totalClaimsAmount[_l2Token] + amount;
 
         // IERC20(tonToken).transfer(receivedAddress[_l2Token], amount);
-        payable(receivedAddress[_l2Token]).call{value: amount};
+        console.log(receivedAddress[_l2Token]);
+        (bool sent, ) = payable(receivedAddress[_l2Token]).call{value: amount}("");
+        require(sent, "Failed to send TON");
 
         emit Claimed(msg.sender, receivedAddress[_l2Token], amount);
     }
