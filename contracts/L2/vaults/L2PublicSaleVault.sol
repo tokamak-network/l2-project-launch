@@ -58,7 +58,6 @@ contract L2PublicSaleVault is
         uint8 tier = calculTier(_l2token,msg.sender);
         //if tier 0 is don't have sTOS
         require(tier >= 1, "need to more sTOS");
-        // LibPublicSale.UserInfoEx storage userEx = usersEx[msg.sender];
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
         
         require(user1rds.join != true, "already attended");
@@ -129,10 +128,6 @@ contract L2PublicSaleVault is
 
         saleInfos.total1rdTONAmount = saleInfos.total1rdTONAmount+(msg.value);
         saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
-
-        // console.log("msg.sender.balance :", msg.sender.balance);
-        // console.log("msg.sender :", msg.sender);
-        // console.log("msg.value :", msg.value);
 
         // require(msg.sender.balance >= msg.value, "Don't have TON");
         // payable(address(this)).transfer(msg.value);
@@ -233,11 +228,10 @@ contract L2PublicSaleVault is
             }
 
             if (refundAmount > 0 && userClaims.refundAmount == 0){
-                // require(refundAmount <= IERC20(ton).balanceOf(address(this)), "dont have refund ton");
                 require(refundAmount <= address(this).balance, "dont have refund ton");
                 userClaims.refundAmount = refundAmount;
-                // IERC20(ton).safeTransfer(msg.sender, refundAmount);
-                payable(msg.sender).call{value: refundAmount};
+                (bool sent, ) = payable(msg.sender).call{value: refundAmount}("");
+                require(sent, "claim refund fail");
 
                 emit Refunded(_l2token, msg.sender, refundAmount);
             }
@@ -263,12 +257,11 @@ contract L2PublicSaleVault is
 
         manageInfos.adminWithdraw = true;
         uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
-        console.log(burnAmount);
+
         if (burnAmount != 0) {
             IIL2ERC20Bridge(l2Bridge).withdrawTo(_l2token, l1burnVault, burnAmount, 0, '0x');
         }
         
-        // IERC20(ton).approve(address(vestingFund), getAmount + 10 ether);
         IIVestingPublicFundAction(vestingFund).funding{value: getAmount}(_l2token);
         
 
@@ -346,7 +339,6 @@ contract L2PublicSaleVault is
                 sqrtPriceLimitX96: sqrtPriceLimitX96
             });
         uint256 amountOut = ISwapRouter(uniswapRouter).exactInputSingle(params);
-        // (bool sucess, bytes memory data) = payable(uniswapRouter).call{value: _amountIn}(result);
 
         emit ExchangeSwap(l2token, msg.sender, _amountIn ,amountOut);
     }
@@ -557,15 +549,6 @@ contract L2PublicSaleVault is
             round = (block.timestamp - claimInfos.secondClaimTime) / claimInfos.claimInterval + 2;
         }
         if (round > claimInfos.totalClaimCounts) round = claimInfos.totalClaimCounts;
-
-        // if (block.timestamp >= claimTimes[_l2token][claimInfos.totalClaimCounts-1]) {
-        //     return claimInfos.totalClaimCounts;
-        // }
-        // for (uint256 i = 0; i < claimInfos.totalClaimCounts; i++) {
-        //     if (block.timestamp < claimTimes[_l2token][i]) {
-        //         return i;
-        //     }
-        // }
     }
 
     function calculClaimAmount(
@@ -611,19 +594,6 @@ contract L2PublicSaleVault is
             amount = (amount + ((realSaleAmount - amount)/(claimInfos.totalClaimCounts-1) * (_round -1))) - userClaims.claimAmount;
             return (amount, realSaleAmount, refundAmount);
         }
-
-        // if(_round == 0) {
-        //     amount = realSaleAmount*(claimPercents[_l2token][(round-1)])/(10000);
-        //     amount = amount-(userClaims.claimAmount);
-        //     return (amount, realSaleAmount, refundAmount);
-        // } else if(_round == 1) {
-        //     amount = realSaleAmount*(claimPercents[_l2token][0])/(10000);
-        //     return (amount, realSaleAmount, refundAmount);
-        // } else {
-        //     uint256 roundPercent = claimPercents[_l2token][_round-(1)]-(claimPercents[_l2token][_round-(2)]);
-        //     amount = realSaleAmount*(roundPercent)/(10000);
-        //     return (amount, realSaleAmount, refundAmount);
-        // }
     }
 
     function totalSaleUserAmount(

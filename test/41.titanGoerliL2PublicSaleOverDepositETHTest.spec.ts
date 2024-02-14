@@ -180,9 +180,10 @@ describe('L2TokenFactory', () => {
     // let contractHaveTON = ethers.utils.parseUnits("10000", 18);
 
     //change logic
-    let contractHaveTON = ethers.utils.parseUnits("9998", 18);
+    let contractHaveTON = ethers.utils.parseUnits("10000", 18);
 
-    let refundTONAmount = ethers.utils.parseUnits("1000", 18);
+    let refundTONAmount = ethers.utils.parseUnits("9996", 17);
+    let realPayRound2Amount = ethers.utils.parseUnits("10004", 17);
 
     let publicSaleParams: any;
 
@@ -191,7 +192,7 @@ describe('L2TokenFactory', () => {
     let fundClaimPercent2 = 70;
     let fundClaimPercent3 = 100;
 
-    let sendether = "0xBDBC41E0348B300000"
+    let sendether = "0xF3F20B8DFA69D00000"
 
     let transferTON = ethers.utils.parseUnits("3500", 18);
 
@@ -294,12 +295,12 @@ describe('L2TokenFactory', () => {
 
         await setBalance(
             addr4Address,
-            ethers.utils.parseEther("3500")
+            ethers.utils.parseEther("4500")
         )
 
         await setBalance(
             addr5Address,
-            ethers.utils.parseEther("3500")
+            ethers.utils.parseEther("4500")
         )
         console.log("addr1Address : ",addr1Address);
         console.log("addr2Address : ",addr2Address);
@@ -1710,7 +1711,7 @@ describe('L2TokenFactory', () => {
                 round1addr5Amount = ethers.utils.parseUnits("1500", 18);
 
                 //change logic amount
-                round1addr1Amount = ethers.utils.parseUnits("60", 18);
+                round1addr1Amount = ethers.utils.parseUnits("60", 18); 
                 round1addr2Amount = ethers.utils.parseUnits("210", 18);
                 round1addr3Amount = ethers.utils.parseUnits("576", 18);
                 round1addr4Amount = ethers.utils.parseUnits("2076", 18);
@@ -1758,8 +1759,7 @@ describe('L2TokenFactory', () => {
 
         describe("# round2 Sale", () => {
             it("can not attend before round2 startTime", async () => {
-                round2Amount = ethers.utils.parseUnits("1000", 18);
-                // await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
+                round2Amount = ethers.utils.parseUnits("2000", 18);
                 let tx = deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,{value: round2Amount})
                 await expect(tx).to.be.revertedWith("not depositTime")
             })
@@ -1777,12 +1777,6 @@ describe('L2TokenFactory', () => {
             })
 
             it("can round2Sale after round2Sale StartTime", async () => {
-                // await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
-                // await tonContract.connect(addr2).approve(deployed.l2PublicProxy.address, round2Amount)
-                // await tonContract.connect(addr3).approve(deployed.l2PublicProxy.address, round2Amount)
-                // await tonContract.connect(addr4).approve(deployed.l2PublicProxy.address, round2Amount)
-                // await tonContract.connect(addr5).approve(deployed.l2PublicProxy.address, round2Amount)
-
                 await deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,{ value: round2Amount })
                 await deployed.l2PublicProxyLogic.connect(addr2).round2Sale(erc20Atoken.address,{ value: round2Amount })
                 await deployed.l2PublicProxyLogic.connect(addr3).round2Sale(erc20Atoken.address,{ value: round2Amount })
@@ -1827,19 +1821,19 @@ describe('L2TokenFactory', () => {
                 let addr4round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr4Address)
                 let addr5round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr5Address)
 
-                let calcultokenAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,round2Amount);
+                let calcultokenAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,realPayRound2Amount);
 
-                expect(addr1round2Amount._refundAmount).to.be.equal(0)
-                expect(addr2round2Amount._refundAmount).to.be.equal(0)
-                expect(addr3round2Amount._refundAmount).to.be.equal(0)
-                expect(addr4round2Amount._refundAmount).to.be.equal(0)
-                expect(addr5round2Amount._refundAmount).to.be.equal(0)
+                expect(addr1round2Amount._refundAmount).to.be.equal(refundTONAmount)
+                expect(addr2round2Amount._refundAmount).to.be.equal(refundTONAmount)
+                expect(addr3round2Amount._refundAmount).to.be.equal(refundTONAmount)
+                expect(addr4round2Amount._refundAmount).to.be.equal(refundTONAmount)
+                expect(addr5round2Amount._refundAmount).to.be.equal(refundTONAmount)
 
-                expect(addr1round2Amount._realPayAmount).to.be.equal(round2Amount)
-                expect(addr2round2Amount._realPayAmount).to.be.equal(round2Amount)
-                expect(addr3round2Amount._realPayAmount).to.be.equal(round2Amount)
-                expect(addr4round2Amount._realPayAmount).to.be.equal(round2Amount)
-                expect(addr5round2Amount._realPayAmount).to.be.equal(round2Amount)
+                expect(addr1round2Amount._realPayAmount).to.be.equal(realPayRound2Amount)
+                expect(addr2round2Amount._realPayAmount).to.be.equal(realPayRound2Amount)
+                expect(addr3round2Amount._realPayAmount).to.be.equal(realPayRound2Amount)
+                expect(addr4round2Amount._realPayAmount).to.be.equal(realPayRound2Amount)
+                expect(addr5round2Amount._realPayAmount).to.be.equal(realPayRound2Amount)
 
                 expect(addr1round2Amount._realSaleAmount).to.be.equal(calcultokenAmount)
                 expect(addr2round2Amount._realSaleAmount).to.be.equal(calcultokenAmount)
@@ -1872,8 +1866,9 @@ describe('L2TokenFactory', () => {
                     addr1Address,
                     0
                 )
-                console.log("calculAmount :", tx);
-
+                expect(tx._reward).to.be.equal(0)
+                expect(tx._totalClaim).to.be.equal(0)
+                expect(tx._refundAmount).to.be.equal(0)
             })
             it("claim fail before claimTime1", async () => {
                 let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address)
@@ -1988,7 +1983,6 @@ describe('L2TokenFactory', () => {
             })
 
             it("PublicSale have TON for saleToken", async () => {
-                // expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
                 console.log(await provider.getBalance(deployed.l2PublicProxy.address));
                 expect(await provider.getBalance(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
             })
@@ -2053,12 +2047,6 @@ describe('L2TokenFactory', () => {
         })
 
         it("get token the L1BurnVault", async () => {
-            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.gt(0);
-        })
-
-        it("L1BurnVault can burn", async () => {
-            expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.gt(0);
-            await l1BurnVaultlogicContract.connect(addr5).tokenBurn(erc20Atoken.address);
             expect(await erc20Atoken.balanceOf(l1BurnVaultProxyContract.address)).to.be.equal(0);
         })
     })
