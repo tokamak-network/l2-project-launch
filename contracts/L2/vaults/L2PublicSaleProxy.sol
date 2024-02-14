@@ -175,6 +175,26 @@ contract L2PublicSaleProxy is
         external
         onlyVaultAdminOfToken(_l2token)
     {
+         require(
+            (params.startWhiteTime < params.endWhiteTime) &&
+            (params.endWhiteTime < params.start1roundTime) &&
+            (params.start1roundTime < params.end1roundTime) &&
+            (params.end1roundTime < params.start2roundTime) &&
+            (params.start2roundTime < params.end2roundTime),
+            "RoundTime err"
+        );
+
+        require(
+            (params.end2roundTime < params2.firstClaimTime) &&
+            (params2.firstClaimTime < params2.secondClaimTime),
+            "claimTime err"
+        );
+
+        require(
+            (params.end2roundTime < params3.firstClaimTime) &&
+            (params3.firstClaimTime < params3.secondClaimTime),
+            "VestingClaimTime err"
+        );
 
         setTier(
             _l2token,
@@ -263,6 +283,14 @@ contract L2PublicSaleProxy is
         if(tiers[_l2token][1] != 0) {
             require(isL2ProjectManager(), "only DAO");
         }
+        require(
+            (stanTier1 <= _tier1) &&
+            (stanTier2 <= _tier2) &&
+            (stanTier3 <= _tier3) &&
+            (stanTier4 <= _tier4),
+            "Tier set error"
+        );
+
         tiers[_l2token][1] = _tier1;
         tiers[_l2token][2] = _tier2;
         tiers[_l2token][3] = _tier3;
@@ -354,12 +382,12 @@ contract L2PublicSaleProxy is
         beforeStartAddWhiteTime(_l2token)
     {
         LibPublicSaleVault.TokenTimeManage storage timeInfos = timeInfo[_l2token];
-        require(
-            (_startAddWhiteTime < _endAddWhiteTime) &&
-            (_endAddWhiteTime < _startExclusiveTime) &&
-            (_startExclusiveTime < _endExclusiveTime),
-            "RoundTime err"
-        );
+        // require(
+        //     (_startAddWhiteTime < _endAddWhiteTime) &&
+        //     (_endAddWhiteTime < _startExclusiveTime) &&
+        //     (_startExclusiveTime < _endExclusiveTime),
+        //     "RoundTime err"
+        // );
 
         if(timeInfos.deployTime != 0) {
             require(isL2ProjectManager(), "only DAO");
@@ -395,10 +423,10 @@ contract L2PublicSaleProxy is
             require(isL2ProjectManager(), "only DAO");
         }
 
-        require(
-            (_startDepositTime < _endDepositTime),
-            "Round2time err"
-        );
+        // require(
+        //     (_startDepositTime < _endDepositTime),
+        //     "Round2time err"
+        // );
 
         timeInfos.snapshot = _snapshot;
         timeInfos.round2StartTime = _startDepositTime;
@@ -419,8 +447,8 @@ contract L2PublicSaleProxy is
         beforeStartAddWhiteTime(_l2token)
     {
         LibPublicSaleVault.TokenSaleClaim storage claimInfos = claimInfo[_l2token];
-        require(_firstClaimTime > block.number, "first claim time passed");
-        require(_firstClaimTime != 0, "firstclaimTime value err");
+        // require(_firstClaimTime != 0, "firstclaimTime value err");
+        // require(_firstClaimTime > block.number, "first claim time passed");
         if(claimInfos.totalClaimCounts != 0) {
             require(isL2ProjectManager(), "only DAO");
         }
