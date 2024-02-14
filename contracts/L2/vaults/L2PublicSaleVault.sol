@@ -197,18 +197,16 @@ contract L2PublicSaleVault is
         LibPublicSaleVault.UserClaim storage userClaims = userClaim[_l2token][msg.sender];
         uint256 hardcapcut = hardcapCalcul(_l2token);
         if (hardcapcut == 0) {
-            //hardcap을 넘지 못하였을 때
             require(userClaims.refund != true, "already getRefund");
             LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
             uint256 refundTON = user1rds.payAmount+(user2rds.depositAmount);
             userClaims.refund = true;
             userClaims.refundAmount = refundTON;
-            payable(msg.sender).call{value: refundTON};
-            // IERC20(ton).safeTransfer(msg.sender, refundTON);
+            (bool sent, ) = payable(msg.sender).call{value: refundTON}("");
+            require(sent, "claim refund fail");
 
             emit Refunded(_l2token, msg.sender, refundTON);
         } else {
-            //hardcap을 넘었을때
             (uint256 reward, uint256 realSaleAmount, uint256 refundAmount) = calculClaimAmount(_l2token, msg.sender, 0);
             require(
                 realSaleAmount > 0,
