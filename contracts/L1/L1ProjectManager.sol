@@ -239,7 +239,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             totalAllocatedAmount += custom1TotalAmount;
         }
 
-        if(customScheduleVaults.length != 0){
+        if(customNonScheduleVaults.length != 0){
             (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
             require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
             totalAllocatedAmount += custom2TotalAmount;
@@ -330,7 +330,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             totalAllocatedAmount += custom1TotalAmount;
         }
 
-        if(customScheduleVaults.length != 0){
+        if(customNonScheduleVaults.length != 0){
             (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
             require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
             totalAllocatedAmount += custom2TotalAmount;
