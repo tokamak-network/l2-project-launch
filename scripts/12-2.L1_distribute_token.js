@@ -34,18 +34,18 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test8',
-    tokenName: 'Test8',
-    tokenSymbol: 'T8T',
+    projectName: 'Test9',
+    tokenName: 'Test9',
+    tokenSymbol: 'T9T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("77");
+let projectId = ethers.BigNumber.from("78");
 
-const L2Token = "0x1e48c81F4bA2997835370241dD4259e2dd42f8d9"
+const L2Token = "0xB3DEA65cE777Df54CAf6D8C9A1Ac38b29510ee39"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -221,7 +221,7 @@ async function main() {
     }
     let rewardProjectTosPoolParams = {
         poolParams: {
-            token0: '0xd13Aec6F1985B71cCE630453331A68734c056706',
+            token0: L2Token,
             token1: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
             fee: 3000
         },
