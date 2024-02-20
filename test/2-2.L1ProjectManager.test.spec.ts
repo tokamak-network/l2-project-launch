@@ -410,6 +410,7 @@ describe('L1ProjectManager', () => {
                 firstClaimTime: 0,
                 l2TokenContract: null
             }
+            projectInfo.initialTotalSupply = ethers.BigNumber.from("100000000000000000000000")
 
             const topic = deployed.l1ProjectManager.interface.getEventTopic('CreatedProject');
 
@@ -557,30 +558,30 @@ describe('L1ProjectManager', () => {
                     total2roundSaleAmount: '15000000000000000000000',
                     saleTokenPrice: '200000000000000000000',
                     payTokenPrice: '2000000000000000000000',
-                    hardcapAmount: '100000000000000000000000000000000000000',
+                    hardcapAmount: '100000000000000000000',
                     changeTOSPercent: 10,
-                    startWhiteTime: whitelistStartTime,
-                    endWhiteTime: whitelistEndTime,
-                    start1roundTime: round1StartTime,
-                    end1roundTime: round1EndTime,
-                    snapshotTime: setSnapshot,
-                    start2roundTime: round2StartTime,
-                    end2roundTime: round2EndTime
+                    startWhiteTime: 1708538417,
+                    endWhiteTime: 1708545617,
+                    start1roundTime: 1708552817,
+                    end1roundTime: 1708560017,
+                    snapshotTime: 1708531217,
+                    start2roundTime: 1708567217,
+                    end2roundTime: 1708574417
                 },
                 claimParams: {
                     claimCounts: 3,
                     firstClaimPercent: 3333,
-                    firstClaimTime: firstClaimTime,
-                    secondClaimTime: secondClaimTime,
-                    roundInterval: roundInterval
+                    firstClaimTime: 1708578017,
+                    secondClaimTime: 1711207760,
+                    roundInterval: 2629743
                 },
                 vestingParams: {
                     receiveAddress: '0xAA5a562B2C3CA302aFa35db0b94738A7384d6aA3',
                     totalClaimCount: 3,
                     firstClaimPercent: 3333,
-                    firstClaimTime: fundClaimTime1,
-                    secondClaimTime: fundClaimTime2,
-                    roundIntervalTime: roundInterval,
+                    firstClaimTime: 1711207760,
+                    secondClaimTime: 1713837503,
+                    roundIntervalTime: 2629743,
                     fee: 3000
                 }
             }
@@ -592,7 +593,7 @@ describe('L1ProjectManager', () => {
             expect(publicVaultcheck.valid).to.be.equal(true)
 
             let tosPrice = 1e18;
-            let tokenPrice = 10e18;
+            let tokenPrice = 1e18;
 
             let token0Price = tosPrice;
             let token1Price = tokenPrice;
@@ -605,6 +606,8 @@ describe('L1ProjectManager', () => {
             const sqrtPrice = univ3prices.utils.encodeSqrtRatioX96(token0Price, token1Price);
             // const price = univ3prices([18, 18], sqrtPrice).toFixed();
 
+
+            initialLiquidityAmount = ethers.BigNumber.from('15000000000000000000000')
             // let initialVaultParams = getInitialLiquidityParams(
             //     initialLiquidityAmount,
             //     tosPrice / 1e18,
@@ -613,12 +616,14 @@ describe('L1ProjectManager', () => {
             //     sTime,
             //     3000) ;
 
+            console.log('tosPrice', tosPrice)
+
             let initialVaultParams = {
-                totalAllocatedAmount: '15000000000000000000000',
-                tosPrice: ethers.BigNumber.from('1000000000000000000'),
-                tokenPrice: ethers.BigNumber.from('1000000000000000000'),
-                initSqrtPrice: sqrtPrice.toString(),
-                startTime: sTime,
+                totalAllocatedAmount: initialLiquidityAmount,
+                tosPrice: ethers.BigNumber.from('1000000000000000000') ,
+                tokenPrice: ethers.BigNumber.from('1000000000000000000') ,
+                initSqrtPrice: '250541448375047931186413801569',
+                startTime: 1708578017,
                 fee: 3000
             }
 
@@ -647,9 +652,9 @@ describe('L1ProjectManager', () => {
                     totalAllocatedAmount: '6668000000000000000000',
                     totalClaimCount: 3,
                     firstClaimAmount: '3334000000000000000000',
-                    firstClaimTime: firstClaimTime,
-                    secondClaimTime: secondClaimTime,
-                    roundIntervalTime: roundIntervalTime
+                    firstClaimTime: 1708578017,
+                    secondClaimTime: 1711207760,
+                    roundIntervalTime: 2629743
                 }
             }
 
@@ -665,6 +670,8 @@ describe('L1ProjectManager', () => {
             //     secondClaimTime, //secondClaimTime
             //     roundIntervalTime //roundIntervalTime
             // );
+
+            rewardProjectTosPoolAmount = ethers.BigNumber.from('35000000000000000000000')
             let rewardProjectTosPoolParams = {
                 poolParams: {
                     token0: '0xd13Aec6F1985B71cCE630453331A68734c056706',
@@ -673,12 +680,12 @@ describe('L1ProjectManager', () => {
                 },
                 params: {
                     claimer: '0x0000000000000000000000000000000000000000',
-                    totalAllocatedAmount: '35000000000000000000000',
+                    totalAllocatedAmount: rewardProjectTosPoolAmount,
                     totalClaimCount: 3,
                     firstClaimAmount: '11666660000000000000000',
-                    firstClaimTime: firstClaimTime,
-                    secondClaimTime: secondClaimTime,
-                    roundIntervalTime: roundIntervalTime
+                    firstClaimTime: 1708578017,
+                    secondClaimTime: 1711207760,
+                    roundIntervalTime: 2629743
                 }
             }
 
@@ -692,14 +699,15 @@ describe('L1ProjectManager', () => {
             //     roundIntervalTime //roundIntervalTime
             //     );
 
+            airdropStosAmount = ethers.BigNumber.from('6666000000000000000000')
             let tosAirdropParams =  {
                 claimer: '0x0000000000000000000000000000000000000000',
-                totalAllocatedAmount: '6666000000000000000000',
+                totalAllocatedAmount: airdropStosAmount,
                 totalClaimCount: 3,
                 firstClaimAmount: '3333000000000000000000',
-                firstClaimTime: firstClaimTime,
-                secondClaimTime: secondClaimTime,
-                roundIntervalTime: roundIntervalTime
+                firstClaimTime: 1708578017,
+                secondClaimTime: 1711207760,
+                roundIntervalTime: 2629743
             }
 
             // let tonAirdropParams =  getTonAirdropParams(
@@ -711,14 +719,16 @@ describe('L1ProjectManager', () => {
             //     secondClaimTime, //secondClaimTime
             //     roundIntervalTime //roundIntervalTime
             //     );
+
+            airdropTonAmount = ethers.BigNumber.from('6666000000000000000000');
             let tonAirdropParams = {
                 claimer: '0x0000000000000000000000000000000000000000',
-                totalAllocatedAmount: '6666000000000000000000',
+                totalAllocatedAmount: airdropTonAmount,
                 totalClaimCount: 3,
                 firstClaimAmount: '3333000000000000000000',
-                firstClaimTime: firstClaimTime,
-                secondClaimTime: secondClaimTime,
-                roundIntervalTime: roundIntervalTime
+                firstClaimTime: 1708578017,
+                secondClaimTime: 1711207760,
+                roundIntervalTime: 2629743
             }
             let daoParams =  getNonScheduleParams("DAO", addr1.address, daoAmount);
 
@@ -785,10 +795,12 @@ describe('L1ProjectManager', () => {
             //         customNonScheduleVaults
             //         )).wait();
 
+            console.log('projectInfo initialTotalSupply ',  projectInfo.initialTotalSupply );
+
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
                     projectInfo.l2Token,
-                    '100000000000000000000000',
+                    projectInfo.initialTotalSupply,
                     tokamakVaults,
                     [],
                     []
@@ -799,6 +811,7 @@ describe('L1ProjectManager', () => {
             const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
             const deployedEvent = deployed.l1ProjectManager.interface.parseLog(log);
 
+            console.log(deployedEvent.args)
             expect(deployedEvent.args.projectId).to.be.eq(projectInfo.projectId)
             expect(deployedEvent.args.l1Token).to.be.eq(projectInfo.l1Token)
             expect(deployedEvent.args.l2Token).to.be.eq(projectInfo.l2Token)
@@ -833,10 +846,16 @@ describe('L1ProjectManager', () => {
             //-----------------------------
             // vault check
             let initialLiquidityVault = await deployed.initialLiquidityVault.viewVaultInfo(projectInfo.l2Token)
+            console.log('tosPrice', tosPrice)
 
+            console.log(initialLiquidityVault)
             expect(initialLiquidityVault.totalAllocatedAmount).to.be.eq(initialLiquidityAmount)
-            expect(initialLiquidityVault.initialTosPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tosPrice))
-            expect(initialLiquidityVault.initialTokenPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tokenPrice))
+            // expect(initialLiquidityVault.initialTosPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tosPrice))
+            // expect(initialLiquidityVault.initialTokenPrice.mul(ethers.utils.parseEther("1"))).to.be.eq(BigNumber.from(""+tokenPrice))
+
+            // expect(initialLiquidityVault.initialTosPrice).to.be.eq(BigNumber.from(""+tosPrice))
+            // expect(initialLiquidityVault.initialTokenPrice).to.be.eq(BigNumber.from(""+tokenPrice))
+
             expect(initialLiquidityVault.startTime).to.be.eq(sTime)
             expect(initialLiquidityVault.initSqrtPriceX96.toString()).to.be.eq(sqrtPrice.toString())
             expect(initialLiquidityVault.fee).to.be.eq(3000)

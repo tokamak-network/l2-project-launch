@@ -13,6 +13,7 @@ const {
   addressManager,
   tonAddrs } = require("./common_func");
 
+
 const ERC20AJson = require("./abi/ERC20A.json")
 // Global variable because we need them almost everywhere
 let ourAddr               // The address of the signer we use.
@@ -23,11 +24,11 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("400000"),
+    initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test7',
-    tokenName: 'Test7',
-    tokenSymbol: 'T7T',
+    projectName: 'Test8',
+    tokenName: 'Test8',
+    tokenSymbol: 'T8T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,

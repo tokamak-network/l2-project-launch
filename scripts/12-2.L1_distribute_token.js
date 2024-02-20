@@ -43,9 +43,9 @@ projectInfo = {
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("4");
+let projectId = ethers.BigNumber.from("77");
 
-const L2Token = "0x3A1a171065Af2C8D52dbcf7be47177e9e8110160"
+const L2Token = "0x1e48c81F4bA2997835370241dD4259e2dd42f8d9"
 const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
 const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
 
@@ -87,37 +87,36 @@ async function main() {
     // test vaults :
     // initialLiquidityVault, tontosReward, prokectTokenTosReward, DAO,
     // Team, Marketing , airdropStos, airdropTon
-    let vaultCount = BigNumber.from("8")
+    let vaultCount = BigNumber.from("10")
 
-    let initialLiquidityAmount = ethers.utils.BigNumber("15000000000000000000000")
-    let rewardTonTosPoolAmount = ethers.utils.BigNumber("6668000000000000000000")
-    let rewardProjectTosPoolAmount = ethers.utils.BigNumber("35000000000000000000000")
-    let daoAmount = initialLiquidityAmount
-    let teamAmount = initialLiquidityAmount
-    let marketingAmount = initialLiquidityAmount
-    let airdropStosAmount = ethers.utils.BigNumber("6666000000000000000000")
-    let airdropTonAmount = ethers.utils.BigNumber("6666000000000000000000")
-    let publisSaleAmount = ethers.utils.BigNumber("15000000000000000000000")
-
+    let initialLiquidityAmount = ethers.BigNumber.from("15000000000000000000000")
+    let rewardTonTosPoolAmount = ethers.BigNumber.from("6668000000000000000000")
+    let rewardProjectTosPoolAmount = ethers.BigNumber.from("35000000000000000000000")
+    let daoAmount = ethers.BigNumber.from("0")
+    let teamAmount = ethers.BigNumber.from("0")
+    let marketingAmount = ethers.BigNumber.from("0")
+    let airdropStosAmount = ethers.BigNumber.from("6666000000000000000000")
+    let airdropTonAmount = ethers.BigNumber.from("6666000000000000000000")
+    let publisSaleAmount = ethers.BigNumber.from("30000000000000000000000")
 
     let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
     const block = await l1Signer.provider.getBlock('latest')
 
-    const setSnapshot = block.timestamp + (60*60*7);
-    const whitelistStartTime = setSnapshot + 400;
-    const whitelistEndTime = whitelistStartTime + (86400*7);
-    const round1StartTime = whitelistEndTime + 1;
-    const round1EndTime = round1StartTime + (86400*7);
-    const round2StartTime = round1EndTime + 1;
-    const round2EndTime = round2StartTime + (86400*7);
+    const setSnapshot = 1708531217;
+    const whitelistStartTime = 1708538417;
+    const whitelistEndTime = 1708545617;
+    const round1StartTime = 1708552817;
+    const round1EndTime = 1708560017;
+    const round2StartTime = 1708567217;
+    const round2EndTime = 1708574417;
 
-    const firstClaimTime = round2EndTime + (86400 * 20);
-    let totalClaimCount = BigNumber.from("4")
+    const firstClaimTime = 1708578017;
+    let totalClaimCount = BigNumber.from("3")
     let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
-    let roundIntervalTime = 60*60*24*7;
-    let secondClaimTime =  firstClaimTime + roundIntervalTime
-    const fundClaimTime1 = secondClaimTime + 3000
-    const fundClaimTime2 = fundClaimTime1 + 100
+    let roundIntervalTime = 2629743;
+    let secondClaimTime =  1711207760
+    const fundClaimTime1 = 1711207760
+    const fundClaimTime2 = 1713837503
     let changeTOS = 10;
     let firstClaimPercent = 4000;
     let roundInterval = 600;      //1분
@@ -130,33 +129,52 @@ async function main() {
     // let roundIntervalTime = 60*60*24*7;
     // let secondClaimTime =  firstClaimTime + roundIntervalTime
 
-    let publicSaleParams =  getPublicSaleParams (
-                [100,200,1000,4000], //tier
-                [600,1200,2200,6000], // percentage
-                [ethers.BigNumber.from("0"),ethers.BigNumber.from("0")], //amount
-                [200,2000], // price saleTokenPrice, payTokenPrice
-                100*1e18, //hardcapAmount
-                changeTOS, //changeTOSPercent
-                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot, round2StartTime,round2EndTime], //times
-                totalClaimCount.toNumber(), //claimCounts
-                firstClaimPercent, //firstClaimPercent
-                firstClaimTime, //firstClaimTime
-                secondClaimTime, //secondClaimTime: number,
-                roundIntervalTime, //roundInterval: number,
-                ourAddr,  // receiveAddress,
-                4, // vestingClaimCounts: number,
-                firstClaimPercent, // vestingfirstClaimPercent: number,
-                fundClaimTime1, // vestingClaimTime1: number,
-                fundClaimTime2, // vestingClaimTime2: number,
-                roundInterval, // vestingRoundInterval: number,
-                fee, // fee: number
-        );
-
+    let publicSaleParams = {
+        vaultParams: {
+            stosTier1: '100000000000000000000',
+            stosTier2: '200000000000000000000',
+            stosTier3: '1000000000000000000000',
+            stosTier4: '4000000000000000000000',
+            tier1Percents: 2500,
+            tier2Percents: 2500,
+            tier3Percents: 2500,
+            tier4Percents: 2500,
+            total1roundSaleAmount: '15000000000000000000000',
+            total2roundSaleAmount: '15000000000000000000000',
+            saleTokenPrice: '200000000000000000000',
+            payTokenPrice: '2000000000000000000000',
+            hardcapAmount: '100000000000000000000',
+            changeTOSPercent: 10,
+            startWhiteTime: 1708538417,
+            endWhiteTime: 1708545617,
+            start1roundTime: 1708552817,
+            end1roundTime: 1708560017,
+            snapshotTime: 1708531217,
+            start2roundTime: 1708567217,
+            end2roundTime: 1708574417
+        },
+        claimParams: {
+            claimCounts: 3,
+            firstClaimPercent: 3333,
+            firstClaimTime: 1708578017,
+            secondClaimTime: 1711207760,
+            roundInterval: 2629743
+        },
+        vestingParams: {
+            receiveAddress: '0xAA5a562B2C3CA302aFa35db0b94738A7384d6aA3',
+            totalClaimCount: 3,
+            firstClaimPercent: 3333,
+            firstClaimTime: 1711207760,
+            secondClaimTime: 1713837503,
+            roundIntervalTime: 2629743,
+            fee: 3000
+        }
+    }
      // console.log(publicSaleParams)
      let publicVaultcheck = await L1ProjectManager.validationPublicSaleVaults(
         publicSaleParams
     )
-    console.log(publicVaultcheck)
+    console.log(publicVaultcheck.valid)
 
     if(publicVaultcheck.valid == false) {
         console.log('validationPublicSaleVaults false')
@@ -164,7 +182,6 @@ async function main() {
 
         return;
     }
-
     let tosPrice = 1e18;
     let tokenPrice = 10e18;
 
@@ -176,81 +193,70 @@ async function main() {
         token1Price = tosPrice;
     }
     const sqrtPrice = univ3prices.utils.encodeSqrtRatioX96(token0Price, token1Price);
-    let initialVaultParams = getInitialLiquidityParams(
-        initialLiquidityAmount,
-        tosPrice / 1e18,
-        token1Price / 1e18,
-        sqrtPrice.toString(),
-        sTime,
-        3000) ;
 
-    let rewardTonTosPoolParams = getLpRewardParams(
-        ethers.constants.AddressZero,
-        L2TON,
-        L2TOS,
-        3000,
-        rewardTonTosPoolAmount,
-        totalClaimCount.toNumber(),
-        firstClaimAmount, //firstClaimAmount
-        firstClaimTime, //firstClaimTime
-        secondClaimTime, //secondClaimTime
-        roundIntervalTime //roundIntervalTime
-        );
-    let rewardProjectTosPoolParams = getLpRewardParams(
-        ethers.constants.AddressZero,
-        projectInfo.l2Token,
-        L2TOS,
-        3000,
-        rewardProjectTosPoolAmount,
-        totalClaimCount.toNumber(),
-        firstClaimAmount, //firstClaimAmount
-        firstClaimTime, //firstClaimTime
-        secondClaimTime, //secondClaimTime
-        roundIntervalTime //roundIntervalTime
-    );
+    let initialVaultParams = {
+        totalAllocatedAmount: initialLiquidityAmount,
+        tosPrice: ethers.BigNumber.from('1000000000000000000') ,
+        tokenPrice: ethers.BigNumber.from('1000000000000000000') ,
+        initSqrtPrice: '250541448375047931186413801569',
+        startTime: 1708578017,
+        fee: 3000
+    }
 
-    let tosAirdropParams =  getTosAirdropParams(
-        ethers.constants.AddressZero,
-        airdropStosAmount,
-        totalClaimCount.toNumber(),
-        firstClaimAmount,
-        firstClaimTime,
-        secondClaimTime,
-        roundIntervalTime
-        );
+    let rewardTonTosPoolParams = {
+        poolParams: {
+            token0: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+            token1: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+            fee: 3000
+        },
+        params: {
+            claimer: '0x0000000000000000000000000000000000000000',
+            totalAllocatedAmount: '6668000000000000000000',
+            totalClaimCount: 3,
+            firstClaimAmount: '3334000000000000000000',
+            firstClaimTime: 1708578017,
+            secondClaimTime: 1711207760,
+            roundIntervalTime: 2629743
+        }
+    }
+    let rewardProjectTosPoolParams = {
+        poolParams: {
+            token0: '0xd13Aec6F1985B71cCE630453331A68734c056706',
+            token1: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+            fee: 3000
+        },
+        params: {
+            claimer: '0x0000000000000000000000000000000000000000',
+            totalAllocatedAmount: rewardProjectTosPoolAmount,
+            totalClaimCount: 3,
+            firstClaimAmount: '11666660000000000000000',
+            firstClaimTime: 1708578017,
+            secondClaimTime: 1711207760,
+            roundIntervalTime: 2629743
+        }
+    }
+    airdropStosAmount = ethers.BigNumber.from('6666000000000000000000')
 
-    let tonAirdropParams =  getTonAirdropParams(
-        ethers.constants.AddressZero,
-        airdropTonAmount,
-        totalClaimCount.toNumber(),
-        firstClaimAmount,
-        firstClaimTime,
-        secondClaimTime,
-        roundIntervalTime
-        );
+    let tosAirdropParams =  {
+        claimer: '0x0000000000000000000000000000000000000000',
+        totalAllocatedAmount: airdropStosAmount,
+        totalClaimCount: 3,
+        firstClaimAmount: '3333000000000000000000',
+        firstClaimTime: 1708578017,
+        secondClaimTime: 1711207760,
+        roundIntervalTime: 2629743
+    }
 
-    let daoParams =  getNonScheduleParams("DAO", ourAddr, daoAmount);
-    let teamParams =  getScheduleParams(
-        "TEAM",
-        ourAddr,
-        teamAmount, //totalAllocatedAmount
-        totalClaimCount.toNumber(), // totalClaimCount
-        firstClaimAmount, //firstClaimAmount
-        firstClaimTime, //firstClaimTime
-        secondClaimTime, //secondClaimTime
-        roundIntervalTime //roundIntervalTime
-        );
-
-    let marketingParams =  getScheduleParams(
-        "MARKETING",
-        ourAddr,
-        marketingAmount, //totalAllocatedAmount
-        totalClaimCount.toNumber(), // totalClaimCount 4
-        firstClaimAmount, //firstClaimAmount
-        firstClaimTime, //firstClaimTime
-        secondClaimTime, //secondClaimTime
-        roundIntervalTime //roundIntervalTime
-        );
+    airdropTonAmount = ethers.BigNumber.from('6666000000000000000000');
+    let tonAirdropParams = {
+        claimer: '0x0000000000000000000000000000000000000000',
+        totalAllocatedAmount: airdropTonAmount,
+        totalClaimCount: 3,
+        firstClaimAmount: '3333000000000000000000',
+        firstClaimTime: 1708578017,
+        secondClaimTime: 1711207760,
+        roundIntervalTime: 2629743
+    }
 
     let tokamakVaults = {
         publicSaleParams: publicSaleParams,
@@ -261,23 +267,23 @@ async function main() {
         tonAirdropParams: tonAirdropParams
     }
     // console.log('tokamakVaults' ,tokamakVaults )
-    let customScheduleVaults = [teamParams, marketingParams]
-    let customNonScheduleVaults = [daoParams]
-
+    let customScheduleVaults = []
+    let customNonScheduleVaults = []
 
     // console.log('initialVaultParams' , initialVaultParams)
     // console.log('customScheduleVaults' , customScheduleVaults)
     // console.log('rewardTonTosPoolParams' , rewardTonTosPoolParams)
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
 
+    let check_validateTokamakVaults = await L1ProjectManager.validateTokamakVaults(tokamakVaults)
+    console.log(check_validateTokamakVaults)
 
-    let validationVaultsParameters = await L1ProjectManager.validationVaultsParametersExceptPublic(
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
         projectInfo.initialTotalSupply,
         tokamakVaults,
         customScheduleVaults,
         customNonScheduleVaults
     )
-    console.log(validationVaultsParameters)
 
     if(validationVaultsParameters.valid == false) {
         console.log('validationVaultsParameters false')
@@ -285,7 +291,7 @@ async function main() {
         return;
     }
 
-    const gos = await L1ProjectManager.estimateGas.launchProjectExceptCheckPublic(
+    const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,
@@ -296,7 +302,7 @@ async function main() {
     console.log('gos', gos)
         //===
 
-    const receipt = await (await L1ProjectManager.launchProjectExceptCheckPublic(
+    const receipt = await (await L1ProjectManager.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
         projectInfo.initialTotalSupply,
