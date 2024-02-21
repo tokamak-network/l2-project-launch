@@ -462,6 +462,21 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         L2PublicSaleVaultProxyDep.address
     )) as L2PublicSaleVaultProxy;
 
+	//==== L2PublicSaleVault =================================
+	const L2PublicSaleVaultDeployment = await deploy("L2PublicSaleVault", {
+		from: deployer,
+		args: [],
+		log: true,
+		libraries: { LibPublicSaleVault: LibPublicSaleVaultDeployment.address }
+	});
+
+	//==== L2PublicSaleVault upgradeTo  =================================
+	let impl8 = await l2PublicSaleVaultProxy.implementation()
+    if (impl8 != L2PublicSaleVaultDeployment.address) {
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).upgradeTo(L2PublicSaleVaultDeployment.address)).wait()
+    }
+
+
     //==== L2PublicSaleProxy  =================================
     const L2PublicSaleProxyDeployment = await deploy("L2PublicSaleProxy", {
         from: deployer,
