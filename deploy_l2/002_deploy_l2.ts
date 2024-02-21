@@ -484,13 +484,262 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         log: true
     });
 
-    //==== L2PublicSaleVaultProxy upgradeTo  =================================
-    let impl8 = await l2PublicSaleVaultProxy.implementation()
-    if (impl8 != L2PublicSaleProxyDeployment.address) {
-        await (await l2PublicSaleVaultProxy.connect(deploySigner).upgradeTo(L2PublicSaleProxyDeployment.address)).wait()
+
+	//==== L2PublicSaleProxy implementation2 =================================
+	let logic1 = await l2PublicSaleVaultProxy.implementation2(1)
+    if (logic1 != L2PublicSaleProxyDeployment.address){
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).setImplementation2(
+            L2PublicSaleProxyDeployment.address, 1, true
+        )).wait()
     }
 
-    const l2PublicSaleProxy = (await hre.ethers.getContractAt(
+	const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+		"setL2ProjectManager(address)"
+	)
+	let _setL2ProjectManager1 = await l2PublicSaleVaultProxy.getSelectorImplementation2(_setL2ProjectManager)
+	if (_setL2ProjectManager1 != L2PublicSaleProxyDeployment.address){
+
+		const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+			"setL2ProjectManager(address)"
+		)
+
+		const _setBurnBridge = Web3EthAbi.encodeFunctionSignature(
+			"setBurnBridge(address,address)"
+		)
+
+		const _initialize = Web3EthAbi.encodeFunctionSignature(
+			"initialize(address[7],uint8,uint8,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setAddress = Web3EthAbi.encodeFunctionSignature(
+			"setAddress(address[7)"
+		)
+
+		const _setMaxMinPercent = Web3EthAbi.encodeFunctionSignature(
+			"setMaxMinPercent(uint8,uint8)"
+		)
+
+		const _setSTOSstandard = Web3EthAbi.encodeFunctionSignature(
+			"setSTOSstandard(uint256,uint256,uint256,uint256)"
+		)
+
+		const _setDelayTime = Web3EthAbi.encodeFunctionSignature(
+			"setDelayTime(uint256)"
+		)
+
+		const _setVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+			"setVaultAdmin(address,address)"
+		)
+
+		const _vaultInitialize4 = Web3EthAbi.encodeFunctionSignature({
+			name: 'vaultInitialize',
+			type: 'function',
+			inputs: [
+				{
+				  name: "_l2token",
+				  type: "address"
+				},
+				{
+					components: [
+					  {
+						name: "stosTier1",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier2",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier3",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier4",
+						type: "uint256"
+					  },
+					  {
+						name: "tier1Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier2Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier3Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier4Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "total1roundSaleAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "total2roundSaleAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "saleTokenPrice",
+						type: "uint256"
+					  },
+					  {
+						name: "payTokenPrice",
+						type: "uint256"
+					  },
+					  {
+						name: "hardcapAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "changeTOSPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "startWhiteTime",
+						type: "uint256"
+					  },
+					  {
+						name: "endWhiteTime",
+						type: "uint256"
+					  },
+					  {
+						name: "start1roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "end1roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "snapshotTime",
+						type: "uint256"
+					  },
+					  {
+						name: "start2roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "end2roundTime",
+						type: "uint256"
+					  }
+					],
+					name: "params",
+					type: "tuple"
+				},
+				{
+					components: [
+					  {
+						name: "claimCounts",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "secondClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "roundInterval",
+						type: "uint256"
+					  }
+					],
+					name: "params2",
+					type: "tuple"
+				},
+				{
+					components: [
+					  {
+						name: "receiveAddress",
+						type: "address"
+					  },
+					  {
+						name: "totalClaimCount",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "secondClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "roundIntervalTime",
+						type: "uint256"
+					  },
+					  {
+						name: "fee",
+						type: "uint24"
+					  }
+					],
+					name: "params3",
+					type: "tuple"
+				  }
+			  ]
+		})
+
+		const _setTier = Web3EthAbi.encodeFunctionSignature(
+			"setTier(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setTierPercents = Web3EthAbi.encodeFunctionSignature(
+			"setTierPercents(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setAllAmount = Web3EthAbi.encodeFunctionSignature(
+			"setAllAmount(address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _set1RoundTime = Web3EthAbi.encodeFunctionSignature(
+			"set1RoundTime(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _set2RoundTime = Web3EthAbi.encodeFunctionSignature(
+			"set2RoundTime(address,uint256,uint256,uint256)"
+		)
+
+		const _setClaimTime = Web3EthAbi.encodeFunctionSignature(
+			"setClaimTime(address,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _isL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+			"isL2ProjectManager()"
+		)
+
+		const _isVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+			"isVaultAdmin(address,address)"
+		)
+
+		const _isL2Token = Web3EthAbi.encodeFunctionSignature(
+			"isL2Token(address)"
+		)
+
+		await (await l2PublicSaleVaultProxy.connect(deploySigner).setSelectorImplementations2(
+            [
+				_setL2ProjectManager,_setBurnBridge,_initialize,_setAddress,_setMaxMinPercent,
+				_setSTOSstandard,_setDelayTime,_setVaultAdmin,_vaultInitialize4,
+				_setTier,_setTierPercents,_setAllAmount,_set1RoundTime,_set2RoundTime,_setClaimTime,
+				_isL2ProjectManager,_isVaultAdmin,_isL2Token
+			],
+            L2PublicSaleProxyDeployment.address
+        )).wait();
+	}
+
+	const l2PublicSaleProxy = (await hre.ethers.getContractAt(
         L2PublicSaleProxyDeployment.abi,
         l2PublicSaleVaultProxy.address
     )) as L2PublicSaleProxy;
@@ -507,119 +756,6 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (minPer == 0) {
         await (await l2PublicSaleProxy.connect(deploySigner).setMaxMinPercent(5,10)).wait()
     }
-
-     //==== L2PublicSaleVault =================================
-     const L2PublicSaleVaultDeployment = await deploy("L2PublicSaleVault", {
-            from: deployer,
-            args: [],
-            log: true,
-            libraries: { LibPublicSaleVault: LibPublicSaleVaultDeployment.address }
-    });
-
-    let logic1 = await l2PublicSaleVaultProxy.implementation2(1)
-    if (logic1 != L2PublicSaleVaultDeployment.address){
-        await (await l2PublicSaleVaultProxy.connect(deploySigner).setImplementation2(
-            L2PublicSaleVaultDeployment.address, 1, true
-        )).wait()
-    }
-
-    const _addWhiteList = Web3EthAbi.encodeFunctionSignature("addWhiteList(address)")
-    let _addWhiteList1 = await l2PublicSaleVaultProxy.getSelectorImplementation2(_addWhiteList)
-    if (_addWhiteList1 != L2PublicSaleVaultDeployment.address){
-
-        const _round1Sale = Web3EthAbi.encodeFunctionSignature(
-            "round1Sale(address,uint256)"
-        )
-
-        const _round2Sale = Web3EthAbi.encodeFunctionSignature(
-            "round2Sale(address,uint256)"
-        )
-
-        const _claim = Web3EthAbi.encodeFunctionSignature(
-            "claim(address)"
-        )
-
-        const _depositWithdraw = Web3EthAbi.encodeFunctionSignature(
-            "depositWithdraw(address)"
-        )
-
-        const _exchangeWTONtoTOS = Web3EthAbi.encodeFunctionSignature(
-            "exchangeWTONtoTOS(address,uint256)"
-        )
-
-        const _parseRevertReason = Web3EthAbi.encodeFunctionSignature(
-            "parseRevertReason(bytes)"
-        )
-
-        const _hardcapCalcul = Web3EthAbi.encodeFunctionSignature(
-            "hardcapCalcul(address)"
-        )
-
-        const _calculSaleToken = Web3EthAbi.encodeFunctionSignature(
-            "calculSaleToken(address,uint256)"
-        )
-
-        const _calculPayToken = Web3EthAbi.encodeFunctionSignature(
-            "calculPayToken(address,uint256)"
-        )
-
-        const _calculTier = Web3EthAbi.encodeFunctionSignature(
-            "calculTier(address,address)"
-        )
-        const _calculTierAmount = Web3EthAbi.encodeFunctionSignature(
-            "calculTierAmount(address,address,uint8)"
-        )
-        const _calcul1RoundAmount = Web3EthAbi.encodeFunctionSignature(
-            "calcul1RoundAmount(address,address)"
-        )
-        const _calculOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
-            "calculOpenSaleAmount(address,address,uint256)"
-        )
-        const _currentRound = Web3EthAbi.encodeFunctionSignature(
-            "currentRound(address)"
-        )
-        const _calculClaimAmount = Web3EthAbi.encodeFunctionSignature(
-            "calculClaimAmount(address,address,uint256)"
-        )
-        const _totalSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
-            "totalSaleUserAmount(address,address)"
-        )
-        const _openSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
-            "openSaleUserAmount(address,address)"
-        )
-        const _totalOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
-            "totalOpenSaleAmount(address)"
-        )
-        const _totalOpenPurchasedAmount = Web3EthAbi.encodeFunctionSignature(
-            "totalOpenPurchasedAmount(address)"
-        )
-        const _totalWhitelists = Web3EthAbi.encodeFunctionSignature(
-            "totalWhitelists(address)"
-        )
-        const _totalExpectOpenSaleAmountView = Web3EthAbi.encodeFunctionSignature(
-            "totalExpectOpenSaleAmountView(address)"
-        )
-        const _totalRound1NonSaleAmount = Web3EthAbi.encodeFunctionSignature(
-            "totalRound1NonSaleAmount(address)"
-        )
-
-        await (await l2PublicSaleVaultProxy.connect(deploySigner).setSelectorImplementations2(
-            [
-                _addWhiteList,_round1Sale,_round2Sale,_claim,_depositWithdraw,_exchangeWTONtoTOS,
-                _parseRevertReason,_hardcapCalcul,_calculSaleToken,_calculPayToken,_calculTier,_calculTierAmount,
-                _calcul1RoundAmount,_calculOpenSaleAmount,_currentRound,_calculClaimAmount,
-                _totalSaleUserAmount,_openSaleUserAmount,_totalOpenSaleAmount,_totalOpenPurchasedAmount,
-                _totalWhitelists,_totalExpectOpenSaleAmountView,_totalRound1NonSaleAmount
-            ],
-            L2PublicSaleVaultDeployment.address
-        )).wait();
-
-    }
-
-
-
-
-    //==============
 
     // L2VestingFundVaultProxy
     const L2VestingFundVaultProxyDep = await deploy("L2VestingFundVaultProxy", {
