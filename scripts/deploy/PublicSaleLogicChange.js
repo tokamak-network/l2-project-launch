@@ -4,7 +4,7 @@ const ownerAddress = '0xc1eba383D94c6021160042491A5dfaF1d82694E6'
 const PublicSaleLogicAddr = "0x70a8ffF8fD3a2910bb60BE8048E5E25467bE0187"
 const PublicSaleSettingAddr = "0xc16530E5e68E6ce991E1e33647690D034172cA27"
 const PublicSaleVaultProxyAddr = "0x03eF47Cf6d7F13Bce40FaB4D18e41C965Be71F32"
-const PublicSaleVaultABI = require("./artifacts/contracts/L2/vaults/L2PublicSaleVaultProxy.sol/L2PublicSaleVaultProxy.json")
+const PublicSaleVaultABI = require("../../artifacts/contracts/L2/vaults/L2PublicSaleVaultProxy.sol/L2PublicSaleVaultProxy.json")
 
 const Web3EthAbi = require("web3-eth-abi");
 
@@ -18,6 +18,7 @@ async function main() {
 	let impl = await L2PublicSaleVaultProxy.implementation()
 	if (impl != PublicSaleLogicAddr) {
 		await (await L2PublicSaleVaultProxy.upgradeTo(PublicSaleLogicAddr)).wait()
+		console.log("upgrade To finish")
 	}
 
 	let setting = await L2PublicSaleVaultProxy.implementation2(1)
@@ -25,6 +26,7 @@ async function main() {
         await (await L2PublicSaleVaultProxy.setImplementation2(
             PublicSaleSettingAddr, 1, true
         )).wait()
+		console.log("setImplementation2 finish")
     }
 
 	const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
@@ -271,6 +273,7 @@ async function main() {
 			],
             PublicSaleSettingAddr
         )).wait();
+		console.log("setSelectorImplementations2 finish")
 	}
 
 }

@@ -4,12 +4,12 @@ const ownerAddress = '0xc1eba383D94c6021160042491A5dfaF1d82694E6'
 
 async function DeployPublicSale() {
     const [deployer] = await ethers.getSigners();
-    //==== L2PublicSaleVaultProxy =================================
+    // //==== L2PublicSaleVaultProxy =================================
 
-    const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
-    const l2PublicProxy = await l2PublicSaleProxy.deploy();
-    await l2PublicProxy.deployed();
-    console.log('deploying "L2PublicSaleVaultProxy" at' , l2PublicProxy.address)
+    // const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
+    // const l2PublicProxy = await l2PublicSaleProxy.deploy();
+    // await l2PublicProxy.deployed();
+    // console.log('deploying "L2PublicSaleVaultProxy" at' , l2PublicProxy.address)
 
     // //==== LibPublicSaleVault =================================
     // const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
@@ -17,13 +17,18 @@ async function DeployPublicSale() {
     // await libL2Public.deployed();
     // console.log('deploying "LibPublicSaleVault" at' , libL2Public.address)
 
-    // //==== LibPublicSaleVault =================================
+    //==== LibPublicSaleVault =================================
+		let deployedLibPublicAddress = "0xcDAa66C8255572587566fcB6DB0082383CB44de5"
+
     // const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
     //   signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
     // })
-    // const l2PublicLogic = await l2PublicSaleLogic.deploy();
-    // await l2PublicLogic.deployed();
-    // console.log('deploying "L2PublicSaleVault" at' , l2PublicLogic.address)
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+      signer: deployer, libraries: { LibPublicSaleVault: deployedLibPublicAddress }
+    })
+    const l2PublicLogic = await l2PublicSaleLogic.deploy();
+    await l2PublicLogic.deployed();
+    console.log('deploying "L2PublicSaleVault" at' , l2PublicLogic.address)
 
     // await (await l2PublicProxy.upgradeTo(l2PublicLogic.address)).wait()
 
@@ -48,7 +53,7 @@ async function DeployVestingFund() {
 
 
     await (await l2vestingFundProxy.upgradeTo(l2vestingFund.address)).wait()
-    
+
     // deploying "L2VestingFundVaultProxy" at 0x17985dc326661c7F43Dd79d216D4027f453704F7
     // deploying "L2VestingFundVault" at 0xC55E3A821f9F7C2C27A2ca9D7059d22C9DA75700
 }
