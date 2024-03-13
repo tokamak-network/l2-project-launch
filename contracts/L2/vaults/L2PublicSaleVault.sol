@@ -33,18 +33,18 @@ interface IIL2ERC20Bridge {
     ) external;
 }
 
-contract L2PublicSaleVault is 
+contract L2PublicSaleVault is
     ProxyStorage,
-    AccessibleCommon, 
-    L2PublicSaleVaultStorage 
+    AccessibleCommon,
+    L2PublicSaleVaultStorage
 {
     using SafeERC20 for IERC20;
 
     /* ========== USING BUYER ========== */
     function addWhiteList(
         address _l2token
-    ) 
-        external 
+    )
+        external
     {
         LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
         require(
@@ -59,7 +59,7 @@ contract L2PublicSaleVault is
         //if tier 0 is don't have sTOS
         require(tier >= 1, "need to more sTOS");
         LibPublicSaleVault.UserInfo1rd storage user1rds = user1rd[_l2token][msg.sender];
-        
+
         require(user1rds.join != true, "already attended");
 
         whitelists[_l2token].push(msg.sender);
@@ -84,7 +84,7 @@ contract L2PublicSaleVault is
         } else if (tier == 1) {
             tiersCalculAccount[_l2token][1] = tiersCalculAccount[_l2token][1]+(1);
         }
-        
+
 
         emit AddedWhiteList(_l2token, msg.sender, tier);
     }
@@ -130,7 +130,6 @@ contract L2PublicSaleVault is
         saleInfos.total1rdSaleAmount = saleInfos.total1rdSaleAmount+(tokenSaleAmount);
 
         // require(msg.sender.balance >= msg.value, "Don't have TON");
-        // payable(address(this)).transfer(msg.value);
         payable(address(this)).call{value: msg.value};
 
         emit ExclusiveSaled(_l2token, msg.sender, msg.value);
@@ -138,7 +137,7 @@ contract L2PublicSaleVault is
 
     function round2Sale(
         address _l2token
-    )   
+    )
         public
         payable
     {
@@ -167,10 +166,6 @@ contract L2PublicSaleVault is
         user2rds.depositAmount = user2rds.depositAmount+(msg.value);
         totalDepositAmount[_l2token] = totalDepositAmount[_l2token] + (msg.value);
 
-        // console.log("msg.sender.balance :", msg.sender.balance);
-        // console.log("msg.sender :", msg.sender);
-        // console.log("msg.value :", msg.value);
-
         // require(msg.sender.balance >= msg.value, "Don't have TON");
         payable(address(this)).call{value: msg.value};
 
@@ -179,10 +174,9 @@ contract L2PublicSaleVault is
 
     function claim(
         address _l2token
-    ) 
-        external 
+    )
+        external
     {
-        // console.log("address(this).balance :", address(this).balance);
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
         require(
             block.timestamp >= claimInfos.firstClaimTime,
@@ -242,7 +236,7 @@ contract L2PublicSaleVault is
 
     function depositWithdraw(
         address _l2token
-    ) 
+    )
         external
         payable
     {
@@ -252,8 +246,8 @@ contract L2PublicSaleVault is
         LibPublicSaleVault.TokenSaleInfo storage saleInfos = saleInfo[_l2token];
         uint256 liquidityTON = hardcapCalcul(_l2token);
         uint256 getAmount = saleInfos.total1rdTONAmount+(totalOpenPurchasedAmount(_l2token))-(liquidityTON);
-        
-        require(getAmount <= address(this).balance, "haven't token");        
+
+        require(getAmount <= address(this).balance, "haven't token");
 
         manageInfos.adminWithdraw = true;
         uint256 burnAmount = manageInfos.set1rdTokenAmount+(manageInfos.set2rdTokenAmount)-(totalOpenSaleAmount(_l2token))-(saleInfos.total1rdSaleAmount);
@@ -261,9 +255,9 @@ contract L2PublicSaleVault is
         if (burnAmount != 0) {
             IIL2ERC20Bridge(l2Bridge).withdrawTo(_l2token, l1burnVault, burnAmount, 0, '0x');
         }
-        
+
         IIVestingPublicFundAction(vestingFund).funding{value: getAmount}(_l2token);
-        
+
 
         emit DepositWithdrawal(_l2token, msg.sender, getAmount, liquidityTON);
     }
@@ -272,7 +266,7 @@ contract L2PublicSaleVault is
     function exchangeWTONtoTOS(
         address _l2token,
         uint256 amountIn
-    ) 
+    )
         external
         payable
         nonZero(amountIn)
@@ -292,7 +286,6 @@ contract L2PublicSaleVault is
         }
 
         address poolAddress = LibPublicSaleVault.getPoolAddress(ton,tos);
-        // console.log("WETH-TOS PoolAddress :",poolAddress);
 
         (uint160 sqrtPriceX96, int24 tick,,,,,) =  IIUniswapV3Pool(poolAddress).slot0();
         require(sqrtPriceX96 > 0, "pool not initial");
@@ -308,7 +301,7 @@ contract L2PublicSaleVault is
 
         (,bytes memory result) = address(quoter).call(
             abi.encodeWithSignature(
-                "quoteExactInputSingle(address,address,uint24,uint256,uint160)", 
+                "quoteExactInputSingle(address,address,uint24,uint256,uint160)",
                 ton,tos,poolFee,amountIn,0
             )
         );
@@ -325,7 +318,7 @@ contract L2PublicSaleVault is
         address l2token = _l2token;
         uint256 _amountIn = amountIn;
         manageInfos.remainTON = manageInfos.remainTON - _amountIn;
-        
+
         _WETH.deposit{value: _amountIn}();
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
@@ -346,32 +339,6 @@ contract L2PublicSaleVault is
 
     /* ========== INTERNAL ========== */
 
-    // function _calculTONTransferAmount(
-    //     address _l2token,
-    //     address _sender,
-    //     uint256 _amount
-    // )
-    //     internal
-    //     nonZeroAddress(_l2token)
-    //     nonZeroAddress(_sender)
-    //     nonZero(_amount)
-    // {
-    //     LibPublicSaleVault.TokenTimeManage memory timeInfos = timeInfo[_l2token];
-    //     uint256 tonAllowance = IERC20(ton).allowance(_sender, address(this));
-    //     uint256 tonBalance = IERC20(ton).balanceOf(_sender);
-    //     // uint256 tonBalance = _sender.balance;
-
-    //     require(tonAllowance >= _amount && tonBalance >= _amount, "ton exceeds allowance");
-    //     IERC20(ton).safeTransferFrom(_sender, address(this), _amount);
-    //     payable(address(this)).call{value: _amount}("");
-
-    //     if (block.timestamp < timeInfos.round1EndTime) {
-    //         emit ExclusiveSaled(_l2token, _sender, _amount);
-    //     } else {
-    //         emit Deposited(_l2token, _sender, _amount);
-    //     }
-    // }
-
     /* ========== PRIVATE ========== */
 
    function parseRevertReason(bytes memory reason) private pure returns (uint256) {
@@ -389,9 +356,9 @@ contract L2PublicSaleVault is
 
     function hardcapCalcul(
         address _l2token
-    ) 
-        public 
-        view 
+    )
+        public
+        view
         returns (uint256)
     {
         LibPublicSaleVault.TokenSaleInfo memory saleInfos = saleInfo[_l2token];
@@ -434,7 +401,7 @@ contract L2PublicSaleVault is
 
     function calculTier(
         address _l2token,
-        address _account 
+        address _account
     )
         public
         view
@@ -465,7 +432,7 @@ contract L2PublicSaleVault is
     function calculTierAmount(
         address _l2token,
         address _account,
-        uint8 tier 
+        uint8 tier
     )
         public
         view
@@ -518,7 +485,7 @@ contract L2PublicSaleVault is
 
     function calculOpenSaleAmount(
         address _l2token,
-        address _account, 
+        address _account,
         uint256 _amount
     )
         public
@@ -536,10 +503,10 @@ contract L2PublicSaleVault is
 
     function currentRound(
         address _l2token
-    ) 
-        public 
-        view 
-        returns (uint256 round) 
+    )
+        public
+        view
+        returns (uint256 round)
     {
         LibPublicSaleVault.TokenSaleClaim memory claimInfos = claimInfo[_l2token];
         if(claimInfos.firstClaimTime > block.timestamp) round = 0;
@@ -553,7 +520,7 @@ contract L2PublicSaleVault is
 
     function calculClaimAmount(
         address _l2token,
-        address _account, 
+        address _account,
         uint256 _round
     )
         public
@@ -565,10 +532,10 @@ contract L2PublicSaleVault is
         if (_round > claimInfos.totalClaimCounts) return (0, 0, 0);
 
         LibPublicSaleVault.UserClaim memory userClaims = userClaim[_l2token][_account];
-        (, uint256 realSaleAmount, uint256 refundAmount) = totalSaleUserAmount(_l2token,_account);  
+        (, uint256 realSaleAmount, uint256 refundAmount) = totalSaleUserAmount(_l2token,_account);
 
         if (realSaleAmount == 0 ) return (0, 0, 0);
-        if (userClaims.claimAmount >= realSaleAmount) return (0, 0, 0);   
+        if (userClaims.claimAmount >= realSaleAmount) return (0, 0, 0);
 
         uint256 curRound = currentRound(_l2token);
 
@@ -599,10 +566,10 @@ contract L2PublicSaleVault is
     function totalSaleUserAmount(
         address _l2token,
         address user
-    ) 
-        public 
-        view 
-        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
+    )
+        public
+        view
+        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount)
     {
         LibPublicSaleVault.UserInfo1rd memory user1rds = user1rd[_l2token][user];
 
@@ -617,10 +584,10 @@ contract L2PublicSaleVault is
     function openSaleUserAmount(
         address _l2token,
         address user
-    ) 
+    )
         public
-        view 
-        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount) 
+        view
+        returns (uint256 _realPayAmount, uint256 _realSaleAmount, uint256 _refundAmount)
     {
         LibPublicSaleVault.UserInfo2rd memory user2rds = user2rd[_l2token][user];
 
@@ -645,9 +612,9 @@ contract L2PublicSaleVault is
 
     function totalOpenSaleAmount(
         address _l2token
-    ) 
+    )
         public
-        view 
+        view
         returns (uint256)
     {
         uint256 _calculSaleToken = calculSaleToken(_l2token,totalDepositAmount[_l2token]);
@@ -659,9 +626,9 @@ contract L2PublicSaleVault is
 
     function totalOpenPurchasedAmount(
         address _l2token
-    ) 
-        public 
-        view 
+    )
+        public
+        view
         returns (uint256)
     {
         uint256 _calculSaleToken = calculSaleToken(_l2token,totalDepositAmount[_l2token]);
@@ -672,10 +639,10 @@ contract L2PublicSaleVault is
 
     function totalWhitelists(
         address _l2token
-    ) 
-        external 
-        view 
-        returns (uint256) 
+    )
+        external
+        view
+        returns (uint256)
     {
         return whitelists[_l2token].length;
     }
