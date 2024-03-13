@@ -1,7 +1,7 @@
 import { expect } from './shared/expect'
 import { ethers, network } from 'hardhat'
 
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, Signer, providers } from 'ethers'
 import { l2ProjectLaunchFixtures, l1Fixtures } from './shared/fixtures'
 import { L2ProjectLaunchFixture, L1Fixture } from './shared/fixtureInterfaces'
 import { getPublicSaleParams } from './shared/vaultParameters'
@@ -13,9 +13,11 @@ import ERC20D from './abi/ERC20D.json'
 import L2StandardERC20 from './abi/L2StandardERC20.json'
 import snapshotGasCost from './shared/snapshotGasCost'
 
-import { time } from "@nomicfoundation/hardhat-network-helpers";
+import { time, setBalance } from "@nomicfoundation/hardhat-network-helpers";
 
 import l2PublicSaleJson from "../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
+import l2PublicSaleProxyJson from "../artifacts/contracts/L2/vaults/L2PublicSaleProxy.sol/L2PublicSaleProxy.json";
+import l1BurnVaultJson from "../artifacts/contracts/L1/L1BurnVault.sol/L1BurnVault.json";
 
 const Web3EthAbi = require('web3-eth-abi');
 const TON_ABI = require("../abis/TON.json");
@@ -54,6 +56,7 @@ describe('L2TokenFactory', () => {
     let tier1Amount: BigNumber;
 
     let l2PublicVaultLogic: any;
+    let l2PublicVaultProxy: any;
 
     //mainnet
     // let quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"
@@ -67,15 +70,31 @@ describe('L2TokenFactory', () => {
     // let lydaRich = "0x70115ba3b49D60776AaA2976ADffB5CfABf31689"
 
     //titan-goerli
-    let quoter = "0x32cdAd6cd559EcFE87Be49167F2F68A1Df08c9E9"
-    let uniswapRouter = "0x0DD8EA3A5A8900CE36A7302E600C4B8A3ef23B8d"
-    let tos = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
-    let ton = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
-    let uniswapFacotry = "0x2Ae8FeE7B4f4ef27088fa8a550C91A045A3128b5"
+    // let quoter = "0x32cdAd6cd559EcFE87Be49167F2F68A1Df08c9E9"
+    // let uniswapRouter = "0x0DD8EA3A5A8900CE36A7302E600C4B8A3ef23B8d"
+    // let tos = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
+    // let ton = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+    // let uniswapFacotry = "0x2Ae8FeE7B4f4ef27088fa8a550C91A045A3128b5"
+
+    // let weth = "0x4200000000000000000000000000000000000006"
+
+    // let lyda = "0x3bB4445D30AC020a84c1b5A8A2C6248ebC9779D0"
+
+    // let lydaRich = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+
+    //titan
+    let quoter = "0xAd6c4B17ae46D70D5FA8649fE9387Bc361bB9FDb"
+    let uniswapRouter = "0xE15204fd488C33C26FF56efF14997Da8997E58Bf"
+    let tos = "0xD08a2917653d4E460893203471f0000826fb4034"
+    let ton = "0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2"
+    let uniswapFacotry = "0x755Ba335013C07CE35C9A2dd5746617Ac4c6c799"
+
+    let weth = "0x4200000000000000000000000000000000000006"
 
     let lyda = "0x3bB4445D30AC020a84c1b5A8A2C6248ebC9779D0"
 
     let lydaRich = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+    
 
     //goerli
     // let tos = "0x67F3bE272b1913602B191B3A68F7C238A2D81Bb9"
@@ -110,9 +129,12 @@ describe('L2TokenFactory', () => {
     let saleTokenPrice = 200;
     let tonTokenPrice = 2000;
     
-    let hardcapAmount = ethers.utils.parseUnits("100", 18);
+    let hardcapAmount = ethers.utils.parseUnits("10000", 18);
     let changeTick = 18;
     let changeTOS = 10;
+
+    let buyAmount = ethers.utils.parseUnits("60", 18);
+    let refundAmount = ethers.utils.parseUnits("1060", 18);
 
     let setSnapshot: any;
     let whitelistStartTime: any, whitelistEndTime: any;
@@ -172,13 +194,21 @@ describe('L2TokenFactory', () => {
     let fundClaimPercent2 = 70;
     let fundClaimPercent3 = 100;
 
+    let sendether = "0xBDBC41E0348B300000"
+
+    let transferTON = ethers.utils.parseUnits("3500", 18);
+
 
     //goerli
     // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
 
     //titan-goerli
-    let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
-    let testAccount2 = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+    // let testAccount = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+    // let testAccount2 = "0xf0B595d10a92A5a9BC3fFeA7e79f5d266b6035Ea"
+
+    //titan
+    let testAccount = "0x340C44089bc45F86060922d2d89eFee9e0CDF5c7"
+    let testAccount2 = "0xceB2196aDdf345F68d1F536DdAA49FE54BcBDDAD"
 
     //mainnet
     // let testAccount = "0x156DD25d342a6B63874333985140aA3103bf1Ff0"
@@ -186,6 +216,12 @@ describe('L2TokenFactory', () => {
     let richTON: Signer;
     let richTOS: Signer;
     let richLYDA: Signer;
+
+    // const infuraUrl = 'https://rpc.titan-goerli.tokamak.network';
+    // const provider = new ethers.providers.JsonRpcProvider(infuraUrl);
+    // const network = providers.getNetwork();
+    // const provider = ethers.getDefaultProvider();
+    const provider = ethers.provider;
 
     before('create fixture loader', async () => {
         deployed = await l2ProjectLaunchFixtures()
@@ -205,11 +241,8 @@ describe('L2TokenFactory', () => {
         tonContract = l1deployed.ton;
 
         addr1Address = await addr1.getAddress();
-        console.log(addr1Address)
         addr2Address = await addr2.getAddress();
-        console.log(addr2Address)
         addr3Address = await addr3.getAddress();
-        console.log(addr3Address)
         addr4Address = await addr4.getAddress();
         addr5Address = await addr5.getAddress();
         l2ProjectManagerAddresss = await l2ProjectManager.getAddress();
@@ -236,121 +269,347 @@ describe('L2TokenFactory', () => {
         });
 
         richLYDA = await ethers.getSigner(lydaRich);        //lyda주인
+
+        await network.provider.send("hardhat_setBalance", [
+            addr1Address,
+            sendether
+        ]);
+
+        await network.provider.send("hardhat_setBalance", [
+            addr2Address,
+            sendether
+        ]);
+
+        await network.provider.send("hardhat_setBalance", [
+            addr3Address,
+            sendether
+        ]);
+
+        // await network.provider.send("hardhat_setBalance", [
+        //     addr4Address,
+        //     sendether
+        // ]);
+
+        // await network.provider.send("hardhat_setBalance", [
+        //     addr5Address,
+        //     sendether
+        // ]);
+
+        await setBalance(
+            addr4Address,
+            ethers.utils.parseEther("3500")
+        )
+
+        await setBalance(
+            addr5Address,
+            ethers.utils.parseEther("3500")
+        )
+        console.log("addr1Address : ",addr1Address);
+        console.log("addr2Address : ",addr2Address);
+        console.log("addr3Address : ",addr3Address);
+        console.log("addr4Address : ",addr4Address);
+        console.log("addr5Address : ",addr5Address);
+
+        // console.log(await provider.getBalance(addr1Address));
+        // console.log(await provider.getBalance(addr2Address));
+        // console.log(await provider.getBalance(addr3Address));
+        // console.log(await provider.getBalance(addr4Address));
+        // console.log(await provider.getBalance(addr5Address));
+
     })
 
     describe("# setting PublicSaleVaultProxy after deploy", () => {
 
-        // it("PublicSaleVaultProxy setAliveImplementation2 PublicSaleProxyLogic", async () => {
-        //     await deployed.l2PublicProxy.connect(deployer).setAliveImplementation2(deployed.l2PublicVaultProxy.address, true)
-        // })
-
-        // it("PublicSaleVaultProxy setImplementation2 PublicSaleProxyLogic", async () => {
-        //     await deployed.l2PublicProxy.connect(deployer).setImplementation2(deployed.l2PublicVaultProxy.address, 0, true)
-        // })
-
-        // it("PublicSaleVaultProxy setAliveImplementation2 PublicSaleVaultLogic", async () => {
-        //     await deployed.l2PublicProxy.connect(deployer).setAliveImplementation2(deployed.l2PublicProxyLogic.address, true)
-        // })
-
         it("DAOProxyV2 setImplementation2 DAOv2CommitteeV2", async () => {
-            await deployed.l2PublicProxy.connect(deployer).setImplementation2(deployed.l2PublicProxyLogic.address, 1, true)
+            // console.log(await provider.getBalance(addr1Address));
+            // console.log(await provider.getBalance(addr2Address));
+            // console.log(await provider.getBalance(addr3Address));
+            // console.log(await provider.getBalance(addr4Address));
+            // console.log(await provider.getBalance(addr5Address));
+            await deployed.l2PublicProxy.connect(deployer).setImplementation2(deployed.l2PublicVaultProxy.address, 1, true)
         })
 
-        it("PublicSaleVaultProxy selectorImplementations2 PublicSaleLogic", async () => {
-            const _addWhiteList = Web3EthAbi.encodeFunctionSignature(
-                "addWhiteList(address)"
+        it("PublicSaleVaultProxy selectorImplementations2 PublicSaleProxy", async () => {
+            const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+                "setL2ProjectManager(address)"
             )
 
-            const _round1Sale = Web3EthAbi.encodeFunctionSignature(
-                "round1Sale(address,uint256)"
+            const _setBurnBridge = Web3EthAbi.encodeFunctionSignature(
+                "setBurnBridge(address,address)"
             )
 
-            const _round2Sale = Web3EthAbi.encodeFunctionSignature(
-                "round2Sale(address,uint256)"
+            const _initialize = Web3EthAbi.encodeFunctionSignature(
+                "initialize(address[7],uint8,uint8,uint256,uint256,uint256,uint256,uint256)"
             )
 
-            const _claim = Web3EthAbi.encodeFunctionSignature(
-                "claim(address)"
+            const _setAddress = Web3EthAbi.encodeFunctionSignature(
+                "setAddress(address[7)"
             )
 
-            const _depositWithdraw = Web3EthAbi.encodeFunctionSignature(
-                "depositWithdraw(address)"
+            const _setMaxMinPercent = Web3EthAbi.encodeFunctionSignature(
+                "setMaxMinPercent(uint8,uint8)"
             )
 
-            const _exchangeWTONtoTOS = Web3EthAbi.encodeFunctionSignature(
-                "exchangeWTONtoTOS(address,uint256)"
+            const _setSTOSstandard = Web3EthAbi.encodeFunctionSignature(
+                "setSTOSstandard(uint256,uint256,uint256,uint256)"
             )
 
-            const _parseRevertReason = Web3EthAbi.encodeFunctionSignature(
-                "parseRevertReason(bytes)"
+            const _setDelayTime = Web3EthAbi.encodeFunctionSignature(
+                "setDelayTime(uint256)"
             )
 
-            const _hardcapCalcul = Web3EthAbi.encodeFunctionSignature(
-                "hardcapCalcul(address)"
+            const _setVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+                "setVaultAdmin(address,address)"
             )
 
-            const _calculSaleToken = Web3EthAbi.encodeFunctionSignature(
-                "calculSaleToken(address,uint256)"
+            const _vaultInitialize = Web3EthAbi.encodeFunctionSignature(
+                "vaultInitialize(address,tuple,tuple,tuple)"
+            )
+            console.log("test select : ", _vaultInitialize);
+
+            const _vaultInitialize2 = Web3EthAbi.encodeFunctionSignature({
+                name: 'vaultInitialize',
+                type: 'function',
+                inputs: [
+                    {
+                      name: "_l2token",
+                      type: "address"
+                    },
+                    {
+                      name: "params",
+                      type: "struct LibProject.InitalParameterPublicSaleVault"
+                    },
+                    {
+                      name: "params2",
+                      type: "struct LibProject.InitalParameterPublicSaleClaim"
+                    },
+                    {
+                      name: "params3",
+                      type: "struct LibProject.InitalParameterVestingFundVault"
+                    }
+                  ]
+            })
+
+            console.log("vaultInitialize select : ", _vaultInitialize2);
+
+            const _vaultInitialize3 = Web3EthAbi.encodeFunctionSignature(
+                "vaultInitialize(address,(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256,uint256,uint256,uint256,uint256),(address,uint256,uint256,uint256,uint256,uint256,uint24)"
             )
 
-            const _calculPayToken = Web3EthAbi.encodeFunctionSignature(
-                "calculPayToken(address,uint256)"
+            console.log("test select3 : ", _vaultInitialize3);
+
+            const _vaultInitialize4 = Web3EthAbi.encodeFunctionSignature({
+                name: 'vaultInitialize',
+                type: 'function',
+                inputs: [
+                    {
+                      name: "_l2token",
+                      type: "address"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "stosTier1",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier2",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier3",
+                            type: "uint256"
+                          },
+                          {
+                            name: "stosTier4",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier1Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier2Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier3Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "tier4Percents",
+                            type: "uint256"
+                          },
+                          {
+                            name: "total1roundSaleAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "total2roundSaleAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "saleTokenPrice",
+                            type: "uint256"
+                          },
+                          {
+                            name: "payTokenPrice",
+                            type: "uint256"
+                          },
+                          {
+                            name: "hardcapAmount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "changeTOSPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "startWhiteTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "endWhiteTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "start1roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "end1roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "snapshotTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "start2roundTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "end2roundTime",
+                            type: "uint256"
+                          }
+                        ],
+                        name: "params",
+                        type: "tuple"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "claimCounts",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "secondClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "roundInterval",
+                            type: "uint256"
+                          }
+                        ],
+                        name: "params2",
+                        type: "tuple"
+                    },
+                    {
+                        components: [
+                          {
+                            name: "receiveAddress",
+                            type: "address"
+                          },
+                          {
+                            name: "totalClaimCount",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimPercent",
+                            type: "uint256"
+                          },
+                          {
+                            name: "firstClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "secondClaimTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "roundIntervalTime",
+                            type: "uint256"
+                          },
+                          {
+                            name: "fee",
+                            type: "uint24"
+                          }
+                        ],
+                        name: "params3",
+                        type: "tuple"
+                      }
+                  ]
+            })
+
+            console.log("_vaultInitialize4 select : ", _vaultInitialize4);
+
+            const _setTier = Web3EthAbi.encodeFunctionSignature(
+                "setTier(address,uint256,uint256,uint256,uint256)"
             )
 
-            const _calculTier = Web3EthAbi.encodeFunctionSignature(
-                "calculTier(address,address)"
-            )
-            const _calculTierAmount = Web3EthAbi.encodeFunctionSignature(
-                "calculTierAmount(address,address,uint8)"
-            )
-            const _calcul1RoundAmount = Web3EthAbi.encodeFunctionSignature(
-                "calcul1RoundAmount(address,address)"
-            )
-            const _calculOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
-                "calculOpenSaleAmount(address,address,uint256)"
-            )
-            const _currentRound = Web3EthAbi.encodeFunctionSignature(
-                "currentRound(address)"
-            )
-            const _calculClaimAmount = Web3EthAbi.encodeFunctionSignature(
-                "calculClaimAmount(address,address,uint256)"
-            )
-            const _totalSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
-                "totalSaleUserAmount(address,address)"
-            )
-            const _openSaleUserAmount = Web3EthAbi.encodeFunctionSignature(
-                "openSaleUserAmount(address,address)"
-            )
-            const _totalOpenSaleAmount = Web3EthAbi.encodeFunctionSignature(
-                "totalOpenSaleAmount(address)"
-            )
-            const _totalOpenPurchasedAmount = Web3EthAbi.encodeFunctionSignature(
-                "totalOpenPurchasedAmount(address)"
-            )
-            const _totalWhitelists = Web3EthAbi.encodeFunctionSignature(
-                "totalWhitelists(address)"
-            )
-            const _totalExpectOpenSaleAmountView = Web3EthAbi.encodeFunctionSignature(
-                "totalExpectOpenSaleAmountView(address)"
-            )
-            const _totalRound1NonSaleAmount = Web3EthAbi.encodeFunctionSignature(
-                "totalRound1NonSaleAmount(address)"
+            const _setTierPercents = Web3EthAbi.encodeFunctionSignature(
+                "setTierPercents(address,uint256,uint256,uint256,uint256)"
             )
 
+            const _setAllAmount = Web3EthAbi.encodeFunctionSignature(
+                "setAllAmount(address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+            )
+
+            const _set1RoundTime = Web3EthAbi.encodeFunctionSignature(
+                "set1RoundTime(address,uint256,uint256,uint256,uint256)"
+            )
+
+            const _set2RoundTime = Web3EthAbi.encodeFunctionSignature(
+                "set2RoundTime(address,uint256,uint256,uint256)"
+            )
+
+            const _setClaimTime = Web3EthAbi.encodeFunctionSignature(
+                "setClaimTime(address,uint256,uint256,uint256,uint256,uint256)"
+            )
+
+            const _isL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+                "isL2ProjectManager()"
+            )
+
+            const _isVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+                "isVaultAdmin(address,address)"
+            )
+
+            const _isL2Token = Web3EthAbi.encodeFunctionSignature(
+                "isL2Token(address)"
+            )
+            
             await deployed.l2PublicProxy.connect(deployer).setSelectorImplementations2(
                 [
-                    _addWhiteList,_round1Sale,_round2Sale,_claim,_depositWithdraw,_exchangeWTONtoTOS,
-                    _parseRevertReason,_hardcapCalcul,_calculSaleToken,_calculPayToken,_calculTier,_calculTierAmount,
-                    _calcul1RoundAmount,_calculOpenSaleAmount,_currentRound,_calculClaimAmount,
-                    _totalSaleUserAmount,_openSaleUserAmount,_totalOpenSaleAmount,_totalOpenPurchasedAmount,
-                    _totalWhitelists,_totalExpectOpenSaleAmountView,_totalRound1NonSaleAmount
+                    _setL2ProjectManager,_setBurnBridge,_initialize,_setAddress,_setMaxMinPercent,
+                    _setSTOSstandard,_setDelayTime,_setVaultAdmin,_vaultInitialize4,
+                    _setTier,_setTierPercents,_setAllAmount,_set1RoundTime,_set2RoundTime,_setClaimTime,
+                    _isL2ProjectManager,_isVaultAdmin,_isL2Token
                 ],
-                deployed.l2PublicProxyLogic.address
+                deployed.l2PublicVaultProxy.address
             )
         })
 
-        it("connect L2PublicSaleProxy & Logic", async () => {
-            l2PublicVaultLogic = await ethers.getContractAt(l2PublicSaleJson.abi, deployed.l2PublicProxy.address, deployer); 
+        it("connect L2PublicSaleProxy", async () => {
+            l2PublicVaultProxy = await ethers.getContractAt(l2PublicSaleProxyJson.abi, deployed.l2PublicProxy.address, deployer); 
         })
 
 
@@ -377,6 +636,10 @@ describe('L2TokenFactory', () => {
             let impCheck = await l1BurnVaultProxyContract.implementation();
             expect(impCheck).to.be.equal(l1BurnVaultlogicContract.address)
         }) 
+
+        it("set L1BurnVaultLogic", async () => {
+            l1BurnVaultlogicContract = await ethers.getContractAt(l1BurnVaultJson.abi, l1BurnVaultProxyContract.address, deployer); 
+        })
     })
 
     describe("# set LYDA", () => {
@@ -435,8 +698,8 @@ describe('L2TokenFactory', () => {
             erc20Atoken = await ethers.getContractAt(ERC20A.abi, projectInfo.l1Token, addr1);
             let tx = await erc20Atoken.balanceOf(addr1Address)
             // console.log(tx);
-            // await erc20Atoken.connect(addr1).transfer(l2vaultAdminAddress,tx);
-            await lydaContract.connect(richLYDA).transfer(l2vaultAdminAddress,tx);
+            await erc20Atoken.connect(addr1).transfer(l2vaultAdminAddress,tx);
+            // await lydaContract.connect(richLYDA).transfer(l2vaultAdminAddress,tx);
 
             expect(deployedEvent.args.contractAddress).to.not.eq(ethers.constants.AddressZero);
             expect(deployedEvent.args.name).to.eq(projectInfo.tokenName);
@@ -481,14 +744,9 @@ describe('L2TokenFactory', () => {
             expect(await tokenContract.totalSupply()).to.be.eq(ethers.constants.Zero)
             expect(await tokenContract.name()).to.be.eq(projectInfo.tokenName)
             expect(await tokenContract.symbol()).to.be.eq(projectInfo.tokenSymbol)
-            console.log("1")
             
             const addProject = await deployed.l2ProjectManager.projects(projectInfo.l2Token)
-            console.log(addProject)
-            console.log(projectInfo.projectOwner)
-            console.log("2")
             expect(addProject[1]).to.be.eq(projectInfo.projectOwner);
-            console.log("3")
             expect(addProject[2]).to.be.eq(projectInfo.l1Token);
             expect(addProject[3]).to.be.eq(projectInfo.l2Token);
             expect(addProject[4]).to.be.eq(projectInfo.projectName);
@@ -502,7 +760,7 @@ describe('L2TokenFactory', () => {
         })
 
         it("transfer TOS", async () => {
-            let transferTOS = ethers.utils.parseUnits("1000", 18);
+            let transferTOS = ethers.utils.parseUnits("1", 18);
             let tx = await tosContract.balanceOf(richTOS.address);
             console.log(tx)
             await tosContract.connect(richTOS).transfer(addr1Address,transferTOS)
@@ -525,20 +783,20 @@ describe('L2TokenFactory', () => {
         })
     })
 
-    describe("# set TON", () => {
-        it("setting the TON Contract", async () => {
-            tonContract = await ethers.getContractAt(TON_ABI.abi, ton, deployer)
-        })
+    // describe("# set TON", () => {
+    //     it("setting the TON Contract", async () => {
+    //         tonContract = await ethers.getContractAt(TON_ABI.abi, ton, deployer)
+    //     })
 
-        it("transfer TON", async () => {
-            let transferTON = ethers.utils.parseUnits("3500", 18);
-            await tonContract.connect(richTON).transfer(addr1Address,transferTON)
-            await tonContract.connect(richTON).transfer(addr2Address,transferTON)
-            await tonContract.connect(richTON).transfer(addr3Address,transferTON)
-            await tonContract.connect(richTON).transfer(addr4Address,transferTON)
-            await tonContract.connect(richTON).transfer(addr5Address,transferTON)
-        })
-    })
+    //     it("transfer TON", async () => {
+    //         let transferTON = ethers.utils.parseUnits("3500", 18);
+    //         await tonContract.connect(richTON).transfer(addr1Address,transferTON)
+    //         await tonContract.connect(richTON).transfer(addr2Address,transferTON)
+    //         await tonContract.connect(richTON).transfer(addr3Address,transferTON)
+    //         await tonContract.connect(richTON).transfer(addr4Address,transferTON)
+    //         await tonContract.connect(richTON).transfer(addr5Address,transferTON)
+    //     })
+    // })
 
     describe("# setL2VestingFundVault OwnerSetting", () => {
         it('setBaseInfoProxy can not be executed by anyone', async () => {
@@ -573,18 +831,18 @@ describe('L2TokenFactory', () => {
         describe("# set L2ProjectManager", () => {
             it('setL2ProjectManager can not be executed by not owner', async () => {
                 await expect(
-                    deployed.l2PublicVaultProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
+                    l2PublicVaultProxy.connect(addr1).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("Accessible: Caller is not an admin")
             })
     
             it('setL2ProjectManager can be executed by only owner ', async () => {
-                await deployed.l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
-                expect(await deployed.l2PublicVaultProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
+                await l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
+                expect(await l2PublicVaultProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
             })
     
             it('cannot be changed to the same value', async () => {
                 await expect(
-                    deployed.l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
+                    l2PublicVaultProxy.connect(deployer).setL2ProjectManager(l2ProjectManagerAddresss)
                     ).to.be.revertedWith("same")
             })
         })
@@ -592,7 +850,7 @@ describe('L2TokenFactory', () => {
         describe("# set PublicSale basic value", () => {
             it("set initialize can not executed by not owner", async () => {
                 await expect(
-                    deployed.l2PublicVaultProxy.connect(addr1).initialize(
+                    l2PublicVaultProxy.connect(addr1).initialize(
                         [
                             quoter,
                             deployed.l2VestingFundProxy.address,
@@ -600,7 +858,7 @@ describe('L2TokenFactory', () => {
                             uniswapRouter,
                             lockTOS.address,
                             tos,
-                            ton
+                            weth
                         ],
                         minPer,
                         maxPer,
@@ -613,7 +871,7 @@ describe('L2TokenFactory', () => {
             })
 
             it('set initialize can be executed by only Owner ', async () => {
-                await deployed.l2PublicVaultProxy.connect(deployer).initialize(
+                await l2PublicVaultProxy.connect(deployer).initialize(
                     [
                         quoter,
                         deployed.l2VestingFundProxy.address,
@@ -621,7 +879,7 @@ describe('L2TokenFactory', () => {
                         uniswapRouter,
                         lockTOS.address,
                         tos,
-                        ton
+                        weth
                     ],
                     minPer,
                     maxPer,
@@ -637,7 +895,7 @@ describe('L2TokenFactory', () => {
                 expect(await deployed.l2PublicProxy.uniswapRouter()).to.eq(uniswapRouter)
                 expect(await deployed.l2PublicProxy.lockTOS()).to.eq(lockTOS.address)
                 expect(await deployed.l2PublicProxy.tos()).to.eq(tos)
-                expect(await deployed.l2PublicProxy.ton()).to.eq(ton)
+                expect(await deployed.l2PublicProxy.ton()).to.eq(weth)
                 expect(await deployed.l2PublicProxy.minPer()).to.eq(minPer)
                 expect(await deployed.l2PublicProxy.maxPer()).to.eq(maxPer)
                 expect(await deployed.l2PublicProxy.stanTier1()).to.eq(standardTier1)
@@ -651,16 +909,16 @@ describe('L2TokenFactory', () => {
         describe("# PublicSale setVaultAdmin", () => {
             it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
                 await expect(
-                    deployed.l2PublicVaultProxy.connect(addr1).setVaultAdmin(
-                        lydaContract.address,
+                    l2PublicVaultProxy.connect(addr1).setVaultAdmin(
+                        erc20Atoken.address,
                         l2vaultAdminAddress
                         )
                     ).to.be.revertedWith("caller is not l2ProjectManager")
             })
     
             it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-                await deployed.l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
-                    lydaContract.address,
+                await l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
+                    erc20Atoken.address,
                     l2vaultAdminAddress
                 )
                 expect(await deployed.l2PublicProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
@@ -668,8 +926,8 @@ describe('L2TokenFactory', () => {
     
             it('cannot be changed to the same value', async () => {
                 await expect(
-                    deployed.l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
-                        lydaContract.address,
+                    l2PublicVaultProxy.connect(l2ProjectManager).setVaultAdmin(
+                        erc20Atoken.address,
                         l2vaultAdminAddress
                     )
                 ).to.be.revertedWith("same")
@@ -677,44 +935,13 @@ describe('L2TokenFactory', () => {
         })
 
         describe("# VestingFund setVaultAdmin", () => {
-            // it("isVaultAdmin Value check", async () => {
-            //     let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
-            //     expect(tx).to.be.equal(false);
-            // })
-
-            // it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
-            //     await expect(
-            //         deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
-            //             lydaContract.address,
-            //             l2vaultAdminAddress
-            //             )
-            //         ).to.be.revertedWith("caller is not l2ProjectManager")
-            // })
-    
-            // it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-            //     await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-            //         lydaContract.address,
-            //         l2vaultAdminAddress
-            //     )
-            //     expect(await deployed.l2VestingFundProxy.l2ProjectManager()).to.eq(l2ProjectManagerAddresss)
-            // })
-    
-            // it('cannot be changed to the same value', async () => {
-            //     await expect(
-            //         deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-            //             lydaContract.address,
-            //             l2vaultAdminAddress
-            //         )
-            //     ).to.be.revertedWith("same")
-            // })
-
             it("isVaultAdmin Value check", async () => {
-                let tx = await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress);
+                let tx = await deployed.l2VestingFund.isVaultAdmin(erc20Atoken.address,l2vaultAdminAddress);
                 expect(tx).to.be.equal(true);
             })
 
             it("vaultAdminOfToken check", async () => {
-                let tx = await deployed.l2VestingFund.vaultAdminOfToken(lydaContract.address)
+                let tx = await deployed.l2VestingFund.vaultAdminOfToken(erc20Atoken.address)
                 expect(tx).to.be.equal(l2vaultAdminAddress)
             })
         })
@@ -723,14 +950,14 @@ describe('L2TokenFactory', () => {
     describe("# setL2PublicSale the Bridge and l1burnVault", () => {
         it("setBurnBridge can not be executed by not owner", async () => {
             await expect(
-                deployed.l2PublicVaultProxy.connect(addr1).setBurnBridge(
+                l2PublicVaultProxy.connect(addr1).setBurnBridge(
                     l2bridge.address,
                     l1BurnVaultProxyContract.address
                 )).to.be.revertedWith("Accessible: Caller is not an admin")
         })
 
         it("setL2ProjectManager can be executed by only owner", async () => {
-            await deployed.l2PublicVaultProxy.connect(deployer).setBurnBridge(
+            await l2PublicVaultProxy.connect(deployer).setBurnBridge(
                 l2bridge.address,
                 l1BurnVaultProxyContract.address
             )
@@ -740,7 +967,7 @@ describe('L2TokenFactory', () => {
 
         it("cannot be changed to the same value", async () => {
             await expect(
-                deployed.l2PublicVaultProxy.connect(deployer).setBurnBridge(
+                l2PublicVaultProxy.connect(deployer).setBurnBridge(
                     l2bridge.address,
                     l1BurnVaultProxyContract.address
                 )
@@ -849,14 +1076,14 @@ describe('L2TokenFactory', () => {
 
     describe("# setL2PublicSaleVault L2VaultAdmin", () => {
         it("check the is L2Token", async () => {
-            expect(await deployed.l2PublicVaultProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
-            expect(await deployed.l2PublicVaultProxy.isL2Token(lydaContract.address)).to.be.equal(true);
+            expect(await l2PublicVaultProxy.isL2Token(l2vaultAdminAddress)).to.be.equal(false);
+            expect(await l2PublicVaultProxy.isL2Token(erc20Atoken.address)).to.be.equal(true);
         })
 
         it("check the isVaultAdmin", async () => {
-            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(lydaContract.address,l2ProjectManagerAddresss)).to.be.equal(false)
-            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(ton,l2vaultAdminAddress)).to.be.equal(false)
-            expect(await deployed.l2PublicVaultProxy.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
+            expect(await l2PublicVaultProxy.isVaultAdmin(erc20Atoken.address,l2ProjectManagerAddresss)).to.be.equal(false)
+            expect(await l2PublicVaultProxy.isVaultAdmin(ton,l2vaultAdminAddress)).to.be.equal(false)
+            expect(await l2PublicVaultProxy.isVaultAdmin(erc20Atoken.address,l2vaultAdminAddress)).to.be.equal(true)
         })
         
         it("vaultInitialize can not be executed by not vaultAdmin", async () => {
@@ -895,8 +1122,8 @@ describe('L2TokenFactory', () => {
             )
 
             await expect(
-                deployed.l2PublicVaultProxy.connect(addr1).vaultInitialize(
-                    lydaContract.address,
+                l2PublicVaultProxy.connect(addr1).vaultInitialize(
+                    erc20Atoken.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
                     publicSaleParams.vestingParams
@@ -906,7 +1133,7 @@ describe('L2TokenFactory', () => {
 
         it("vaultInitialize can not be executed by input not L2TokenAddr", async () => {
             await expect(
-                deployed.l2PublicVaultProxy.connect(addr1).vaultInitialize(
+                l2PublicVaultProxy.connect(addr1).vaultInitialize(
                     addr1Address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
@@ -917,8 +1144,8 @@ describe('L2TokenFactory', () => {
 
         it("vaultInitialize can not be executed by not input token", async () => {
             await expect(
-                deployed.l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
-                    lydaContract.address,
+                l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
+                    erc20Atoken.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
                     publicSaleParams.vestingParams
@@ -927,12 +1154,12 @@ describe('L2TokenFactory', () => {
         })
 
         it("vaultInitialize need set snapshot consider delayTime", async () => {
-            let tx = await lydaContract.balanceOf(l2vaultAdminAddress)
-            await lydaContract.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
+            let tx = await erc20Atoken.balanceOf(l2vaultAdminAddress)
+            await erc20Atoken.connect(l2vaultAdmin).transfer(deployed.l2PublicProxy.address,tx);
 
             await expect(
-                deployed.l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
-                    lydaContract.address,
+                l2PublicVaultProxy.connect(l2vaultAdmin).vaultInitialize(
+                    erc20Atoken.address,
                     publicSaleParams.vaultParams,
                     publicSaleParams.claimParams,
                     publicSaleParams.vestingParams
@@ -1002,8 +1229,8 @@ describe('L2TokenFactory', () => {
             // console.log("claimPercent4 : ",claimPercent4)
             // console.log("claimPercent5 : ",claimPercent5)
 
-            await deployed.l2PublicVaultProxy.connect(l2ProjectManager).vaultInitialize(
-                lydaContract.address,
+            await l2PublicVaultProxy.connect(l2ProjectManager).vaultInitialize(
+                erc20Atoken.address,
                 publicSaleParams.vaultParams,
                 publicSaleParams.claimParams,
                 publicSaleParams.vestingParams
@@ -1011,9 +1238,9 @@ describe('L2TokenFactory', () => {
         })
 
         it("check setting value", async () => {
-            let timeInfo = await deployed.l2PublicProxy.timeInfo(lydaContract.address)
-            let manageInfo = await deployed.l2PublicProxy.manageInfo(lydaContract.address)
-            let claimInfo = await deployed.l2PublicProxy.claimInfo(lydaContract.address)
+            let timeInfo = await deployed.l2PublicProxy.timeInfo(erc20Atoken.address)
+            let manageInfo = await deployed.l2PublicProxy.manageInfo(erc20Atoken.address)
+            let claimInfo = await deployed.l2PublicProxy.claimInfo(erc20Atoken.address)
             
             expect(manageInfo.set1rdTokenAmount).to.be.equal(round1SaleAmount)
             expect(manageInfo.set2rdTokenAmount).to.be.equal(round2SaleAmount)
@@ -1046,88 +1273,25 @@ describe('L2TokenFactory', () => {
             expect(claimInfo.secondClaimTime).to.be.equal(secondClaimTime)
             expect(claimInfo.claimInterval).to.be.equal(roundInterval)
 
-            expect(await deployed.l2PublicProxy.tiers(lydaContract.address,1)).to.be.equal(settingTier1)
-            expect(await deployed.l2PublicProxy.tiers(lydaContract.address,2)).to.be.equal(settingTier2)
-            expect(await deployed.l2PublicProxy.tiers(lydaContract.address,3)).to.be.equal(settingTier3)
-            expect(await deployed.l2PublicProxy.tiers(lydaContract.address,4)).to.be.equal(settingTier4)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,1)).to.be.equal(settingTier1)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,2)).to.be.equal(settingTier2)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,3)).to.be.equal(settingTier3)
+            expect(await deployed.l2PublicProxy.tiers(erc20Atoken.address,4)).to.be.equal(settingTier4)
 
-            expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,1)).to.be.equal(settingTierPercent1)
-            expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,2)).to.be.equal(settingTierPercent2)
-            expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,3)).to.be.equal(settingTierPercent3)
-            expect(await deployed.l2PublicProxy.tiersPercents(lydaContract.address,4)).to.be.equal(settingTierPercent4)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)).to.be.equal(settingTierPercent1)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)).to.be.equal(settingTierPercent2)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)).to.be.equal(settingTierPercent3)
+            expect(await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)).to.be.equal(settingTierPercent4)
         })
     })
 
     describe("# set VestingFundVault", () => {
-        // describe("# set VaultAdmin", () => {
-        //     it('setVaultAdmin can not be executed by not l2ProjectManager', async () => {
-        //         await expect(
-        //             deployed.l2VestingFundProxy.connect(addr1).setVaultAdmin(
-        //                 lydaContract.address,
-        //                 l2vaultAdminAddress
-        //             )
-        //         ).to.be.revertedWith("caller is not l2ProjectManager")
-        //     })
-
-        //     it('setVaultAdmin can be executed by only l2ProjectManager ', async () => {
-        //         await deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-        //             lydaContract.address,
-        //             l2vaultAdminAddress
-        //         )
-        //         expect(await deployed.l2VestingFundProxy.vaultAdminOfToken(lydaContract.address)).to.eq(l2vaultAdminAddress)
-        //         expect(await deployed.l2VestingFund.isVaultAdmin(lydaContract.address,l2vaultAdminAddress)).to.be.equal(true)
-        //     })
-
-        //     it('cannot be changed to the same value', async () => {
-        //         await expect(
-        //             deployed.l2VestingFundProxy.connect(l2ProjectManager).setVaultAdmin(
-        //                 lydaContract.address,
-        //                 l2vaultAdminAddress
-        //             )
-        //         ).to.be.revertedWith("same")
-        //     })
-        // })
-
-        describe("# set initialize about l2Token", () => {
-            // it("not vaultAdmin not initialize", async () => {
-            //     fundClaimTime1 = secondClaimTime + 3000
-            //     fundClaimTime2 = fundClaimTime1 + 100
-            //     fundClaimTime3 = fundClaimTime2 + 100
-
-            //     await expect(
-            //         deployed.l2VestingFund.connect(addr1).initialize(
-            //             lyda,
-            //             l2vaultAdminAddress,
-            //             3,
-            //             firstClaimPercent,
-            //             fundClaimTime1,
-            //             fundClaimTime2,
-            //             roundInterval,
-            //             3000
-            //         )
-            //     ).to.be.revertedWith("caller is not a vaultAdmin")
-            // })
-        
-            // it("if claimCounts == 0, not initialize", async () => {
-            //     await expect(
-            //         deployed.l2VestingFund.connect(l2vaultAdmin).initialize(
-            //             lyda,
-            //             l2vaultAdminAddress,
-            //             0,
-            //             firstClaimPercent,
-            //             fundClaimTime1,
-            //             fundClaimTime2,
-            //             roundInterval,
-            //             3000
-            //         )
-            //     ).to.be.revertedWith("claimCounts must be greater than zero")
-            // })
-            
+        describe("# set initialize about l2Token", () => {            
             it("can initialize only vaultAdmin about l2Token", async () => {
-                expect(await deployed.l2VestingFund.receivedAddress(lyda)).to.be.equal(l2vaultAdminAddress)
-                expect(await deployed.l2VestingFund.fees(lyda)).to.be.equal(fee)
-                expect(await deployed.l2VestingFund.settingChecks(lyda)).to.be.equal(true)
-                let tx = await deployed.l2VestingFund.vaultInfo(lyda)
+                expect(await deployed.l2VestingFund.receivedAddress(erc20Atoken.address)).to.be.equal(l2vaultAdminAddress)
+                expect(await deployed.l2VestingFund.fees(erc20Atoken.address)).to.be.equal(fee)
+                expect(await deployed.l2VestingFund.settingChecks(erc20Atoken.address)).to.be.equal(true)
+                let tx = await deployed.l2VestingFund.vaultInfo(erc20Atoken.address)
                 expect(tx.totalClaimCount).to.be.equal(3)
                 expect(tx.firstClaimPercents).to.be.equal(firstClaimPercent)
                 expect(tx.firstClaimTime).to.be.equal(fundClaimTime1)
@@ -1141,24 +1305,24 @@ describe('L2TokenFactory', () => {
     describe("# PublicSale Test", () => {
         describe("# whiteList", () => {
             it("calculTier for user", async () => {
-                let addr1Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr1Address
                 );
-                let addr2Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr2Address
                 );
-                let addr3Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr3Address
                 );
-                let addr4Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr4Address
                 );
-                let addr5Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr5Address
                 );
                 expect(addr1Tier).to.be.equal(1)
@@ -1169,62 +1333,62 @@ describe('L2TokenFactory', () => {
             })
 
             it("calculTierAmount for user", async () => {
-                let user1Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr1Address
                 );
-                let user2Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr2Address
                 );
-                let user3Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr3Address
                 );
-                let user4Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr4Address
                 );
-                let user5Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr5Address
                 );
 
-                let addr1Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr1Address,
                     user1Tier
                 );
-                let addr2Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr2Address,
                     user2Tier
                 );
-                let addr3Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr3Address,
                     user3Tier
                 );
-                let addr4Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr4Address,
                     user4Tier
                 );
-                let addr5Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr5Address,
                     user5Tier
                 );
 
-                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,1)
-                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,2)
-                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,3)
-                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,4)
+                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)
+                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)
+                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)
+                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)
 
-                let tier1stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,1)).add(1);
-                let tier2stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,2)).add(1);
-                let tier3stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,3)).add(1);
-                let tier4stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,4)).add(1);
+                let tier1stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,1)).add(1);
+                let tier2stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,2)).add(1);
+                let tier3stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,3)).add(1);
+                let tier4stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,4)).add(1);
 
                 let tier1Amount = round1SaleAmount.mul(tier1Percents).div(10000).div(tier1stAccount);
                 let tier2Amount = round1SaleAmount.mul(tier2Percents).div(10000).div(tier2stAccount);
@@ -1239,44 +1403,44 @@ describe('L2TokenFactory', () => {
             })
 
             it("calcul1RoundAmount for user before addWhitelist", async () => {
-                let user1Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr1Address
                 );
-                let user2Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr2Address
                 );
-                let user3Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr3Address
                 );
-                let user4Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr4Address
                 );
-                let user5Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr5Address
                 );
 
-                let Tier1Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier1Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr1Address,
                     user1Tier
                 );
-                let Tier2Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier2Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr2Address,
                     user2Tier
                 );
-                let Tier3Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier3Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr3Address,
                     user3Tier
                 );
-                let Tier4Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier4Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr4Address,
                     user4Tier
                 );
@@ -1287,24 +1451,24 @@ describe('L2TokenFactory', () => {
                 //account4 = Tier4 -> Tier1Amount + Tier2Amount + Tier3Amount + Tier4Amount
                 //account5 = Tier4 -> Tier1Amount + Tier2Amount + Tier3Amount + Tier4Amount
 
-                let totalaccount1 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount1 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr1Address
                 ) 
-                let totalaccount2 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount2 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr2Address
                 ) 
-                let totalaccount3 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount3 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr3Address
                 ) 
-                let totalaccount4 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount4 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr4Address
                 ) 
-                let totalaccount5 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount5 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr5Address
                 )
                 
@@ -1332,92 +1496,92 @@ describe('L2TokenFactory', () => {
             })
 
             it("add whiteList", async () => {
-                let tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,1));
+                let tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1));
                 expect(tiersWhitelist).to.be.equal(0)
-                await l2PublicVaultLogic.connect(addr1).addWhiteList(lydaContract.address);
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,1));
+                await deployed.l2PublicProxyLogic.connect(addr1).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,1));
                 expect(tiersWhitelist).to.be.equal(1)
 
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,2));
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2));
                 expect(tiersWhitelist).to.be.equal(0)
-                await l2PublicVaultLogic.connect(addr2).addWhiteList(lydaContract.address);
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,2));
+                await deployed.l2PublicProxyLogic.connect(addr2).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,2));
                 expect(tiersWhitelist).to.be.equal(1)
 
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,3));
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3));
                 expect(tiersWhitelist).to.be.equal(0)
-                await l2PublicVaultLogic.connect(addr3).addWhiteList(lydaContract.address);
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,3));
+                await deployed.l2PublicProxyLogic.connect(addr3).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,3));
                 expect(tiersWhitelist).to.be.equal(1)
 
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,4));
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
                 expect(tiersWhitelist).to.be.equal(0)
-                await l2PublicVaultLogic.connect(addr4).addWhiteList(lydaContract.address);
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,4));
+                await deployed.l2PublicProxyLogic.connect(addr4).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
                 expect(tiersWhitelist).to.be.equal(1)
 
-                await l2PublicVaultLogic.connect(addr5).addWhiteList(lydaContract.address);
-                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(lydaContract.address,4));
+                await deployed.l2PublicProxyLogic.connect(addr5).addWhiteList(erc20Atoken.address);
+                tiersWhitelist = (await deployed.l2PublicProxy.tiersWhiteList(erc20Atoken.address,4));
                 expect(tiersWhitelist).to.be.equal(2)
             })
 
             it("calculTierAmount for user after addWhitelist", async () => {
-                let user1Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr1Address
                 );
-                let user2Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr2Address
                 );
-                let user3Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr3Address
                 );
-                let user4Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr4Address
                 );
-                let user5Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr5Address
                 );
 
-                let addr1Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr1Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr1Address,
                     user1Tier
                 );
-                let addr2Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr2Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr2Address,
                     user2Tier
                 );
-                let addr3Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr3Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr3Address,
                     user3Tier
                 );
-                let addr4Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr4Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr4Address,
                     user4Tier
                 );
-                let addr5Tier = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let addr5Tier = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr5Address,
                     user5Tier
                 );
 
-                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,1)
-                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,2)
-                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,3)
-                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(lydaContract.address,4)
+                let tier1Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,1)
+                let tier2Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,2)
+                let tier3Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,3)
+                let tier4Percents = await deployed.l2PublicProxy.tiersPercents(erc20Atoken.address,4)
 
-                let tier1stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,1));
-                let tier2stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,2));
-                let tier3stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,3));
-                let tier4stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(lydaContract.address,4));
+                let tier1stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,1));
+                let tier2stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,2));
+                let tier3stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,3));
+                let tier4stAccount = (await deployed.l2PublicProxy.tiersCalculAccount(erc20Atoken.address,4));
 
                 let tier1Amount = round1SaleAmount.mul(tier1Percents).div(10000).div(tier1stAccount);
                 let tier2Amount = round1SaleAmount.mul(tier2Percents).div(10000).div(tier2stAccount);
@@ -1432,49 +1596,49 @@ describe('L2TokenFactory', () => {
             })
 
             it("can not addwhitelist who have already applied", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).addWhiteList(lydaContract.address)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).addWhiteList(erc20Atoken.address)
                 await expect(tx).to.be.revertedWith("already attended")
             })
 
             it("calcul1RoundAmount for user after addWhitelist", async () => {
-                let user1Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user1Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr1Address
                 );
-                let user2Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user2Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr2Address
                 );
-                let user3Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user3Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr3Address
                 );
-                let user4Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user4Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr4Address
                 );
-                let user5Tier = await l2PublicVaultLogic.calculTier(
-                    lydaContract.address,
+                let user5Tier = await deployed.l2PublicProxyLogic.calculTier(
+                    erc20Atoken.address,
                     addr5Address
                 );
 
-                let Tier1Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier1Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr1Address,
                     user1Tier
                 );
-                let Tier2Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier2Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr2Address,
                     user2Tier
                 );
-                let Tier3Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier3Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr3Address,
                     user3Tier
                 );
-                let Tier4Amount = await l2PublicVaultLogic.calculTierAmount(
-                    lydaContract.address,
+                let Tier4Amount = await deployed.l2PublicProxyLogic.calculTierAmount(
+                    erc20Atoken.address,
                     addr4Address,
                     user4Tier
                 );
@@ -1485,24 +1649,24 @@ describe('L2TokenFactory', () => {
                 //account4 = Tier4 -> Tier1Amount + Tier2Amount + Tier3Amount + Tier4Amount
                 //account5 = Tier4 -> Tier1Amount + Tier2Amount + Tier3Amount + Tier4Amount
 
-                let totalaccount1 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount1 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr1Address
                 ) 
-                let totalaccount2 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount2 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr2Address
                 ) 
-                let totalaccount3 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount3 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr3Address
                 ) 
-                let totalaccount4 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount4 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr4Address
                 ) 
-                let totalaccount5 = await l2PublicVaultLogic.calcul1RoundAmount(
-                    lydaContract.address,
+                let totalaccount5 = await deployed.l2PublicProxyLogic.calcul1RoundAmount(
+                    erc20Atoken.address,
                     addr5Address
                 )
                 
@@ -1523,8 +1687,8 @@ describe('L2TokenFactory', () => {
         describe("# round1 Sale", () => {
             it("can not attend before round1 startTime", async () => {
                 round1addr1Amount = ethers.utils.parseUnits("300", 18);
-                await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round1addr1Amount)
-                let tx = l2PublicVaultLogic.connect(addr1).round1Sale(lydaContract.address,round1addr1Amount)
+                // await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round1addr1Amount)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).round1Sale(erc20Atoken.address, {value: round1addr1Amount})
                 await expect(tx).to.be.revertedWith("not round1SaleTime")
             })
 
@@ -1536,51 +1700,31 @@ describe('L2TokenFactory', () => {
             })
 
             it("can not addwhitelist after whitelistTIme", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).addWhiteList(lydaContract.address)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).addWhiteList(erc20Atoken.address)
                 await expect(tx).to.be.revertedWith("end whitelistTime")
             })
 
             it("round1Sale after round1Sale StartTime", async () => {
-                //original logic amount
-                round1addr1Amount = ethers.utils.parseUnits("300", 18);
-                round1addr2Amount = ethers.utils.parseUnits("600", 18);
-                round1addr3Amount = ethers.utils.parseUnits("1100", 18);
-                round1addr4Amount = ethers.utils.parseUnits("1500", 18);
-                round1addr5Amount = ethers.utils.parseUnits("1500", 18);
-
-                //change logic amount
-                round1addr1Amount = ethers.utils.parseUnits("60", 18);
-                round1addr2Amount = ethers.utils.parseUnits("210", 18);
-                round1addr3Amount = ethers.utils.parseUnits("576", 18);
-                round1addr4Amount = ethers.utils.parseUnits("2076", 18);
-                round1addr5Amount = ethers.utils.parseUnits("2076", 18);
-
-                await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round1addr1Amount)
-                await tonContract.connect(addr2).approve(deployed.l2PublicProxy.address, round1addr2Amount)
-                await tonContract.connect(addr3).approve(deployed.l2PublicProxy.address, round1addr3Amount)
-                await tonContract.connect(addr4).approve(deployed.l2PublicProxy.address, round1addr4Amount)
-                await tonContract.connect(addr5).approve(deployed.l2PublicProxy.address, round1addr5Amount)
-
-                await l2PublicVaultLogic.connect(addr1).round1Sale(lydaContract.address,round1addr1Amount)
-                await l2PublicVaultLogic.connect(addr2).round1Sale(lydaContract.address,round1addr2Amount)
-                await l2PublicVaultLogic.connect(addr3).round1Sale(lydaContract.address,round1addr3Amount)
-                await l2PublicVaultLogic.connect(addr4).round1Sale(lydaContract.address,round1addr4Amount)
-                await l2PublicVaultLogic.connect(addr5).round1Sale(lydaContract.address,round1addr5Amount)
+                await deployed.l2PublicProxyLogic.connect(addr1).round1Sale(erc20Atoken.address,{ value: buyAmount })
+                await deployed.l2PublicProxyLogic.connect(addr2).round1Sale(erc20Atoken.address,{ value: buyAmount })
+                await deployed.l2PublicProxyLogic.connect(addr3).round1Sale(erc20Atoken.address,{ value: buyAmount })
+                await deployed.l2PublicProxyLogic.connect(addr4).round1Sale(erc20Atoken.address,{ value: buyAmount })
+                await deployed.l2PublicProxyLogic.connect(addr5).round1Sale(erc20Atoken.address,{ value: buyAmount })
             })
 
             it("claimAmount check after round1", async () => {
-                let addr1claimAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round1addr1Amount);
-                let addr2claimAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round1addr2Amount);
-                let addr3claimAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round1addr3Amount);
-                let addr4claimAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round1addr4Amount);
-                let addr5claimAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round1addr5Amount);
+                let addr1claimAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,buyAmount);
+                let addr2claimAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,buyAmount);
+                let addr3claimAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,buyAmount);
+                let addr4claimAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,buyAmount);
+                let addr5claimAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,buyAmount);
 
 
-                let realaddr1Amount = await l2PublicVaultLogic.user1rd(lydaContract.address,addr1Address);
-                let realaddr2Amount = await l2PublicVaultLogic.user1rd(lydaContract.address,addr2Address);
-                let realaddr3Amount = await l2PublicVaultLogic.user1rd(lydaContract.address,addr3Address);
-                let realaddr4Amount = await l2PublicVaultLogic.user1rd(lydaContract.address,addr4Address);
-                let realaddr5Amount = await l2PublicVaultLogic.user1rd(lydaContract.address,addr5Address);
+                let realaddr1Amount = await deployed.l2PublicProxyLogic.user1rd(erc20Atoken.address,addr1Address);
+                let realaddr2Amount = await deployed.l2PublicProxyLogic.user1rd(erc20Atoken.address,addr2Address);
+                let realaddr3Amount = await deployed.l2PublicProxyLogic.user1rd(erc20Atoken.address,addr3Address);
+                let realaddr4Amount = await deployed.l2PublicProxyLogic.user1rd(erc20Atoken.address,addr4Address);
+                let realaddr5Amount = await deployed.l2PublicProxyLogic.user1rd(erc20Atoken.address,addr5Address);
 
                 expect(addr1claimAmount).to.be.equal(realaddr1Amount.saleAmount)
                 expect(addr2claimAmount).to.be.equal(realaddr2Amount.saleAmount)
@@ -1590,7 +1734,7 @@ describe('L2TokenFactory', () => {
             })
 
             it("can not attend round1Sale over amount", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).round1Sale(lydaContract.address,round1addr1Amount)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).round1Sale(erc20Atoken.address,{ value : round1addr1Amount })
                 await expect(tx).to.be.revertedWith("don't over buy")
             })
         })
@@ -1598,8 +1742,8 @@ describe('L2TokenFactory', () => {
         describe("# round2 Sale", () => {
             it("can not attend before round2 startTime", async () => {
                 round2Amount = ethers.utils.parseUnits("1000", 18);
-                await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
-                let tx = l2PublicVaultLogic.connect(addr1).round2Sale(lydaContract.address,round2Amount)
+                // await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,{value: round2Amount})
                 await expect(tx).to.be.revertedWith("not depositTime")
             })
 
@@ -1611,30 +1755,30 @@ describe('L2TokenFactory', () => {
             })
 
             it("can not round1Sale attend after round1Sale EndTime", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).round1Sale(lydaContract.address,round1addr1Amount)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).round1Sale(erc20Atoken.address,{ value :round1addr1Amount })
                 await expect(tx).to.be.revertedWith("end round1SaleTime")
             })
 
             it("can round2Sale after round2Sale StartTime", async () => {
-                await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
-                await tonContract.connect(addr2).approve(deployed.l2PublicProxy.address, round2Amount)
-                await tonContract.connect(addr3).approve(deployed.l2PublicProxy.address, round2Amount)
-                await tonContract.connect(addr4).approve(deployed.l2PublicProxy.address, round2Amount)
-                await tonContract.connect(addr5).approve(deployed.l2PublicProxy.address, round2Amount)
+                // await tonContract.connect(addr1).approve(deployed.l2PublicProxy.address, round2Amount)
+                // await tonContract.connect(addr2).approve(deployed.l2PublicProxy.address, round2Amount)
+                // await tonContract.connect(addr3).approve(deployed.l2PublicProxy.address, round2Amount)
+                // await tonContract.connect(addr4).approve(deployed.l2PublicProxy.address, round2Amount)
+                // await tonContract.connect(addr5).approve(deployed.l2PublicProxy.address, round2Amount)
 
-                await l2PublicVaultLogic.connect(addr1).round2Sale(lydaContract.address,round2Amount)
-                await l2PublicVaultLogic.connect(addr2).round2Sale(lydaContract.address,round2Amount)
-                await l2PublicVaultLogic.connect(addr3).round2Sale(lydaContract.address,round2Amount)
-                await l2PublicVaultLogic.connect(addr4).round2Sale(lydaContract.address,round2Amount)
-                await l2PublicVaultLogic.connect(addr5).round2Sale(lydaContract.address,round2Amount)
+                await deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,{ value: round2Amount })
+                await deployed.l2PublicProxyLogic.connect(addr2).round2Sale(erc20Atoken.address,{ value: round2Amount })
+                await deployed.l2PublicProxyLogic.connect(addr3).round2Sale(erc20Atoken.address,{ value: round2Amount })
+                await deployed.l2PublicProxyLogic.connect(addr4).round2Sale(erc20Atoken.address,{ value: round2Amount })
+                await deployed.l2PublicProxyLogic.connect(addr5).round2Sale(erc20Atoken.address,{ value: round2Amount })
             })
 
             it("check round2 attend (depositAmount check)", async () => {
-                let depositAmount1 = await l2PublicVaultLogic.user2rd(lydaContract.address,addr1Address);
-                let depositAmount2 = await l2PublicVaultLogic.user2rd(lydaContract.address,addr2Address);
-                let depositAmount3 = await l2PublicVaultLogic.user2rd(lydaContract.address,addr3Address);
-                let depositAmount4 = await l2PublicVaultLogic.user2rd(lydaContract.address,addr4Address);
-                let depositAmount5 = await l2PublicVaultLogic.user2rd(lydaContract.address,addr5Address);
+                let depositAmount1 = await deployed.l2PublicProxyLogic.user2rd(erc20Atoken.address,addr1Address);
+                let depositAmount2 = await deployed.l2PublicProxyLogic.user2rd(erc20Atoken.address,addr2Address);
+                let depositAmount3 = await deployed.l2PublicProxyLogic.user2rd(erc20Atoken.address,addr3Address);
+                let depositAmount4 = await deployed.l2PublicProxyLogic.user2rd(erc20Atoken.address,addr4Address);
+                let depositAmount5 = await deployed.l2PublicProxyLogic.user2rd(erc20Atoken.address,addr5Address);
 
                 expect(round2Amount).to.be.equal(depositAmount1.depositAmount)
                 expect(round2Amount).to.be.equal(depositAmount2.depositAmount)
@@ -1644,13 +1788,13 @@ describe('L2TokenFactory', () => {
             })
 
             it("check 2round buy amount(saleToken amount)", async () => {
-                let addr1round2Amount = await l2PublicVaultLogic.calculOpenSaleAmount(lydaContract.address,addr1Address,0)
-                let addr2round2Amount = await l2PublicVaultLogic.calculOpenSaleAmount(lydaContract.address,addr2Address,0)
-                let addr3round2Amount = await l2PublicVaultLogic.calculOpenSaleAmount(lydaContract.address,addr3Address,0)
-                let addr4round2Amount = await l2PublicVaultLogic.calculOpenSaleAmount(lydaContract.address,addr4Address,0)
-                let addr5round2Amount = await l2PublicVaultLogic.calculOpenSaleAmount(lydaContract.address,addr5Address,0)
+                let addr1round2Amount = await deployed.l2PublicProxyLogic.calculOpenSaleAmount(erc20Atoken.address,addr1Address,0)
+                let addr2round2Amount = await deployed.l2PublicProxyLogic.calculOpenSaleAmount(erc20Atoken.address,addr2Address,0)
+                let addr3round2Amount = await deployed.l2PublicProxyLogic.calculOpenSaleAmount(erc20Atoken.address,addr3Address,0)
+                let addr4round2Amount = await deployed.l2PublicProxyLogic.calculOpenSaleAmount(erc20Atoken.address,addr4Address,0)
+                let addr5round2Amount = await deployed.l2PublicProxyLogic.calculOpenSaleAmount(erc20Atoken.address,addr5Address,0)
 
-                let calcultokenAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round2Amount);
+                let calcultokenAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,round2Amount);
 
                 expect(addr1round2Amount).to.be.equal(addr2round2Amount)
                 expect(addr2round2Amount).to.be.equal(addr3round2Amount)
@@ -1660,13 +1804,13 @@ describe('L2TokenFactory', () => {
             })
 
             it("openSaleUserAmount check", async () => {
-                let addr1round2Amount = await l2PublicVaultLogic.openSaleUserAmount(lydaContract.address,addr1Address)
-                let addr2round2Amount = await l2PublicVaultLogic.openSaleUserAmount(lydaContract.address,addr2Address)
-                let addr3round2Amount = await l2PublicVaultLogic.openSaleUserAmount(lydaContract.address,addr3Address)
-                let addr4round2Amount = await l2PublicVaultLogic.openSaleUserAmount(lydaContract.address,addr4Address)
-                let addr5round2Amount = await l2PublicVaultLogic.openSaleUserAmount(lydaContract.address,addr5Address)
+                let addr1round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr1Address)
+                let addr2round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr2Address)
+                let addr3round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr3Address)
+                let addr4round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr4Address)
+                let addr5round2Amount = await deployed.l2PublicProxyLogic.openSaleUserAmount(erc20Atoken.address,addr5Address)
 
-                let calcultokenAmount = await l2PublicVaultLogic.calculSaleToken(lydaContract.address,round2Amount);
+                let calcultokenAmount = await deployed.l2PublicProxyLogic.calculSaleToken(erc20Atoken.address,round2Amount);
 
                 expect(addr1round2Amount._refundAmount).to.be.equal(0)
                 expect(addr2round2Amount._refundAmount).to.be.equal(0)
@@ -1696,26 +1840,28 @@ describe('L2TokenFactory', () => {
             })
 
             it("can not round2Sale attend after round2Sale EndTime", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).round2Sale(lydaContract.address,round2Amount)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).round2Sale(erc20Atoken.address,{ value: round2Amount })
                 await expect(tx).to.be.revertedWith("end depositTime")
             })
         })
 
         describe("# claim", () => {
             it("currentRound test", async () => {
-                expect(await l2PublicVaultLogic.currentRound(lydaContract.address)).to.be.equal(0)
+                expect(await deployed.l2PublicProxyLogic.currentRound(erc20Atoken.address)).to.be.equal(0)
             })
+
             it("calculClaimAmount test", async () => {
-                let tx = await l2PublicVaultLogic.calculClaimAmount(
-                    lydaContract.address,
+                let tx = await deployed.l2PublicProxyLogic.calculClaimAmount(
+                    erc20Atoken.address,
                     addr1Address,
                     0
                 )
                 console.log("calculAmount :", tx);
 
             })
+
             it("claim fail before claimTime1", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
+                let tx = deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address)
                 await expect(tx).to.be.revertedWith("not claimTime")
             })
 
@@ -1724,247 +1870,59 @@ describe('L2TokenFactory', () => {
                 await ethers.provider.send('evm_mine');
             })
 
-            it("claim success after firstClaimTime", async () => {
-                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(0)
-                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,1)
-                console.log()
-                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
-                expect(await lydaContract.balanceOf(addr1Address)).to.be.equal(getAddr1Amount._reward)
-            })
-
-            it("claim fail after claimTime1 because no buy", async () => {
-                let tx = l2PublicVaultLogic.connect(l2ProjectManager).claim(lydaContract.address)
-                await expect(tx).to.be.revertedWith("no purchase amount")
-            })
-
-            it("if already get reward about round, claim fail", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
-                await expect(tx).to.be.revertedWith("no reward")
-            })
-
-            it("duration the time to period end", async () => {
-                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1]);
-                await ethers.provider.send('evm_mine');
-            })
-
-            it("claim success after secondClaimTime", async () => {
-                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(0)
-                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,2)
-                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,0)
+            it("If try to claim, addr1 will receive a refund of TON you participated in in the 1st and 2nd rounds", async () => {
+                let beforeAddr1TONAmount = await provider.getBalance(addr1Address)
+                await deployed.l2PublicProxyLogic.connect(addr1).claim(erc20Atoken.address);
+                let afterAddr1TONAmount = await provider.getBalance(addr1Address)
                 
-                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
-
-                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-                expect(await lydaContract.balanceOf(addr2Address)).to.be.equal(getAddr2Amount._reward)
+                expect(afterAddr1TONAmount.sub(beforeAddr1TONAmount)).to.be.lt(refundAmount)
             })
 
-            it("duration the time to period end", async () => {
-                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+601]);
-                await ethers.provider.send('evm_mine');
-            })
-
-            it("claim success after claimTime3", async () => {
-                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(0)
-                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,3)
-                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,3)
-                let getAddr3Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr3Address,0)
+            it("If try to claim, addr2 will receive a refund of TON you participated in in the 1st and 2nd rounds", async () => {
+                let beforeAddr2TONAmount = await provider.getBalance(addr2Address)
+                await deployed.l2PublicProxyLogic.connect(addr2).claim(erc20Atoken.address);
+                let afterAddr2TONAmount = await provider.getBalance(addr2Address)
                 
-                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr3).claim(lydaContract.address);
-
-                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-                expect(await lydaContract.balanceOf(addr3Address)).to.be.equal(getAddr3Amount._reward)
+                expect(afterAddr2TONAmount.sub(beforeAddr2TONAmount)).to.be.lt(refundAmount)
             })
-
-            it("duration the time to period end", async () => {
-                await ethers.provider.send('evm_setNextBlockTimestamp', [secondClaimTime+1201]);
-                await ethers.provider.send('evm_mine');
-            })
-
-            it("claim success after claimTime4", async () => {
-                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(0)
-                let beforeAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                let beforeAddr2Amount = await lydaContract.balanceOf(addr2Address)
-                let beforeAddr3Amount = await lydaContract.balanceOf(addr3Address)
-                let beforeAddr4Amount = await lydaContract.balanceOf(addr4Address)
-                let getAddr1Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr1Address,4)
-                let getAddr2Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr2Address,4)
-                let getAddr3Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr3Address,4)
-                let getAddr4Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr4Address,0)
-                let getAddr5Amount = await l2PublicVaultLogic.calculClaimAmount(lydaContract.address,addr5Address,0)
+            it("If try to claim, addr3 will receive a refund of TON you participated in in the 1st and 2nd rounds", async () => {
+                let beforeAddr3TONAmount = await provider.getBalance(addr3Address)
+                await deployed.l2PublicProxyLogic.connect(addr3).claim(erc20Atoken.address);
+                let afterAddr3TONAmount = await provider.getBalance(addr3Address)
                 
+                expect(afterAddr3TONAmount.sub(beforeAddr3TONAmount)).to.be.lt(refundAmount)
+            })
+            it("If try to claim, addr4 will receive a refund of TON you participated in in the 1st and 2nd rounds", async () => {
+                let beforeAddr4TONAmount = await provider.getBalance(addr4Address)
+                await deployed.l2PublicProxyLogic.connect(addr4).claim(erc20Atoken.address);
+                let afterAddr4TONAmount = await provider.getBalance(addr4Address)
                 
-                await l2PublicVaultLogic.connect(addr1).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr2).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr3).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr4).claim(lydaContract.address);
-                await l2PublicVaultLogic.connect(addr5).claim(lydaContract.address);
-
-                let afterAddr1Amount = await lydaContract.balanceOf(addr1Address)
-                let afterAddr2Amount = await lydaContract.balanceOf(addr2Address)
-                let afterAddr3Amount = await lydaContract.balanceOf(addr3Address)
-                expect(afterAddr1Amount.sub(beforeAddr1Amount)).to.be.equal(getAddr1Amount._reward)
-                expect(afterAddr2Amount.sub(beforeAddr2Amount)).to.be.equal(getAddr2Amount._reward)
-                expect(afterAddr3Amount.sub(beforeAddr3Amount)).to.be.equal(getAddr3Amount._reward)
-                expect(await lydaContract.balanceOf(addr4Address)).to.be.equal(getAddr4Amount._reward)
-                expect(await lydaContract.balanceOf(addr5Address)).to.be.equal(getAddr5Amount._reward)
+                expect(afterAddr4TONAmount.sub(beforeAddr4TONAmount)).to.be.lt(refundAmount)
+            })
+            it("If try to claim, addr5 will receive a refund of TON you participated in in the 1st and 2nd rounds", async () => {
+                let beforeAddr5TONAmount = await provider.getBalance(addr5Address)
+                await deployed.l2PublicProxyLogic.connect(addr5).claim(erc20Atoken.address);
+                let afterAddr5TONAmount = await provider.getBalance(addr5Address)
+                
+                expect(afterAddr5TONAmount.sub(beforeAddr5TONAmount)).to.be.lt(refundAmount)
+            })
+            
+            it("PublicSale have 0TON for saleToken", async () => {
+                expect(await provider.getBalance(deployed.l2PublicProxyLogic.address)).to.be.equal(0);
             })
 
-            it("if already get Allreward, claim fail", async () => {
-                let tx = l2PublicVaultLogic.connect(addr1).claim(lydaContract.address)
-                await expect(tx).to.be.revertedWith("no purchase amount")
-                let tx2 = l2PublicVaultLogic.connect(addr5).claim(lydaContract.address)
-                await expect(tx2).to.be.revertedWith("no purchase amount")
-            })
-
-            it("PublicSale have TON for saleToken", async () => {
-                expect(await tonContract.balanceOf(deployed.l2PublicProxy.address)).to.be.equal(contractHaveTON);
-            })
-
-            it("check the saleToken amount", async () => {
-                let amount1 = await lydaContract.balanceOf(addr1Address)
-                let amount2 = await lydaContract.balanceOf(addr2Address)
-                let amount3 = await lydaContract.balanceOf(addr3Address)
-                let amount4 = await lydaContract.balanceOf(addr4Address)
-                let amount5 = await lydaContract.balanceOf(addr5Address)
-                console.log("amount1 : ", amount1)
-                console.log("amount2 : ", amount2)
-                console.log("amount3 : ", amount3)
-                console.log("amount4 : ", amount4)
-                console.log("amount5 : ", amount5)
-            })
-        })
-
-        describe("# exchangeWTONtoTOS", () => {
-            it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
-                let tx = l2PublicVaultLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
-                await expect(tx).to.be.revertedWith("need the exchangeWTONtoTOS")
-            })
-
-            it("hardcapCalcul(how much TON change to TOS) view test", async () => {
-                let changeTONamount = await l2PublicVaultLogic.hardcapCalcul(lydaContract.address)
-                expect(changeTONamount).to.be.gte(0)
-            })
-
-            it("anybody can execute exchangeWTONtoTOS", async () => {
-                let amount1 = ethers.utils.parseUnits("1", 27);
-                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
-                let tx = l2PublicVaultLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
-                await expect(tx).to.be.revertedWith("amountIn over")
-            })
-
-            it("anybody can execute exchangeWTONtoTOS", async () => {
-                // let changeTick = await deployed.l2PublicProxyLogic.changeTick();
-                // console.log("changeTick :", changeTick)
-                let amount1 = ethers.utils.parseUnits("1", 18);
-                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.equal(0)
-                await l2PublicVaultLogic.connect(l2ProjectManager).exchangeWTONtoTOS(lydaContract.address,amount1)
-                // console.log(await tosContract.balanceOf(deployed.l2LiquidityProxy.address))
-                expect(await tosContract.balanceOf(deployed.l2LiquidityProxy.address)).to.be.gt(0)
-            })
         })
     })
 
-    describe("depositWithdraw (execute to funding)", () => {
-        it("depositWithdraw execute (L2VestingFundVault get TON)", async () => {
-            expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(0)
-            console.log("depositWithdraw")
-            await l2PublicVaultLogic.connect(l2ProjectManager).depositWithdraw(lydaContract.address);
-            let round1TONAmount = await l2PublicVaultLogic.saleInfo(lydaContract.address);
-            let round2TONAmount = await l2PublicVaultLogic.totalOpenPurchasedAmount(lydaContract.address)
-            let liquidityTON = await l2PublicVaultLogic.hardcapCalcul(lydaContract.address)
-            let vestingTON = round1TONAmount.total1rdTONAmount.add(round2TONAmount).sub(liquidityTON)
-            expect(await tonContract.balanceOf(deployed.l2VestingFundProxy.address)).to.be.equal(vestingTON);
-        })
-    })
-
-    describe("L2VestingFundVault claim", () => {
-        it("can not claim before claimTIme", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("Vault: not started yet")
+    describe("# exchangeWTONtoTOS", () => {
+        it("depositWithdraw fail before exchangeWTONtoTOS", async () => {
+            let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).depositWithdraw(erc20Atoken.address);
+            await expect(tx).to.be.revertedWith("need the exchangeWTONtoTOS")
         })
 
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime1+1]);
-            await ethers.provider.send('evm_mine');
-        })
-
-        it("can claim after claimTime1", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-        })
-
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("claimable amount is zero")
-        })
-
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+1]);
-            await ethers.provider.send('evm_mine');
-        })
-
-        it("can claim after claimTime2", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-        })
-
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("claimable amount is zero")
-        })
-
-
-        it("duration the time", async () => {
-            await ethers.provider.send('evm_setNextBlockTimestamp', [fundClaimTime2+601]);
-            await ethers.provider.send('evm_mine');
-        })
-
-        it("can claim after claimTime3", async () => {
-            let round = await deployed.l2VestingFund.currentRound(lyda)
-            let calculAmount = await deployed.l2VestingFund.calculClaimAmount(lyda)
-            let beforeHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-            await deployed.l2VestingFund.connect(addr1).claim(lyda)
-            let afterHaveAmount = await tonContract.balanceOf(l2vaultAdminAddress)
-
-            expect(afterHaveAmount.sub(beforeHaveAmount)).to.be.equal(calculAmount);
-            expect(await tonContract.balanceOf(deployed.l2VestingFund.address)).to.be.equal(0)
-        })
-
-        it("can't claim already get reward", async () => {
-            await expect(
-                deployed.l2VestingFund.connect(l2vaultAdmin).claim(
-                    lyda
-                )
-            ).to.be.revertedWith("Vault: already All get")
+        it("depositWithdraw fail becuase don't pass the hardCap", async () => {
+            let tx = deployed.l2PublicProxyLogic.connect(l2ProjectManager).exchangeWTONtoTOS(erc20Atoken.address,100);
+            await expect(tx).to.be.revertedWith("don't pass the hardCap")
         })
     })
 
