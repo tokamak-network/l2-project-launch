@@ -799,7 +799,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             l1BridgeAddress,
             L1BurnVaultProxy_Address
         )).wait()
-   }
+    }
 
     //---- setTokamakVaults
     /*
@@ -1038,21 +1038,34 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         )).wait()
     }
 
+	let delayTime = 600
+	let standardTier1 = hre.ethers.utils.parseUnits("100", 18)
+	let standardTier2 = hre.ethers.utils.parseUnits("200", 18)
+	let standardTier3 = hre.ethers.utils.parseUnits("1000", 18)
+	let standardTier4 = hre.ethers.utils.parseUnits("4000", 18)
 
     let quoter_l2PublicSaleProxy = await l2PublicSaleProxy.quoter()
     let lockTOS_l2PublicSaleProxy = await l2PublicSaleProxy.lockTOS()
     if(quoter_l2PublicSaleProxy != quoter ||
-        lockTOS_l2PublicSaleProxy != l2DividendPoolForStosProxy.address) {
-        await (await l2PublicSaleProxy.connect(deploySigner).setAddress(
-            [
-            quoter,
-            l2VestingFundVaultProxy.address,
-            l2InitialLiquidityVaultProxy.address,
-            uniswapRouter,
-            l2DividendPoolForStosProxy.address,
-            tosAddress,
-            tonAddress
-            ] )).wait()
+        lockTOS_l2PublicSaleProxy != L2UniversalStosProxyDeployment.address) {
+		await (await l2PublicSaleProxy.connect(deploySigner).initialize(
+			[
+				quoter,
+				l2VestingFundVaultProxy.address,
+				l2InitialLiquidityVaultProxy.address,
+				uniswapRouter,
+				L2UniversalStosProxyDeployment.address,
+				tosAddress,
+				tonAddress
+			],
+			5,
+			10,
+			standardTier1,
+			standardTier2,
+			standardTier3,
+			standardTier4,
+			delayTime
+		)).wait()
     }
 
     // ==== verify =================================
