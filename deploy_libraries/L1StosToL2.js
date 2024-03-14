@@ -1,3 +1,3 @@
 module.exports = {
-    LibProject: "0x2b13778E63f0f0Af46258841e45da3DE48A6482D",
+    LibProject: "0x541da88B395B05064A9B0d4Af189c4Fac5fe5361",
   };

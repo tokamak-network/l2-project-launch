@@ -39,51 +39,14 @@ import { L1BurnVaultProxy } from  "../typechain-types/contracts/L1/L1BurnVaultPr
 import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
 
 
-let  L1ProjectManagerProxy = "0x76B2435ED9A20f618a11616A3C8f57E592393826"
-let  L1StosToL2_Address = "0x86Ed13C79DB599e501AE9Ac21d047bcFA6B5a245"
+let  L1ProjectManagerProxy = "0x980b2342624eDDbd7764633a3e7C7aC7C4c3ce96"
+let  L1StosToL2_Address = "0x04666D3507F7be8B79e9304477284296C01DEC56"
 let  l2StakeV2_Address = null
 
-let L1BurnVaultProxy_Address = "0xAB901F0800ED2c151f3392EaA2d10E88cc67C933"
+let L1BurnVaultProxy_Address = "0x2b9992dE82FAc2406c4008eB09E3BD6F2F5b8327"
 
 /**
- * first
- deploying "L2TokenFactory" (tx: 0xdcc507115302e2f4b20864b60354d9b1ffeb5b4e89caf05ec817cf4acc81f749)...: deployed at 0xBB8e650d9BB5c44E54539851636DEFEF37585E67 with 2025434 gas
- deploying "L2ProjectManager" (tx: 0x41bccb121bdcd6f290fddff923c2b61eff2095b0fef438f1271d2143124abb4d)...: deployed at 0x62851a5a70bf13dF298982b86f62fa7A6B91db1e with 1370667 gas
-*/
-
-/**
- * 2023.9.18
-reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
-reusing "L2ProjectManager" at 0x8d7fea6E3fBcC90BE1c8080aB0e819DB2A2CCb4f
-reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
-reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
-reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
-reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
-reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
-reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
-reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
-*/
-
-/**
- * 2023.11.8
-  reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
-reusing "L2ProjectManager" at 0xACfea3d759DeA62ae06a926b19b226E2C7cFe2a3
-reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
-reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
-reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
-reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
-reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
-reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
-reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
-reusing "L1StosInL2" at 0xd83A67290124566Aa900356F77Ca1a86574db578
-reusing "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
-reusing "LockIdNftForRegister" at 0xF8E19c8fE9dABC5B3C5B5A6F7eFD4BcE1d0Aff5B
-reusing "LockIdNftForRegisterProxy" at 0x4b3fB26396C6740341cB36E2D3325b1163421385
- */
-
-/**
- * 2023.12.22
-
+  2024.03.14 sepolia
  */
 const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
