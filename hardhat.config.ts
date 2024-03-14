@@ -241,7 +241,8 @@ const config: HardhatUserConfig = {
     thanossepolia: {
       url: `${process.env.ETH_NODE_URI_THANOS_SEPOLIA}`,
       accounts: [`${process.env.PRIVATE_KEY}`],
-      chainId: 111551118080
+      chainId: 111551118080,
+      deploy: ['deploy_l2']
     },
   },
   // deterministicDeployment: (network: string) => {

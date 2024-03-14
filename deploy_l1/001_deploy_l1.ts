@@ -15,7 +15,7 @@ import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
 
 // "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
 // const L1StosInL2_Address = "0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF"
-const L1StosInL2_Address = null
+const L1StosInL2_Address = "0xdb24dea411856b35dFc778a533F65A110483417A"
 const publicSaleInfoZero = {minPercents: 5, maxPercents: 10, delayTime: 100}
 
 /**
@@ -112,24 +112,24 @@ const deployL1: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     }
 
     //==== L1ProjectManager setL2Infos =================================
-    // let l2Info = {
-    //     l2TokenFactory: '0x52D3b95E94863590D9A366718C2C839510b68b60',
-    //     l2ProjectManager: '0xEaFa9b1436B9c25d40CA0e25ba142fc0C9C09b1a',
-    //     depositMinGasLimit: 300000,
-    //     sendMsgMinGasLimit: 3000000 // => 1021609.2
-    // }
-    // let viewl2Info = await l1ProjectManager.viewL2Info(0);
+    let l2Info = {
+        l2TokenFactory: '0xA8812b612978178361F8c6C4B59a9dC0e9fe7bB1',
+        l2ProjectManager: '0x20f4b34715754A7482a685E889732eD708637896',
+        depositMinGasLimit: 300000,
+        sendMsgMinGasLimit: 5000000 // => 1021609.2
+    }
+    let viewl2Info = await l1ProjectManager.viewL2Info(0);
 
-    // // if (viewl2Info.l2ProjectManager != l2Info.l2ProjectManager) {
-    // if (viewl2Info.sendMsgMinGasLimit != l2Info.sendMsgMinGasLimit) {
-    //     await l1ProjectManager.connect(deploySigner).setL2Infos(
-    //         0,
-    //         l2Info.l2TokenFactory,
-    //         l2Info.l2ProjectManager,
-    //         l2Info.depositMinGasLimit,
-    //         l2Info.sendMsgMinGasLimit
-    //     )
-    // }
+    // if (viewl2Info.l2ProjectManager != l2Info.l2ProjectManager) {
+    if (viewl2Info.sendMsgMinGasLimit != l2Info.sendMsgMinGasLimit) {
+        await l1ProjectManager.connect(deploySigner).setL2Infos(
+            0,
+            l2Info.l2TokenFactory,
+            l2Info.l2ProjectManager,
+            l2Info.depositMinGasLimit,
+            l2Info.sendMsgMinGasLimit
+        )
+    }
 
     //==== L1StosToL2 =================================
 

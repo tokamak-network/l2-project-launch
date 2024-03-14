@@ -34,9 +34,9 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("400000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test7',
-    tokenName: 'Test7',
-    tokenSymbol: 'T7T',
+    projectName: 'Test1',
+    tokenName: 'Test1',
+    tokenSymbol: 'T1T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
