@@ -180,6 +180,10 @@ const config: HardhatUserConfig = {
       sepolia: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
       thanossepolia: '0x17b3E73833880AB6E8A632220968f9371cB533Bf'
     },
+    l2WtonAddress: {
+      default: 19,
+      thanossepolia: '0x4200000000000000000000000000000000000006'
+    },
     testUser:
       'privatekey://0xf14a6e4b68641b84ebef1c0f73cde544348429fe135272e111b946b38d329e16', // for test (see scripts folder)
     accountForCreate2Deployer:
@@ -223,14 +227,15 @@ const config: HardhatUserConfig = {
       url: `${process.env.ETH_NODE_URI_SEPOLIA}`,
       accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 11155111,
-      deploy: ['deploy_l1']
+      // gasPrice: 400000000000,
+      // deploy: ['deploy_l1']
     },
     titangoerli: {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
       accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 5050,
       gasPrice: 1000000000,
-      deploy: ['deploy_l2']
+      // deploy: ['deploy_l2']
     },
     "tokamakGoerli" : {
       url: `https://rpc.titan-goerli.tokamak.network`,

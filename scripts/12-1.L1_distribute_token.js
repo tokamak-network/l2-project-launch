@@ -66,8 +66,8 @@ const setup = async() => {
 async function main() {
     const { addressManager } = await hre.getNamedAccounts();
 
-    let L1Contracts = await readContracts(__dirname+'/../deployments/goerli');
-    let L2Contracts = await readContracts(__dirname+'/../deployments/titangoerli');
+    let L1Contracts = await readContracts(__dirname+'/../deployments/sepolia');
+    let L2Contracts = await readContracts(__dirname+'/../deployments/thanossepolia');
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);

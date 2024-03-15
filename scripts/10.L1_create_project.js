@@ -26,9 +26,9 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test1',
-    tokenName: 'Test1',
-    tokenSymbol: 'T1T',
+    projectName: 'Test2',
+    tokenName: 'Test2',
+    tokenSymbol: 'T2T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
@@ -57,6 +57,9 @@ async function main() {
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
+
+    console.log('L1Contracts.abis["L1ProjectManagerProxy"].address' , L1Contracts.abis["L1ProjectManagerProxy"].address)
+
     const L1ProjectManager = new ethers.Contract(L1Contracts.abis["L1ProjectManagerProxy"].address, L1Contracts.abis["L1ProjectManager"].abi, l1Signer)
     console.log('ourAddr', ourAddr)
     //console.log('L1ProjectManager', L1ProjectManager)
@@ -74,9 +77,9 @@ async function main() {
         0,
         projectInfo.projectName,
         projectInfo.tokenName,
-        projectInfo.tokenSymbol,
+        projectInfo.tokenSymbol
     )
-    console.log('gos', gos)
+    console.log('gos', gos.toString())
 
     // create project on L1
     const receipt = await (await L1ProjectManager.createProject(
@@ -87,8 +90,10 @@ async function main() {
         projectInfo.tokenType,
         projectInfo.projectName,
         projectInfo.tokenName,
-        projectInfo.tokenSymbol,
+        projectInfo.tokenSymbol
     )).wait();
+
+    console.log('receipt', receipt)
 
     const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
     const deployedEvent = L1ProjectManager.interface.parseLog(log);

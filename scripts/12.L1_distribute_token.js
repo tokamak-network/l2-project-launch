@@ -32,22 +32,22 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("400000"),
+    initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test1',
-    tokenName: 'Test1',
-    tokenSymbol: 'T1T',
+    projectName: 'Test2',
+    tokenName: 'Test2',
+    tokenSymbol: 'T2T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
-    addressManager: ethers.constants.AddressZero
+    addressManager: ethers.constants.AddressZero,
 }
 
-let projectId = ethers.BigNumber.from("7");
+let projectId = ethers.BigNumber.from("2");
 
-const L2Token = "0xD51a3581A1E64dFDFBE0dFa2d50B184b5f5e058a"
-const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
-const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+const L2Token = "0x2f1854d5c212fc90a85df21c63c3b4d328249e06"
+const L2TOS = "0xec32659a42904a96d415468d3a213e57b13ee5c0"
+const L2TON = "0x4200000000000000000000000000000000000006"
 
 const setup = async() => {
   wallets = await getSigners()
@@ -66,8 +66,8 @@ const setup = async() => {
 async function main() {
     const { addressManager } = await hre.getNamedAccounts();
 
-    let L1Contracts = await readContracts(__dirname+'/../deployments/goerli');
-    let L2Contracts = await readContracts(__dirname+'/../deployments/titangoerli');
+    let L1Contracts = await readContracts(__dirname+'/../deployments/sepolia');
+    let L2Contracts = await readContracts(__dirname+'/../deployments/thanossepolia');
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
@@ -156,7 +156,7 @@ async function main() {
      let publicVaultcheck = await L1ProjectManager.validationPublicSaleVaults(
         publicSaleParams
     )
-    // console.log(publicVaultcheck.valid)
+    console.log(publicVaultcheck.valid)
 
     if(publicVaultcheck.valid == false) {
         console.log('validationPublicSaleVaults false')
@@ -265,11 +265,13 @@ async function main() {
     let customScheduleVaults = [teamParams, marketingParams]
     let customNonScheduleVaults = [daoParams]
 
-
     // console.log('initialVaultParams' , initialVaultParams)
     // console.log('customScheduleVaults' , customScheduleVaults)
     // console.log('rewardTonTosPoolParams' , rewardTonTosPoolParams)
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
+
+    let check_validateTokamakVaults = await L1ProjectManager.validateTokamakVaults(tokamakVaults)
+    console.log(check_validateTokamakVaults)
 
 
     let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
@@ -281,7 +283,6 @@ async function main() {
 
     if(validationVaultsParameters.valid == false) {
         console.log('validationVaultsParameters false')
-
         return;
     }
 
@@ -305,6 +306,7 @@ async function main() {
         customNonScheduleVaults
         )).wait();
 
+    console.log('receipt', receipt)
     //--------------------------
     const topic = L1ProjectManager.interface.getEventTopic('LaunchedProject');
     const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);

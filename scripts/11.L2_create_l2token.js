@@ -30,16 +30,16 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test1',
-    tokenName: 'Test1',
-    tokenSymbol: 'T1T',
-    l1Token: ethers.constants.AddressZero,
+    projectName: 'Test2',
+    tokenName: 'Test2',
+    tokenSymbol: 'T2T',
+    l1Token: ethers.constants.AddressZer1o,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("78");
+let projectId = ethers.BigNumber.from("2");
 
 const setup = async() => {
   wallets = await getSigners()
@@ -54,8 +54,8 @@ const setup = async() => {
 async function main() {
     const { addressManager } = await hre.getNamedAccounts();
 
-    let L1Contracts = await readContracts(__dirname+'/../deployments/goerli');
-    let L2Contracts = await readContracts(__dirname+'/../deployments/titangoerli');
+    let L1Contracts = await readContracts(__dirname+'/../deployments/sepolia');
+    let L2Contracts = await readContracts(__dirname+'/../deployments/thanossepolia');
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
@@ -91,6 +91,8 @@ async function main() {
             projectInfo.tokenSymbol,
             projectInfo.projectName
         )).wait();
+
+        console.log('receipt', receipt.transactionHash)
 
         const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);
         const deployedEvent = deployedL2.L2TokenFactory.interface.parseLog(log);

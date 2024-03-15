@@ -45,6 +45,9 @@ let  l2StakeV2_Address = null
 
 let L1BurnVaultProxy_Address = "0x2b9992dE82FAc2406c4008eB09E3BD6F2F5b8327"
 
+let l2WtonAddress = '0x4200000000000000000000000000000000000006'
+let l2TosAddress = '0xec32659a42904a96d415468d3a213e57b13ee5c0'
+
 /**
   2024.03.14 sepolia
  */
@@ -147,11 +150,23 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     let l2CrossDomainMessenger = await l2ProjectManager.l2CrossDomainMessenger()
     // console.log('l2CrossDomainMessenger',l2CrossDomainMessenger)
     // console.log('l2MessengerAddress',l2MessengerAddress)
-
     if (l2CrossDomainMessenger != l2MessengerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL2CrossDomainMessenger(l2MessengerAddress)).wait()
     }
     // console.log('setL2CrossDomainMessenger')
+
+    // - setL2Addresses of L2ProjectManager
+    let tosInL2ProjectManager = await l2ProjectManager.tos()
+    if (l2TosAddress != null && l2TosAddress != "0x0000000000000000000000000000000000000000" &&
+        tosInL2ProjectManager != l2TosAddress) {
+        await (await l2ProjectManager.connect(deploySigner).setL2Addresses(
+            l2TokenFactory.address,
+            l2MessengerAddress,
+            l2WtonAddress,
+            l2TosAddress,
+            3000
+        )).wait()
+    }
 
     //=================================
     //==== initialLiquidityVault
@@ -255,7 +270,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     // let recipient_l2LpRewardVault = await l2LpRewardVault.recipient()
     // if (recipient_l2LpRewardVault != a(0)) {
-    //     await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+    //     await (await l2LpRewardVault.connect(deploySigner).changeRecipient(
     //         l2ProjectManager.address
     //         )).wait()
     // }

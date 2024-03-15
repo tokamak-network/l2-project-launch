@@ -34,20 +34,20 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test9',
-    tokenName: 'Test9',
-    tokenSymbol: 'T9T',
+    projectName: 'Test2',
+    tokenName: 'Test2',
+    tokenSymbol: 'T2T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero
 }
 
-let projectId = ethers.BigNumber.from("78");
+let projectId = ethers.BigNumber.from("2");
 
-const L2Token = "0xB3DEA65cE777Df54CAf6D8C9A1Ac38b29510ee39"
-const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
-const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+const L2Token = "0x2F1854d5C212fC90A85dF21c63c3B4D328249E06"
+const L2TOS = "0xec32659a42904a96d415468d3a213e57b13ee5c0"
+const L2TON = "0x4200000000000000000000000000000000000006"
 
 const setup = async() => {
   wallets = await getSigners()
@@ -66,8 +66,8 @@ const setup = async() => {
 async function main() {
     const { addressManager } = await hre.getNamedAccounts();
 
-    let L1Contracts = await readContracts(__dirname+'/../deployments/goerli');
-    let L2Contracts = await readContracts(__dirname+'/../deployments/titangoerli');
+    let L1Contracts = await readContracts(__dirname+'/../deployments/sepolia');
+    let L2Contracts = await readContracts(__dirname+'/../deployments/thanossepolia');
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
