@@ -34,18 +34,19 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test2',
-    tokenName: 'Test2',
-    tokenSymbol: 'T2T',
+    projectName: 'Test101',
+    tokenName: 'Test101',
+    tokenSymbol: 'TH1',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero,
 }
 
-let projectId = ethers.BigNumber.from("2");
+let projectId = ethers.BigNumber.from("7");
 
-const L2Token = "0x2f1854d5c212fc90a85df21c63c3b4d328249e06"
+// const L2Token = "0x2f1854d5c212fc90a85df21c63c3b4d328249e06"
+const L2Token = "0x9e6D7daCD705F571B67501BbB6995081C83477c9"
 const L2TOS = "0xec32659a42904a96d415468d3a213e57b13ee5c0"
 const L2TON = "0x4200000000000000000000000000000000000006"
 
@@ -123,6 +124,10 @@ async function main() {
     let roundInterval = 600;      //1분
     let fee = 3000;
 
+	let tier1 = ethers.utils.parseEther("100")
+	let tier2 = ethers.utils.parseEther("200")
+	let tier3 = ethers.utils.parseEther("1000")
+	let tier4 = ethers.utils.parseEther("4000")
 
     // let firstClaimTime = sTime
     // let totalClaimCount = BigNumber.from("4")
@@ -131,7 +136,7 @@ async function main() {
     // let secondClaimTime =  firstClaimTime + roundIntervalTime
 
     let publicSaleParams =  getPublicSaleParams (
-                [100,200,1000,4000], //tier
+                [tier1,tier2,tier3,tier4], //tier
                 [600,1200,2200,6000], // percentage
                 [initialLiquidityAmount,initialLiquidityAmount], //amount
                 [200,2000], // price saleTokenPrice, payTokenPrice

@@ -152,7 +152,7 @@ const config: HardhatUserConfig = {
       titangoerli: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       local: '0xEFa07e4263D511fC3a7476772e2392efFb1BDb92',
       sepolia: '0x41CC1728eE5CD632FE86d7C17bf756182D0f2f26',
-      thanossepolia: ''
+      thanossepolia: '0x41CC1728eE5CD632FE86d7C17bf756182D0f2f26'
     },
     lockTOSAddress: {
       default: 16,
@@ -196,8 +196,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `${process.env.ETH_NODE_URI_GOERLI}`,
-        blockNumber: 9448400
+        url: `${process.env.ETH_NODE_URI_THANOS_SEPOLIA}`,
+        // blockNumber: 9448400
       },
       allowUnlimitedContractSize: false,
       // deploy: ['deploy_l1', 'deploy_l2'],

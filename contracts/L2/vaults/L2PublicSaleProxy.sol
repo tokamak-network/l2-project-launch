@@ -9,7 +9,7 @@ import "./L2PublicSaleVaultStorage.sol";
 import "../../libraries/SafeERC20.sol";
 import '../../libraries/LibProject.sol';
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 interface IVestingFund {
     function publicSaleVault() external view returns(address);
@@ -175,7 +175,8 @@ contract L2PublicSaleProxy is
         external
         onlyVaultAdminOfToken(_l2token)
     {
-         require(
+		console.log("1");
+        require(
             (params.startWhiteTime < params.endWhiteTime) &&
             (params.endWhiteTime < params.start1roundTime) &&
             (params.start1roundTime < params.end1roundTime) &&
@@ -184,18 +185,21 @@ contract L2PublicSaleProxy is
             "RoundTime err"
         );
 
+		console.log("2");
         require(
             (params.end2roundTime < params2.firstClaimTime) &&
             (params2.firstClaimTime < params2.secondClaimTime),
             "claimTime err"
         );
 
+		console.log("3");
         require(
             (params.end2roundTime < params3.firstClaimTime) &&
             (params3.firstClaimTime < params3.secondClaimTime),
             "VestingClaimTime err"
         );
 
+		console.log("4");
         setTier(
             _l2token,
             params.stosTier1,
@@ -204,6 +208,7 @@ contract L2PublicSaleProxy is
             params.stosTier4
         );
 
+		console.log("5");
         setTierPercents(
             _l2token,
             params.tier1Percents,
@@ -212,6 +217,7 @@ contract L2PublicSaleProxy is
             params.tier4Percents
         );
 
+		console.log("6");
         setAllAmount(
             _l2token,
             params.total1roundSaleAmount,
@@ -223,6 +229,7 @@ contract L2PublicSaleProxy is
             0
         );
 
+		console.log("7");
         set1RoundTime(
             _l2token,
             params.startWhiteTime,
@@ -231,6 +238,7 @@ contract L2PublicSaleProxy is
             params.end1roundTime
         );
 
+		console.log("8");
         set2RoundTime(
             _l2token,
             params.snapshotTime,
@@ -238,6 +246,8 @@ contract L2PublicSaleProxy is
             params.end2roundTime
         );
 
+
+		console.log("9");
         setClaimTime(
             _l2token,
             params2.claimCounts,
@@ -247,6 +257,8 @@ contract L2PublicSaleProxy is
             params2.roundInterval
         );
 
+
+		console.log("10");
         IVestingFund(vestingFund).initialize(
             _l2token,
             params3.receiveAddress,
@@ -258,6 +270,7 @@ contract L2PublicSaleProxy is
             params3.fee
         );
 
+		console.log("11");
         IERC20(_l2token).approve(
             address(l2Bridge),
             type(uint256).max
