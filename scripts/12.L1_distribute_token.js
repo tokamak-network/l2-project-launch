@@ -34,19 +34,19 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test101',
-    tokenName: 'Test101',
-    tokenSymbol: 'TH1',
+    projectName: 'Test12',
+    tokenName: 'Test12',
+    tokenSymbol: 'TH12',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
     addressManager: ethers.constants.AddressZero,
 }
 
-let projectId = ethers.BigNumber.from("7");
+let projectId = ethers.BigNumber.from("9");
 
 // const L2Token = "0x2f1854d5c212fc90a85df21c63c3b4d328249e06"
-const L2Token = "0x9e6D7daCD705F571B67501BbB6995081C83477c9"
+const L2Token = "0xda5854B16E4a9190Bc7515972C4F29708f571Cf0"
 const L2TOS = "0xec32659a42904a96d415468d3a213e57b13ee5c0"
 const L2TON = "0x4200000000000000000000000000000000000006"
 
