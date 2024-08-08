@@ -5,7 +5,7 @@ l2-project-launch is designed to launch a project in Layer2 and distribute proje
 
 ## Documentation
 
-The structure and specifications of the designed contract are described in the following article. [Description of L2 project launcher contracts](./doc)
+The structure and specifications of the designed contract are described in the following article. [Description of L2 project launcher contracts](./doc/README.md)
 
 
 
