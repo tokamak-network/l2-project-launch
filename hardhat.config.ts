@@ -228,7 +228,7 @@ const config: HardhatUserConfig = {
       accounts: [`${process.env.PRIVATE_KEY}`],
       chainId: 11155111,
       // gasPrice: 400000000000,
-      // deploy: ['deploy_l1']
+      deploy: ['deploy_l1']
     },
     titangoerli: {
       url: `${process.env.ETH_NODE_URI_DARIUS}`,
