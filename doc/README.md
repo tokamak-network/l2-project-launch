@@ -105,14 +105,14 @@ L1ProjectManager uses this factory to generate L1 tokens.
 
 #### Events
 
-```json
-event CreatedERC20A(address contractAddress, string name, string symbol, uint256 initialSupply, address to);
+```jsx
+    event CreatedERC20A(address contractAddress, string name, string symbol, uint256 initialSupply, address to);
 
-event CreatedERC20B(address contractAddress, string name, string symbol, uint256 initialSupply, address owner);
+    event CreatedERC20B(address contractAddress, string name, string symbol, uint256 initialSupply, address owner);
 
-event CreatedERC20C(address contractAddress, string name, string symbol, uint256 initialSupply, address to);
+    event CreatedERC20C(address contractAddress, string name, string symbol, uint256 initialSupply, address to);
 
-event CreatedERC20D(address contractAddress, string name, string symbol, uint256 initialSupply, address owner);
+    event CreatedERC20D(address contractAddress, string name, string symbol, uint256 initialSupply, address owner);
 ```
 
 #### Functions
@@ -121,7 +121,7 @@ event CreatedERC20D(address contractAddress, string name, string symbol, uint256
 
   parameters : name, symbol, initialSupply, owner
 
-  ```json
+  ```jsx
   function create(
           string calldata name,
           string calldata symbol,
@@ -1198,7 +1198,7 @@ event Funded(
 
 #### Storage
 
-```json
+```jsx
 address public l2ProjectManager;   // L2 Project Manager Address
 
 // l2token - tokenOwner
@@ -1225,7 +1225,7 @@ library LibNonScheduleVault {
 
 #### Events
 
-```json
+```jsx
 event SetVaultAdmin(address l2Token, address newAdmin);
 
 event InitializedL2NonScheduleVault(
@@ -1308,7 +1308,7 @@ Claims can only be made on a specific schedule.
 
 #### Storage
 
-```json
+```jsx
 address public l2ProjectManager;   // L2 Project Manager Address
 
 // l2token - VaultInfo
@@ -1355,7 +1355,7 @@ struct InitalParameterScheduleVault {
 
 #### Events
 
-```json
+```jsx
 event SetVaultAdmin(address l2Token, address newAdmin);
 
 event InitializedL2ScheduleVault(
@@ -1479,7 +1479,7 @@ event ChangedClaimer(address l2Token, string name, address newClaimer);
 
 #### Storage
 
-```json
+```jsx
 struct PoolInfo {
       address pool;
       uint256 totalAllocatedAmount;
@@ -1514,7 +1514,7 @@ mapping(address => LibInitialLiquidityVault.PoolInfo) public poolInfo;
 
 #### Events
 
-```json
+```jsx
 event SetVaultAdmin(address l2Token, address newAdmin);
 
 event SetUniswapInfo(address _factory, address _npm, address _ton, address _tos);
