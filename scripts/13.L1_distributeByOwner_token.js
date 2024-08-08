@@ -35,9 +35,9 @@ projectInfo = {
     projectOwner: null,
     initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test7',
-    tokenName: 'Test7',
-    tokenSymbol: 'T7T',
+    projectName: 'Test8',
+    tokenName: 'Test8',
+    tokenSymbol: 'T8T',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
@@ -102,10 +102,19 @@ async function main() {
         [0,0], // price saleTokenPrice, payTokenPrice
         0, //hardcapAmount
         0, //changeTOSPercent
-        [0,0,0,0,0,0,0],
-        0,
-        [],
-        [],
+        [0,0,0,0,0,0,0], //times
+        0, //claimCounts
+        0, //firstClaimPercent
+        0, //firstClaimTime
+        0, //secondClaimTime: number,
+        0, //roundInterval: number,
+        ethers.constants.AddressZero,  // receiveAddress,
+        0, // vestingClaimCounts: number,
+        0, // vestingfirstClaimPercent: number,
+        0, // vestingClaimTime1: number,
+        0, // vestingClaimTime2: number,
+        0, // vestingRoundInterval: number,
+        0, // fee: number
         );
     let tosPrice = 1e18;
     let tokenPrice = 10e18;

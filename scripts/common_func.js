@@ -11,28 +11,28 @@ const MessageDirection = {
   L2_TO_L1: 1,
 }
 
-const l1Url = `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`
-const l2Url = `https://rpc.titan-goerli.tokamak.network`
+const l1Url = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
+const l2Url = `https://rpc.thanos-sepolia-test.tokamak.network`
 
 const bridge = {
-  l1Bridge: "0x7377F3D0F64d7a54Cf367193eb74a052ff8578FD",
+  l1Bridge: "0x5D2Ed95c0230Bd53E336f12fA9123847768B2B3E",
   l2Bridge: "0x4200000000000000000000000000000000000010"
 }
 
 // TON
 const tonAddrs = {
-  l1Addr: "0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00",
-  l2Addr: "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+  l1Addr: "0xa30fe40285b8f5c0457dbc3b7c8a280373c40044",
+  l2Addr: ""
 }
-const addressManager = "0xEFa07e4263D511fC3a7476772e2392efFb1BDb92"
+const addressManager = "0x41CC1728eE5CD632FE86d7C17bf756182D0f2f26"
 
 const messenger  = {
-    l1Messenger: "0x2878373BA3Be0Ef2a93Ba5b3F7210D76cb222e63",
+    l1Messenger: "0x8ca593C92446104B4DA968786735dbd503886ed7",
     l2Messenger: "0x4200000000000000000000000000000000000007",
 }
 
 const lockTos  = {
-  l1LockTOS: "0x63689448AbEaaDb57342D9e0E9B5535894C35433",
+  l1LockTOS: "",
   l2LockTOS: "",
 }
 

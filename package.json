@@ -28,6 +28,7 @@
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.5",
     "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@tokamak-network/titan-sdk": "^0.0.8",
     "@tokamak-network/tokamak-layer2-sdk": "^0.0.2",
     "@typechain/ethers-v5": "^10.2.0",
     "@typechain/hardhat": "^6.1.5",
@@ -40,7 +41,6 @@
     "hardhat": "^2.13.0",
     "hardhat-deploy": "^0.11.25",
     "hardhat-gas-reporter": "^1.0.9",
-    "hardhat-typechain": "^0.3.5",
     "mocha-chai-jest-snapshot": "^1.1.4",
     "solidity-coverage": "^0.8.2",
     "ts-generator": "^0.1.1",
@@ -53,6 +53,6 @@
     "@thanpolas/univ3prices": "^3.0.2",
     "bluebird": "^3.7.2",
     "chai-ethers": "^0.0.1",
-    "web3-eth-abi": "^1.9.0"
+    "web3-eth-abi": "^1.10.3"
   }
 }

@@ -241,7 +241,7 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can not be executed by not owner', async () => {
                 await expect(
                     deployed.l2ProjectManager.connect(addr1).setTokamakVaults(
-                        ethers.constants.AddressZero,
+                        deployed.l2PublicSaleProxy.address,
                         deployed.initialLiquidityVaultProxy.address,
                         ethers.constants.AddressZero,
                         ethers.constants.AddressZero,
@@ -255,19 +255,21 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can be executed by only owner ', async () => {
 
                 await deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
-                    ethers.constants.AddressZero,
+                    deployed.l2PublicSaleProxy.address,
                     deployed.initialLiquidityVaultProxy.address,
-                    ethers.constants.AddressZero,
-                    ethers.constants.AddressZero,
+                    deployed.l2LpRewardVaultProxy.address,
+                    deployed.airdropTonVault.address,
                     deployed.airdropStosVault.address,
                     deployed.scheduleVaultProxy.address,
                     deployed.nonScheduleVaultProxy.address
                 )
 
+                expect(await deployed.l2ProjectManager.publicSaleVault()).to.be.eq(deployed.l2PublicSaleProxy.address)
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.tosAirdropVault()).to.be.eq(deployed.airdropStosVault.address)
+                expect(await deployed.l2ProjectManager.tonAirdropVault()).to.be.eq(deployed.airdropTonVault.address)
 
             })
 
@@ -430,10 +432,19 @@ describe('L1ProjectManager', () => {
                 [0,0], // price saleTokenPrice, payTokenPrice
                 0, //hardcapAmount
                 0, //changeTOSPercent
-                [0,0,0,0,0,0,0],
-                0,
-                [],
-                [],
+                [0,0,0,0,0,0,0], //times
+                0, //claimCounts
+                0, //firstClaimPercent
+                0, //firstClaimTime
+                0, //secondClaimTime: number,
+                0, //roundInterval: number,
+                ethers.constants.AddressZero,  // receiveAddress,
+                0, // vestingClaimCounts: number,
+                0, // vestingfirstClaimPercent: number,
+                0, // vestingClaimTime1: number,
+                0, // vestingClaimTime2: number,
+                0, // vestingRoundInterval: number,
+                0, // fee: number
                 );
 
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
@@ -458,7 +469,10 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+
+            let rewardTonTosParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0, 0);
+            let rewardProjectTosParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, ethers.constants.AddressZero,  0, 0, 0, 0, 0, 0, 0);
+
             let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
             let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
 
@@ -488,7 +502,8 @@ describe('L1ProjectManager', () => {
             let tokamakVaults = {
                 publicSaleParams: publicSaleParams,
                 initialVaultParams : initialVaultParams,
-                rewardParams: rewardParams,
+                rewardTonTosPoolParams: rewardTonTosParams,
+                rewardProjectTosPoolParams: rewardProjectTosParams,
                 tosAirdropParams: tosAirdropParams,
                 tonAirdropParams: tonAirdropParams
             }
@@ -531,10 +546,19 @@ describe('L1ProjectManager', () => {
                 [0,0], // price saleTokenPrice, payTokenPrice
                 0, //hardcapAmount
                 0, //changeTOSPercent
-                [0,0,0,0,0,0,0],
-                0,
-                [],
-                [],
+                [0,0,0,0,0,0,0], //times
+                0, //claimCounts
+                0, //firstClaimPercent
+                0, //firstClaimTime
+                0, //secondClaimTime: number,
+                0, //roundInterval: number,
+                ethers.constants.AddressZero,  // receiveAddress,
+                0, // vestingClaimCounts: number,
+                0, // vestingfirstClaimPercent: number,
+                0, // vestingClaimTime1: number,
+                0, // vestingClaimTime2: number,
+                0, // vestingRoundInterval: number,
+                0, // fee: number
                 );
 
 
@@ -559,7 +583,10 @@ describe('L1ProjectManager', () => {
                 sqrtPrice.toString(),
                 sTime,
                 3000) ;
-            let rewardParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0);
+
+            let rewardTonTosParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, ethers.constants.AddressZero, 0, 0, 0, 0, 0, 0, 0);
+            let rewardProjectTosParams = getLpRewardParams(addr1.address, ethers.constants.AddressZero, ethers.constants.AddressZero,  0, 0, 0, 0, 0, 0, 0);
+
             let tosAirdropParams =  getTosAirdropParams(
                 ethers.constants.AddressZero,
                 airdropStosAmount,
@@ -596,7 +623,8 @@ describe('L1ProjectManager', () => {
             let tokamakVaults = {
                 publicSaleParams: publicSaleParams,
                 initialVaultParams : initialVaultParams,
-                rewardParams: rewardParams,
+                rewardTonTosPoolParams: rewardTonTosParams,
+                rewardProjectTosPoolParams: rewardProjectTosParams,
                 tosAirdropParams: tosAirdropParams,
                 tonAirdropParams: tonAirdropParams
             }

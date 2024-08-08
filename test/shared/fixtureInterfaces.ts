@@ -25,6 +25,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { TON } from '../../typechain-types/contracts/test/TON.sol'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
@@ -60,6 +61,20 @@ import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2
 import { L2AirdropTonVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
 import { L2AirdropTonVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
 
+
+import { LibPublicSaleVault } from '../../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
+import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
+import { L2PublicSaleProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleProxy.sol'
+
+
+import { L1BurnVaultProxy } from  "../../typechain-types/contracts/L1/L1BurnVaultProxy"
+import { L1BurnVault } from  "../../typechain-types/contracts/L1/L1BurnVault.sol"
+
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
+
 // LpReward
 // TonAirdrop
 // TosAirDrop
@@ -79,19 +94,32 @@ interface L2ProjectLaunchFixture  {
     deployer: Signer,
     addr1: Signer,
     addr2: Signer,
+    addr3: Signer,
+    addr4: Signer,
+    addr5: Signer,
     // factoryDeployer: Signer,
     addressManager: Lib_AddressManager,
     l1Messenger: MockL1Messenger,
     l2Messenger: MockL2Messenger,
     l1Bridge: MockL1Bridge,
     l2Bridge: MockL2Bridge,
+    l2PublicProxy: L2PublicSaleVaultProxy,
+    libL2Public: LibPublicSaleVault,
+    l2PublicProxyLogic: L2PublicSaleVault,
+    l2PublicVaultProxy: L2PublicSaleProxy,
+    l2ProjectManagerAddr: Signer,
+    l2VaultAdmin: Signer,
+    l2LiquidityProxy: L2InitialLiquidityVaultProxy,
+    l2Liquidity: L2InitialLiquidityVault,
+    vestingFundAddr: Signer,
+    l2VestingFundProxy: L2VestingFundVaultProxy,
+    l2VestingFund: L2VestingFundVault,
     // factory: Create2Deployer,
     // l1toL2MessageTest: L1toL2MessageTest
     l1toL2Message: L1toL2Message,
     paymasterAddress: string,
     l2PaymasterDeposit: L2PaymasterDeposit
 }
-
 
 interface SetL2ProjectLaunchFixture  {
     libProject: LibProject,
@@ -137,7 +165,12 @@ interface SetL2ProjectLaunchFixture  {
     airdropTonVaultProxy: L2AirdropTonVaultProxy,
     tosAddress: string,
     tosAdminAddress: string,
-    tonAddress: string
+    tonAddress: string,
+    l2PublicSaleProxy: L2PublicSaleProxy,
+    l2VestingFundVault: L2VestingFundVault,
+    l1BurnVault: L1BurnVault,
+    l2TonAddress: string,
+    l2TosAddress: string
 }
 
 interface ProjectInfo {
@@ -157,7 +190,8 @@ interface L1Fixture {
     addr1: Signer,
     addr2: Signer,
     tos: TOS,
-    lockTOS: LockTOS
+    lockTOS: LockTOS,
+    ton: TON
 }
 
 interface Point {

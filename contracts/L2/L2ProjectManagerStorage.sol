@@ -12,6 +12,9 @@ contract L2ProjectManagerStorage {
     address public l1ProjectManager;
     address public l2TokenFactory;
     address public l2CrossDomainMessenger;
+    address public tos;
+    address public wton;
+    uint24 public poolFee;
 
     // 토큰별로 대표되는 볼트
     address public publicSaleVault;

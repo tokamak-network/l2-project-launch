@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-
+import Web3EthAbi from "web3-eth-abi"
 import { L2TokenFactory } from '../typechain-types/contracts/L2/factory/L2TokenFactory.sol'
 import { L2ProjectManager } from '../typechain-types/contracts/L2/L2ProjectManager.sol'
 import { L2ProjectManagerProxy } from '../typechain-types/contracts/L2/L2ProjectManagerProxy'
@@ -27,52 +27,37 @@ import { L2AirdropTonVault } from '../typechain-types/contracts/L2/vaults/L2Aird
 import { L2LpRewardVaultProxy } from '../typechain-types/contracts/L2/vaults/L2LpRewardVaultProxy'
 import { L2LpRewardVault } from '../typechain-types/contracts/L2/vaults/L2LpRewardVault.sol'
 
+import { LibPublicSaleVault } from '../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
+import { L2PublicSaleVaultProxy } from '../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
+import { L2PublicSaleProxy } from '../typechain-types/contracts/L2/vaults/L2PublicSaleProxy.sol'
 
-let  L1ProjectManagerProxy = "0x3eD0776A8E323a294cd704c02a349ca1B83554da"
-let  L1StosToL2_Address = "0x25280A873ef2702fF581260a7e15F246A3c52Efb"
+import { L2VestingFundVaultProxy } from  "../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
+import { L1BurnVaultProxy } from  "../typechain-types/contracts/L1/L1BurnVaultProxy"
+import { L1BurnVault } from  "../typechain-types/contracts/L1/L1BurnVault.sol"
+
+
+let  L1ProjectManagerProxy = "0x980b2342624eDDbd7764633a3e7C7aC7C4c3ce96"
+let  L1StosToL2_Address = "0x04666D3507F7be8B79e9304477284296C01DEC56"
 let  l2StakeV2_Address = null
 
-/**
- * first
- deploying "L2TokenFactory" (tx: 0xdcc507115302e2f4b20864b60354d9b1ffeb5b4e89caf05ec817cf4acc81f749)...: deployed at 0xBB8e650d9BB5c44E54539851636DEFEF37585E67 with 2025434 gas
- deploying "L2ProjectManager" (tx: 0x41bccb121bdcd6f290fddff923c2b61eff2095b0fef438f1271d2143124abb4d)...: deployed at 0x62851a5a70bf13dF298982b86f62fa7A6B91db1e with 1370667 gas
-*/
+let L1BurnVaultProxy_Address = "0x2b9992dE82FAc2406c4008eB09E3BD6F2F5b8327"
+
+let l2WtonAddress = '0x4200000000000000000000000000000000000006'
+let l2TosAddress = '0xec32659a42904a96d415468d3a213e57b13ee5c0'
 
 /**
- * 2023.9.18
-reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
-reusing "L2ProjectManager" at 0x8d7fea6E3fBcC90BE1c8080aB0e819DB2A2CCb4f
-reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
-reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
-reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
-reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
-reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
-reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
-reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
-*/
-
-/**
- * 2023.11.8
-  reusing "L2TokenFactory" at 0x42773CF37d7E2757a41d14ca130cD1aC8ac5064A
-reusing "L2ProjectManager" at 0xACfea3d759DeA62ae06a926b19b226E2C7cFe2a3
-reusing "L2ProjectManagerProxy" at 0x7A4710394a7f96028a517A9846b5aC3ECE6ebC62
-reusing "L2InitialLiquidityVault" at 0xB8Bc738947DB3Fc42f24Be7bC6eaf2Ad85a38602
-reusing "L2InitialLiquidityVaultProxy" at 0xCaa2F1Dd477703B5531f26e3CD455340dF0B9aaf
-reusing "L2ScheduleVault" at 0x270758e04385c5C92cE1dDF5F466280ebd686212
-reusing "L2ScheduleVaultProxy" at 0x643512d2205E15a723ee2fe9B2871a75699Db37d
-reusing "L2NonScheduleVault" at 0x191864367707CaE5bA218D6779d4883Eed078Dd2
-reusing "L2CustomVaultBaseProxy" at 0x0779606501F1A61557A1A201DB82EBCB5B326859
-reusing "L1StosInL2" at 0xd83A67290124566Aa900356F77Ca1a86574db578
-reusing "L1StosInL2Proxy" at 0xa12431D37095CA8e3C04Eb1a4e7cE235718F10bF
-reusing "LockIdNftForRegister" at 0xF8E19c8fE9dABC5B3C5B5A6F7eFD4BcE1d0Aff5B
-reusing "LockIdNftForRegisterProxy" at 0x4b3fB26396C6740341cB36E2D3325b1163421385
+  2024.03.14 sepolia
  */
 const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log('deployL2 hre.network.config.chainId', hre.network.config.chainId)
     console.log('deployL2 hre.network.name', hre.network.name)
 
     const { deployer, create2Deployer, l1BridgeAddress, l1MessengerAddress, l2MessengerAddress,
-         uniswapFactory, npm, tosAddress, tonAddress
+         uniswapFactory, npm, tosAddress, tonAddress,
+         quoter, uniswapRouter
       } = await hre.getNamedAccounts();
     const { deploy, get } = hre.deployments;
 
@@ -108,6 +93,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     //==== L2ProjectManagerProxy upgradeTo =================================
     let impl = await l2ProjectManagerProxy.implementation()
+    // console.log('impl', impl)
     if (impl != l2ProjectManagerDeployment.address) {
         await (await l2ProjectManagerProxy.connect(deploySigner).upgradeTo(l2ProjectManagerDeployment.address)).wait()
     }
@@ -117,6 +103,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2ProjectManagerDeployment.abi,
         L2ProjectManagerProxyDeployment.address
     )) as L2ProjectManager;
+    // console.log('l2ProjectManager', l2ProjectManager.address)
 
     //=================================
     //==== L2TokenFactory
@@ -125,17 +112,20 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         l2TokenFactoryDeployment.abi,
         l2TokenFactoryDeployment.address
     )) as L2TokenFactory;
+    // console.log('l2TokenFactory', l2TokenFactory.address)
 
     let l2ProjectManagerInTokenFactory = await l2TokenFactory.l2ProjectManager()
     if (l2ProjectManagerInTokenFactory != l2ProjectManager.address) {
         await (await l2TokenFactory.connect(deploySigner).setL2ProjectManager(l2ProjectManager.address)).wait()
     }
+    // console.log('l2ProjectManagerInTokenFactory', l2ProjectManagerInTokenFactory)
 
     //---- setL1Bridge =================================
     let l1Bridge = await l2TokenFactory.l1Bridge()
-    if (l1Bridge != l1BridgeAddress) {
+    if (l1BridgeAddress != null && l1Bridge != l1BridgeAddress) {
         await (await l2TokenFactory.connect(deploySigner).setL1Bridge(l1BridgeAddress)).wait()
     }
+    // console.log('l1Bridge', l1Bridge)
 
     //=================================
     //==== L2ProjectManager
@@ -144,20 +134,40 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (l2TokenFactoryInL2ProjectManager != l2TokenFactory.address) {
         await (await l2ProjectManager.connect(deploySigner).setL2TokenFactory(l2TokenFactory.address)).wait()
     }
+    // console.log('setL2TokenFactory')
 
     //---- setL1ProjectManager
     let l1ProjectManagerAddress = L1ProjectManagerProxy;
 
     let l1ProjectManagerInL2ProjectManager = await l2ProjectManager.l1ProjectManager()
-    if (l1ProjectManagerInL2ProjectManager != l1ProjectManagerAddress) {
+    if (l1ProjectManagerAddress != null && l1ProjectManagerAddress != "0x0000000000000000000000000000000000000000" &&
+        l1ProjectManagerInL2ProjectManager != l1ProjectManagerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL1ProjectManager(l1ProjectManagerAddress)).wait()
     }
+    // console.log('setL1ProjectManager')
 
     //---- setL2CrossDomainMessenger
     let l2CrossDomainMessenger = await l2ProjectManager.l2CrossDomainMessenger()
+    // console.log('l2CrossDomainMessenger',l2CrossDomainMessenger)
+    // console.log('l2MessengerAddress',l2MessengerAddress)
     if (l2CrossDomainMessenger != l2MessengerAddress) {
         await (await l2ProjectManager.connect(deploySigner).setL2CrossDomainMessenger(l2MessengerAddress)).wait()
     }
+    // console.log('setL2CrossDomainMessenger')
+
+    // - setL2Addresses of L2ProjectManager
+    let tosInL2ProjectManager = await l2ProjectManager.tos()
+    if (l2TosAddress != null && l2TosAddress != "0x0000000000000000000000000000000000000000" &&
+        tosInL2ProjectManager != l2TosAddress) {
+        await (await l2ProjectManager.connect(deploySigner).setL2Addresses(
+            l2TokenFactory.address,
+            l2MessengerAddress,
+            l2WtonAddress,
+            l2TosAddress,
+            3000
+        )).wait()
+    }
+
     //=================================
     //==== initialLiquidityVault
 
@@ -181,6 +191,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     if (impl != L2InitialLiquidityVaultDeployment.address) {
         await (await l2InitialLiquidityVaultProxy.connect(deploySigner).upgradeTo(L2InitialLiquidityVaultDeployment.address)).wait()
     }
+    // console.log('initialLiquidityVault upgradeTo')
 
     const l2InitialLiquidity  = (await hre.ethers.getContractAt(
         L2InitialLiquidityVaultDeployment.abi,
@@ -196,13 +207,16 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             tosAddress
             )).wait()
     }
+    // console.log('initialLiquidityVault setUniswapInfo')
+
+
     let l2ProjectManage1 = await l2InitialLiquidity.l2ProjectManager()
     if (l2ProjectManage1 != l2ProjectManager.address) {
         await (await l2InitialLiquidity.connect(deploySigner).setL2ProjectManager(
             l2ProjectManager.address
             )).wait()
     }
-
+    // console.log('initialLiquidityVault setL2ProjectManager')
     //=================================
     //==== LpRewardVault
     const L2LpRewardVaultDeployment = await deploy("L2LpRewardVault", {
@@ -256,7 +270,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
 
     // let recipient_l2LpRewardVault = await l2LpRewardVault.recipient()
     // if (recipient_l2LpRewardVault != a(0)) {
-    //     await (await l2LpRewardVault.connect(deploySigner).setL2ProjectManager(
+    //     await (await l2LpRewardVault.connect(deploySigner).changeRecipient(
     //         l2ProjectManager.address
     //         )).wait()
     // }
@@ -383,7 +397,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         args: [],
         log: true
     });
-    console.log('L2AirdropTonVaultProxy', L2AirdropTonVaultProxyDeployment.address)
+    // console.log('L2AirdropTonVaultProxy', L2AirdropTonVaultProxyDeployment.address)
 
     const l2AirdropTonVaultProxy = (await hre.ethers.getContractAt(
         L2AirdropTonVaultProxyDeployment.abi,
@@ -408,7 +422,364 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
             l2ProjectManager.address
             )).wait()
     }
-     //---- setTokamakVaults
+
+    //==== LibPublicSaleVault =================================
+    const LibPublicSaleVaultDeployment = await deploy("LibPublicSaleVault", {
+        from: deployer,
+        contract: "contracts/libraries/LibPublicSaleVault.sol:LibPublicSaleVault",
+        log: true
+    })
+    //==== L2PublicSaleVaultProxy =================================
+    const L2PublicSaleVaultProxyDep = await deploy("L2PublicSaleVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+    const l2PublicSaleVaultProxy = (await hre.ethers.getContractAt(
+        L2PublicSaleVaultProxyDep.abi,
+        L2PublicSaleVaultProxyDep.address
+    )) as L2PublicSaleVaultProxy;
+
+	//==== L2PublicSaleVault =================================
+	const L2PublicSaleVaultDeployment = await deploy("L2PublicSaleVault", {
+		from: deployer,
+		args: [],
+		log: true,
+		libraries: { LibPublicSaleVault: LibPublicSaleVaultDeployment.address }
+	});
+
+	//==== L2PublicSaleVault upgradeTo  =================================
+	let impl8 = await l2PublicSaleVaultProxy.implementation()
+    if (impl8 != L2PublicSaleVaultDeployment.address) {
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).upgradeTo(L2PublicSaleVaultDeployment.address)).wait()
+    }
+
+
+    //==== L2PublicSaleProxy  =================================
+    const L2PublicSaleProxyDeployment = await deploy("L2PublicSaleProxy", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+
+	//==== L2PublicSaleProxy implementation2 =================================
+	let logic1 = await l2PublicSaleVaultProxy.implementation2(1)
+    if (logic1 != L2PublicSaleProxyDeployment.address){
+        await (await l2PublicSaleVaultProxy.connect(deploySigner).setImplementation2(
+            L2PublicSaleProxyDeployment.address, 1, true
+        )).wait()
+    }
+
+	const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+		"setL2ProjectManager(address)"
+	)
+	let _setL2ProjectManager1 = await l2PublicSaleVaultProxy.getSelectorImplementation2(_setL2ProjectManager)
+	if (_setL2ProjectManager1 != L2PublicSaleProxyDeployment.address){
+
+		const _setL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+			"setL2ProjectManager(address)"
+		)
+
+		const _setBurnBridge = Web3EthAbi.encodeFunctionSignature(
+			"setBurnBridge(address,address)"
+		)
+
+		const _initialize = Web3EthAbi.encodeFunctionSignature(
+			"initialize(address[7],uint8,uint8,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setAddress = Web3EthAbi.encodeFunctionSignature(
+			"setAddress(address[7)"
+		)
+
+		const _setMaxMinPercent = Web3EthAbi.encodeFunctionSignature(
+			"setMaxMinPercent(uint8,uint8)"
+		)
+
+		const _setSTOSstandard = Web3EthAbi.encodeFunctionSignature(
+			"setSTOSstandard(uint256,uint256,uint256,uint256)"
+		)
+
+		const _setDelayTime = Web3EthAbi.encodeFunctionSignature(
+			"setDelayTime(uint256)"
+		)
+
+		const _setVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+			"setVaultAdmin(address,address)"
+		)
+
+		const _vaultInitialize4 = Web3EthAbi.encodeFunctionSignature({
+			name: 'vaultInitialize',
+			type: 'function',
+			inputs: [
+				{
+				  name: "_l2token",
+				  type: "address"
+				},
+				{
+					components: [
+					  {
+						name: "stosTier1",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier2",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier3",
+						type: "uint256"
+					  },
+					  {
+						name: "stosTier4",
+						type: "uint256"
+					  },
+					  {
+						name: "tier1Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier2Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier3Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "tier4Percents",
+						type: "uint256"
+					  },
+					  {
+						name: "total1roundSaleAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "total2roundSaleAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "saleTokenPrice",
+						type: "uint256"
+					  },
+					  {
+						name: "payTokenPrice",
+						type: "uint256"
+					  },
+					  {
+						name: "hardcapAmount",
+						type: "uint256"
+					  },
+					  {
+						name: "changeTOSPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "startWhiteTime",
+						type: "uint256"
+					  },
+					  {
+						name: "endWhiteTime",
+						type: "uint256"
+					  },
+					  {
+						name: "start1roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "end1roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "snapshotTime",
+						type: "uint256"
+					  },
+					  {
+						name: "start2roundTime",
+						type: "uint256"
+					  },
+					  {
+						name: "end2roundTime",
+						type: "uint256"
+					  }
+					],
+					name: "params",
+					type: "tuple"
+				},
+				{
+					components: [
+					  {
+						name: "claimCounts",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "secondClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "roundInterval",
+						type: "uint256"
+					  }
+					],
+					name: "params2",
+					type: "tuple"
+				},
+				{
+					components: [
+					  {
+						name: "receiveAddress",
+						type: "address"
+					  },
+					  {
+						name: "totalClaimCount",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimPercent",
+						type: "uint256"
+					  },
+					  {
+						name: "firstClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "secondClaimTime",
+						type: "uint256"
+					  },
+					  {
+						name: "roundIntervalTime",
+						type: "uint256"
+					  },
+					  {
+						name: "fee",
+						type: "uint24"
+					  }
+					],
+					name: "params3",
+					type: "tuple"
+				  }
+			  ]
+		})
+
+		const _setTier = Web3EthAbi.encodeFunctionSignature(
+			"setTier(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setTierPercents = Web3EthAbi.encodeFunctionSignature(
+			"setTierPercents(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _setAllAmount = Web3EthAbi.encodeFunctionSignature(
+			"setAllAmount(address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _set1RoundTime = Web3EthAbi.encodeFunctionSignature(
+			"set1RoundTime(address,uint256,uint256,uint256,uint256)"
+		)
+
+		const _set2RoundTime = Web3EthAbi.encodeFunctionSignature(
+			"set2RoundTime(address,uint256,uint256,uint256)"
+		)
+
+		const _setClaimTime = Web3EthAbi.encodeFunctionSignature(
+			"setClaimTime(address,uint256,uint256,uint256,uint256,uint256)"
+		)
+
+		const _isL2ProjectManager = Web3EthAbi.encodeFunctionSignature(
+			"isL2ProjectManager()"
+		)
+
+		const _isVaultAdmin = Web3EthAbi.encodeFunctionSignature(
+			"isVaultAdmin(address,address)"
+		)
+
+		const _isL2Token = Web3EthAbi.encodeFunctionSignature(
+			"isL2Token(address)"
+		)
+
+		await (await l2PublicSaleVaultProxy.connect(deploySigner).setSelectorImplementations2(
+            [
+				_setL2ProjectManager,_setBurnBridge,_initialize,_setAddress,_setMaxMinPercent,
+				_setSTOSstandard,_setDelayTime,_setVaultAdmin,_vaultInitialize4,
+				_setTier,_setTierPercents,_setAllAmount,_set1RoundTime,_set2RoundTime,_setClaimTime,
+				_isL2ProjectManager,_isVaultAdmin,_isL2Token
+			],
+            L2PublicSaleProxyDeployment.address
+        )).wait();
+	}
+
+	const l2PublicSaleProxy = (await hre.ethers.getContractAt(
+        L2PublicSaleProxyDeployment.abi,
+        l2PublicSaleVaultProxy.address
+    )) as L2PublicSaleProxy;
+
+    let l2ProjectManager_l2PublicSaleVaultProxy = await l2PublicSaleVaultProxy.l2ProjectManager()
+
+    if (l2ProjectManager_l2PublicSaleVaultProxy != l2ProjectManager.address) {
+        await (await l2PublicSaleProxy.connect(deploySigner).setL2ProjectManager(
+            l2ProjectManager.address
+            )).wait()
+    }
+
+    let minPer = await l2PublicSaleVaultProxy.minPer()
+    if (minPer == 0) {
+        await (await l2PublicSaleProxy.connect(deploySigner).setMaxMinPercent(5,10)).wait()
+    }
+
+    // L2VestingFundVaultProxy
+    const L2VestingFundVaultProxyDep = await deploy("L2VestingFundVaultProxy", {
+        from: deployer,
+        args: [],
+        log: true,
+    });
+    const l2VestingFundVaultProxy = (await hre.ethers.getContractAt(
+        L2VestingFundVaultProxyDep.abi,
+        L2VestingFundVaultProxyDep.address
+    )) as L2VestingFundVaultProxy;
+
+    //==== L2VestingFundVault  =================================
+    const L2VestingFundVaultDeployment = await deploy("L2VestingFundVault", {
+        from: deployer,
+        args: [],
+        log: true
+    });
+
+    //==== L2VestingFundVaultProxy upgradeTo  =================================
+    let impl9 = await l2VestingFundVaultProxy.implementation()
+    if (impl9 != L2VestingFundVaultDeployment.address) {
+         await (await l2VestingFundVaultProxy.connect(deploySigner).upgradeTo(L2VestingFundVaultDeployment.address)).wait()
+    }
+
+    let uniswapV3Factory_l2VestingFundVaultProxy = await l2VestingFundVaultProxy.uniswapV3Factory()
+    if(uniswapV3Factory_l2VestingFundVaultProxy != uniswapFactory) {
+        await (await l2VestingFundVaultProxy.connect(deploySigner).setBaseInfoProxy(
+            tonAddress,
+            tosAddress,
+            l2ProjectManager.address,
+            l2PublicSaleVaultProxy.address,
+            uniswapFactory
+            )).wait()
+    }
+
+    let l1BurnVault_l2PublicSaleProxy = await l2PublicSaleProxy.l1burnVault()
+    if (L1BurnVaultProxy_Address != null && L1BurnVaultProxy_Address != "0x0000000000000000000000000000000000000000"
+        && l1BurnVault_l2PublicSaleProxy != L1BurnVaultProxy_Address) {
+        await (await l2PublicSaleProxy.connect(deploySigner).setBurnBridge(
+            l1BridgeAddress,
+            L1BurnVaultProxy_Address
+        )).wait()
+    }
+
+    //---- setTokamakVaults
     /*
     address publicSale,
         address initialLiquidity,
@@ -418,6 +789,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         address _scheduleVault,
         address _nonScheduleVault
         */
+
+    let publicSaleVault = await l2ProjectManager.publicSaleVault()
     let initialLiquidityVault = await l2ProjectManager.initialLiquidityVault()
     let lpRewardVault = await l2ProjectManager.liquidityRewardVault()
     let scheduleVault = await l2ProjectManager.scheduleVault()
@@ -425,7 +798,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     let tosAirdropVault = await l2ProjectManager.tosAirdropVault()
     let tonAirdropVault = await l2ProjectManager.tonAirdropVault()
 
-    if (initialLiquidityVault != l2InitialLiquidityVaultProxy.address ||
+    if (publicSaleVault != l2PublicSaleVaultProxy.address ||
+        initialLiquidityVault != l2InitialLiquidityVaultProxy.address ||
         lpRewardVault != l2LpRewardVaultProxy.address ||
         scheduleVault != l2ScheduleVaultProxy.address ||
         nonScheduleVault != l2NonScheduleVaultProxy.address ||
@@ -433,7 +807,7 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         tonAirdropVault != L2AirdropTonVaultProxyDeployment.address
         ) {
         await (await l2ProjectManager.connect(deploySigner).setTokamakVaults(
-            hre.ethers.constants.AddressZero,
+            l2PublicSaleVaultProxy.address,
             l2InitialLiquidityVaultProxy.address,
             l2LpRewardVaultProxy.address,
             L2AirdropTonVaultProxyDeployment.address,
@@ -544,7 +918,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     // set L1 register (L1StosToL2)
     let l1Register_l1StosInL2 = await l1StosInL2.l1Register()
 
-    if (L1StosToL2_Address != null && l1Register_l1StosInL2 != L1StosToL2_Address) {
+    if (L1StosToL2_Address != null && L1StosToL2_Address != "0x0000000000000000000000000000000000000000"
+         && l1Register_l1StosInL2 != L1StosToL2_Address) {
         await (await l1StosInL2.connect(deploySigner).setL1Register(L1StosToL2_Address)).wait()
     }
 
@@ -579,7 +954,8 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
     )) as L2UniversalStos;
 
     let l2StakeV2_l2UniversalStos  = await l2UniversalStos.l2StakeV2()
-    if (l2StakeV2_Address != null && l2StakeV2_l2UniversalStos != l2StakeV2_Address) {
+    if (l2StakeV2_Address != null && l2StakeV2_Address != "0x0000000000000000000000000000000000000000"
+        && l2StakeV2_l2UniversalStos != l2StakeV2_Address) {
         await (await l2UniversalStos.connect(deploySigner).setL2Stakev2(
             l2StakeV2_Address
         )).wait()
@@ -638,6 +1014,36 @@ const deployL2: DeployFunction = async function (hre: HardhatRuntimeEnvironment)
         await (await l2AirdropStosVault.connect(deploySigner).setDividendPool(
             L2DividendPoolForStosProxyDeployment.address,
         )).wait()
+    }
+
+	let delayTime = 600
+	let standardTier1 = hre.ethers.utils.parseUnits("100", 18)
+	let standardTier2 = hre.ethers.utils.parseUnits("200", 18)
+	let standardTier3 = hre.ethers.utils.parseUnits("1000", 18)
+	let standardTier4 = hre.ethers.utils.parseUnits("4000", 18)
+
+    let quoter_l2PublicSaleProxy = await l2PublicSaleProxy.quoter()
+    let lockTOS_l2PublicSaleProxy = await l2PublicSaleProxy.lockTOS()
+    if(quoter_l2PublicSaleProxy != quoter ||
+        lockTOS_l2PublicSaleProxy != L2UniversalStosProxyDeployment.address) {
+		await (await l2PublicSaleProxy.connect(deploySigner).initialize(
+			[
+				quoter,
+				l2VestingFundVaultProxy.address,
+				l2InitialLiquidityVaultProxy.address,
+				uniswapRouter,
+				L2UniversalStosProxyDeployment.address,
+				tosAddress,
+				tonAddress
+			],
+			5,
+			10,
+			standardTier1,
+			standardTier2,
+			standardTier3,
+			standardTier4,
+			delayTime
+		)).wait()
     }
 
     // ==== verify =================================

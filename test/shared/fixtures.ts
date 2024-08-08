@@ -33,6 +33,7 @@ import { MockL1Bridge } from '../../typechain-types/contracts/test/MockL1Bridge.
 import { MockL2Bridge } from '../../typechain-types/contracts/test/MockL2Bridge'
 import { LockTOS } from '../../typechain-types/contracts/test/LockTOS'
 import { TOS } from '../../typechain-types/contracts/test/TOS'
+import { TON } from '../../typechain-types/contracts/test/TON.sol'
 import { Create2Deployer } from '../../typechain-types/contracts/L2/factory/Create2Deployer'
 import { L2PaymasterDeposit } from '../../typechain-types/contracts/L2/L2PaymasterDeposit.sol/L2PaymasterDeposit'
 import { LockIdNFT } from '../../typechain-types/contracts/stos/LockIdNFT'
@@ -77,6 +78,24 @@ import { L2UniversalStosProxy } from '../../typechain-types/contracts/L2/stos/L2
 import { L2AirdropTonVault } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVault.sol'
 import { L2AirdropTonVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2AirdropTonVaultProxy'
 
+import { LibPublicSaleVault } from '../../typechain-types/contracts/libraries/LibPublicSaleVault.sol'
+import { L2PublicSaleVaultProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVaultProxy'
+import { L2PublicSaleVault } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleVault.sol'
+import { L2PublicSaleProxy } from '../../typechain-types/contracts/L2/vaults/L2PublicSaleProxy.sol'
+
+import { L2VestingFundVaultProxy } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVaultProxy"
+import { L2VestingFundVault } from  "../../typechain-types/contracts/L2/vaults/L2VestingFundVault.sol"
+
+import { L1BurnVaultProxy } from  "../../typechain-types/contracts/L1/L1BurnVaultProxy"
+import { L1BurnVault } from  "../../typechain-types/contracts/L1/L1BurnVault.sol"
+
+
+import l1BurnVaultJson from "../../artifacts/contracts/L1/L1BurnVault.sol/L1BurnVault.json";
+
+import l2VestingFundJson from "../../artifacts/contracts/L2/vaults/L2VestingFundVault.sol/L2VestingFundVault.json";
+
+import l2PublicSaleJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleVault.sol/L2PublicSaleVault.json";
+import l2PublicSaleProxyJson from "../../artifacts/contracts/L2/vaults/L2PublicSaleProxy.sol/L2PublicSaleProxy.json";
 
 import l1ProjectManagerJson from "../../artifacts/contracts/L1/L1ProjectManager.sol/L1ProjectManager.json";
 import l2ProjectManagerJson from "../../artifacts/contracts/L2/L2ProjectManager.sol/L2ProjectManager.json";
@@ -121,13 +140,28 @@ const lockIdNFTInfo = {
 //   tos: '0xD08a2917653d4E460893203471f0000826fb4034',
 // }
 
-// titan goerli
+// // titan goerli
+// export const l2UniswapInfo = {
+//   uniswapV3Factory: '0x37B8d7714419ba5B50379b799a0B2a582274F5Eb',
+//   npm: '0x8631308cDa88E98fc9DD109F537F9dEf84539370',
+//   ton: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
+//   tos: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+//   quoter: '0xfD0c2ACFE71af67BC150cCd13dF3BEd6A3c22875',
+//   uniswapRouter: '0xf28cfA043766e4Fe9e390D66e0cd07991290fdD8'
+// }
+
+
+//  goerli
 export const l2UniswapInfo = {
-  uniswapV3Factory: '0x8C2351935011CfEccA4Ea08403F127FB782754AC',
-  npm: '0x324d7015E30e7C231e4aC155546b8AbfEAB00977',
-  ton: '0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa',
-  tos: '0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC',
+  uniswapV3Factory: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
+  npm: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+  ton: '0x68c1F9620aeC7F2913430aD6daC1bb16D8444F00',
+  tos: '0x67f3be272b1913602b191b3a68f7c238a2d81bb9',
+  quoter: '0x61fFE014bA17989E743c5F6cB21bF9697530B21e',
+  uniswapRouter: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
 }
+
+
 export const l1Fixtures = async function (): Promise<L1Fixture> {
   const [deployer, addr1, addr2, sequencer1, create2Deployer] = await ethers.getSigners();
 
@@ -139,28 +173,35 @@ export const l1Fixtures = async function (): Promise<L1Fixture> {
     tosInfo.name, tosInfo.symbol, tosInfo.version
   )) as TOS
 
-  await (await lockTOS.connect(deployer).initialize(
-    tos.address,
-    lockTosInitializeIfo.epochUnit,
-    lockTosInitializeIfo.maxTime
-  )).wait()
+  // await (await lockTOS.connect(deployer).initialize(
+  //   tos.address,
+  //   lockTosInitializeIfo.epochUnit,
+  //   lockTosInitializeIfo.maxTime
+  // )).wait()
 
   await (await tos.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
   await (await tos.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
+
+  const TON_ = await ethers.getContractFactory('TON');
+  const ton = (await TON_.connect(deployer).deploy()) as TON
+
+  await (await ton.connect(deployer).mint(addr1.address, ethers.utils.parseEther("10000"))).wait();
+  await (await ton.connect(deployer).mint(addr2.address, ethers.utils.parseEther("10000"))).wait();
 
   return  {
     deployer: deployer,
     addr1: addr1,
     addr2: addr2,
     tos: tos,
-    lockTOS: lockTOS
+    lockTOS: lockTOS,
+    ton: ton
   }
 }
 
 
 export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunchFixture> {
 
-    const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
+    const [deployer, addr1, addr2, sequencer1, L2projectManagerAddr, L2vaultAdmin, vestingFundAddr, addr3, addr4, addr5] = await ethers.getSigners();
     const { paymasterAddress, l1AddressManagerAddress, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
 
     //==== LibProject =================================
@@ -243,6 +284,48 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1CrossDomainMessenger", l1Messenger.address);
     await addressManager.connect(deployer).setAddress("Proxy__OVM_L1StandardBridge", l1Bridge.address);
 
+    //==== L2PublicSaleVault =================================
+    const l2PublicSaleProxy = await ethers.getContractFactory('L2PublicSaleVaultProxy')
+    const l2PublicProxy = (await l2PublicSaleProxy.connect(deployer).deploy()) as L2PublicSaleVaultProxy
+
+    const libL2PublicSale = await ethers.getContractFactory('LibPublicSaleVault')
+    const libL2Public = (await libL2PublicSale.connect(deployer).deploy()) as LibPublicSaleVault
+
+    const l2PublicSaleLogic = await ethers.getContractFactory('L2PublicSaleVault', {
+      signer: deployer, libraries: { LibPublicSaleVault: libL2Public.address }
+    })
+    // const l2PublicLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+    let l2PublicProxyLogic = (await l2PublicSaleLogic.connect(deployer).deploy()) as L2PublicSaleVault
+
+    // await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicLogic.address)).wait()
+    // const l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault;
+
+    const l2PublicVaultProxyContract = await ethers.getContractFactory('L2PublicSaleProxy')
+    let l2PublicVaultProxy = (await l2PublicVaultProxyContract.connect(deployer).deploy()) as L2PublicSaleProxy 
+
+    await (await l2PublicProxy.connect(deployer).upgradeTo(l2PublicProxyLogic.address)).wait()
+
+    l2PublicProxyLogic = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicProxy.address, deployer) as L2PublicSaleVault 
+
+    //==== L2InitialLiquidityVault =================================
+    
+    const L2InitialLiquidityVaultProxy = await ethers.getContractFactory('L2InitialLiquidityVaultProxy')
+    const l2liquidityProxy = (await L2InitialLiquidityVaultProxy.connect(deployer).deploy()) as L2InitialLiquidityVaultProxy
+
+    const L2InitialLiquidityVault = await ethers.getContractFactory('L2InitialLiquidityVault')
+    const l2liquidity = (await L2InitialLiquidityVault.connect(deployer).deploy()) as L2InitialLiquidityVault
+
+    //==== L2VestingFundVault =================================
+
+    const L2VestingFundVaultProxy = await ethers.getContractFactory('L2VestingFundVaultProxy')
+    const l2vestingFundProxy = (await L2VestingFundVaultProxy.connect(deployer).deploy()) as L2VestingFundVaultProxy
+
+    const L2VestingFundVault = await ethers.getContractFactory('L2VestingFundVault')
+    const l2vestingFund = (await L2VestingFundVault.connect(deployer).deploy()) as L2VestingFundVault
+
+    await (await l2vestingFundProxy.connect(deployer).upgradeTo(l2vestingFund.address)).wait()
+    const l2VestingFundLogic = await ethers.getContractAt(l2VestingFundJson.abi, l2vestingFundProxy.address, deployer) as L2VestingFundVault
+
 
     //----- set L2ProjectManager
 
@@ -260,12 +343,26 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
       deployer: deployer,
       addr1: addr1,
       addr2: addr2,
+      addr3: addr3,
+      addr4: addr4,
+      addr5: addr5,
       // factoryDeployer: create2Signer,
       addressManager: addressManager,
       l1Messenger: l1Messenger,
       l2Messenger: l2Messenger,
       l1Bridge: l1Bridge,
       l2Bridge: l2Bridge,
+      l2PublicProxy: l2PublicProxy,
+      libL2Public: libL2Public,
+      l2PublicProxyLogic: l2PublicProxyLogic,
+      l2PublicVaultProxy: l2PublicVaultProxy,
+      l2ProjectManagerAddr: L2projectManagerAddr,
+      l2VaultAdmin: L2vaultAdmin,
+      l2LiquidityProxy: l2liquidityProxy,
+      l2Liquidity: l2liquidity,
+      vestingFundAddr: vestingFundAddr,
+      l2VestingFundProxy: l2vestingFundProxy,
+      l2VestingFund: l2VestingFundLogic,
       // factory: factory,
       l1toL2Message : l1toL2Message,
       paymasterAddress: paymasterAddress,
@@ -276,10 +373,11 @@ export const l2ProjectLaunchFixtures = async function (): Promise<L2ProjectLaunc
 export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boolean): Promise<SetL2ProjectLaunchFixture> {
 
   const [deployer, addr1, addr2, sequencer1] = await ethers.getSigners();
-  const {tonAddress, uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
+  const {l2TonAddress, l2TosAddress, tonAddress, uniswapFactory, tosAddress, tosAdminAddress } = await hre.getNamedAccounts();
   const init_code_hash = '0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54'
 
   //==== LibProject =================================
+  // console.log("2")
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
@@ -343,7 +441,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     await (await l2ProjectManagerProxy.connect(deployer).upgradeTo(l2ProjectManagerImpl.address)).wait()
   }
   const l2ProjectManager = await ethers.getContractAt(l2ProjectManagerJson.abi, l2ProjectManagerProxy.address, deployer) as L2ProjectManager;
-  console.log('l2ProjectManager', l2ProjectManager.address)
+  // console.log('l2ProjectManager', l2ProjectManager.address)
   //---- L2
   const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
   const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
@@ -368,7 +466,52 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
 
   //=================================
   //===== set Vaults
-  console.log(' set Vaults'  )
+  // console.log(' set Vaults'  )
+
+  //==== L2PublicSaleVault =================================
+
+  const LibPublicSaleVaultDep = await ethers.getContractFactory('LibPublicSaleVault')
+  const libPublicSaleVault = (await LibPublicSaleVaultDep.connect(deployer).deploy()) as LibPublicSaleVault
+
+  const L2PublicSaleVaultProxyDep = await ethers.getContractFactory('L2PublicSaleVaultProxy')
+  const l2PublicSaleVaultProxy = (await L2PublicSaleVaultProxyDep.connect(deployer).deploy()) as L2PublicSaleVaultProxy
+
+  const L2PublicSaleVaultDep = await ethers.getContractFactory('L2PublicSaleVault', {
+    signer: deployer, libraries: { LibPublicSaleVault: libPublicSaleVault.address }
+  })
+  const l2PublicSaleVaultLogic2 = (await L2PublicSaleVaultDep.connect(deployer).deploy()) as L2PublicSaleVault
+
+  const L2PublicSaleProxyDep = await ethers.getContractFactory('L2PublicSaleProxy')
+  let l2PublicSaleProxyLogic = (await L2PublicSaleProxyDep.connect(deployer).deploy()) as L2PublicSaleProxy
+
+  await (await l2PublicSaleVaultProxy.connect(deployer).upgradeTo(l2PublicSaleProxyLogic.address)).wait()
+  const l2PublicSaleProxy = await ethers.getContractAt(l2PublicSaleProxyJson.abi, l2PublicSaleVaultProxy.address, deployer) as L2PublicSaleProxy
+
+  // await (await l2PublicSaleProxy.connect(deployer).upgradeTo(l2PublicSaleVaultLogic2.address)).wait()
+  // const l2PublicSaleVault = await ethers.getContractAt(l2PublicSaleJson.abi, l2PublicSaleVaultProxy.address, deployer) as L2PublicSaleVault
+
+  //==== L2VestingFundVault =================================
+
+  const L2VestingFundVaultProxyDep = await ethers.getContractFactory('L2VestingFundVaultProxy')
+  const l2VestingFundVaultProxy = (await L2VestingFundVaultProxyDep.connect(deployer).deploy()) as L2VestingFundVaultProxy
+
+  const L2VestingFundVaultDep = await ethers.getContractFactory('L2VestingFundVault')
+  const l2VestingFundVaultLogic = (await L2VestingFundVaultDep.connect(deployer).deploy()) as L2VestingFundVault
+
+  await (await l2VestingFundVaultProxy.connect(deployer).upgradeTo(l2VestingFundVaultLogic.address)).wait()
+  const l2VestingFundVault = await ethers.getContractAt(l2VestingFundJson.abi, l2VestingFundVaultProxy.address, deployer) as L2VestingFundVault
+
+  //==== L1BurnVaultProxy =================================
+
+  const L1BurnVaultProxyDep = await ethers.getContractFactory('L1BurnVaultProxy')
+  const l1BurnVaultProxy = (await L1BurnVaultProxyDep.connect(deployer).deploy()) as L1BurnVaultProxy
+
+  const L1BurnVaultDep = await ethers.getContractFactory('L1BurnVault')
+  const l1BurnVaultLogic = (await L1BurnVaultDep.connect(deployer).deploy()) as L1BurnVault
+
+  await (await l1BurnVaultProxy.connect(deployer).upgradeTo(l1BurnVaultLogic.address)).wait()
+  const l1BurnVault = await ethers.getContractAt(l1BurnVaultJson.abi, l1BurnVaultProxy.address, deployer) as L1BurnVault
+
   //==== L2InitialLiquidityVault =================================
   const initialLiquidityVaultDeployment = await ethers.getContractFactory("L2InitialLiquidityVault")
   const initialLiquidityVaultImpl = (await initialLiquidityVaultDeployment.connect(deployer).deploy()) as L2InitialLiquidityVault;
@@ -523,6 +666,7 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     L2ScheduleVaultJson.abi, teamVaultProxy.address, deployer) as L2ScheduleVault;
 
   //==SET Vault===============================
+  await (await l2PublicSaleProxy.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await initialLiquidityVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await l2LpRewardVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await daoVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
@@ -532,6 +676,17 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   await (await nonScheduleVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await airdropStosVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
   await (await airdropTonVault.connect(deployer).setL2ProjectManager(l2ProjectManager.address)).wait()
+
+  await (await l2VestingFundVaultProxy.connect(deployer).setBaseInfoProxy(
+    tonAddress,
+    tosAddress,
+    l2ProjectManager.address,
+    l2PublicSaleProxy.address,
+    l2UniswapInfo.uniswapV3Factory
+    )).wait()
+
+  await (await l2PublicSaleProxy.connect(deployer).setMaxMinPercent(5,10)).wait()
+
 
   //==== L2UniversalStos =========================
   const l2UniversalStosDeployment = await ethers.getContractFactory("L2UniversalStos")
@@ -588,6 +743,14 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
     )).wait()
   }
 
+  //==== For Test , set setDividendPool of L2AirdropTonVault =========================
+  //  아직 L2DividendPoolForTon 개발이 되지 않아서, stos용으로 테스트를 한다 .
+  let dividendPool_airdropTonVaultProxy = await airdropTonVault.dividendPool()
+  if (dividendPool_airdropTonVaultProxy != l2DividendPoolForStosProxy.address) {
+    await (await airdropTonVault.connect(deployer).setDividendPool(l2DividendPoolForStosProxy.address)).wait()
+  }
+
+  //======================
   // for test (npx hardhat test test/2.L1ProjectManager.spec.ts로 테스트할때는 토큰도 L2StandardERC20 로 맏들수없는데.. )
   if (mockL2FactoryFlag) {
     await (await l2TokenFactory.connect(deployer).setL2Bridge(l2Bridge.address)).wait()
@@ -597,6 +760,29 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
   await (await l2Bridge.connect(deployer).setAddress(
     l2Messenger.address, l1Bridge.address)).wait()
 
+
+  await (await l2PublicSaleProxy.connect(deployer).setAddress(
+    [
+      l2UniswapInfo.quoter,
+      l2VestingFundVaultProxy.address,
+      initialLiquidityVault.address,
+      l2UniswapInfo.uniswapRouter,
+      l2DividendPoolForStosProxy.address,
+      tosAddress,
+      tonAddress
+    ] )).wait()
+
+  await (await l2PublicSaleProxy.connect(deployer).setBurnBridge(
+    l1Bridge.address,
+    l1BurnVault.address
+  )).wait()
+
+  // console.log("1")
+  await (await l1ProjectManager.connect(deployer).setL2PublicSaleValue(
+    5,
+    10,
+    100
+  )).wait()
 
   return  {
       libProject: libProject,
@@ -642,7 +828,12 @@ export const l2ProjectLaunchFixtures2 = async function (mockL2FactoryFlag: boole
       airdropTonVaultProxy: airdropTonVaultProxy,
       tosAddress: tosAddress,
       tosAdminAddress: tosAdminAddress,
-      tonAddress: tonAddress
+      tonAddress: tonAddress,
+      l2PublicSaleProxy: l2PublicSaleProxy,
+      l2VestingFundVault: l2VestingFundVault,
+      l1BurnVault: l1BurnVault,
+      l2TonAddress: l2TonAddress,
+      l2TosAddress: l2TosAddress
   }
 }
 
@@ -869,14 +1060,14 @@ export const stosFixture = async function (): Promise<StosFixture> {
   const lockTOS = (await ethers.getContractAt(lockTOSAbi.abi, lockTOSAddress, deployer)) as LockTOS
   const tos = (await ethers.getContractAt(TOSAbi.abi, tosAddress, deployer)) as TOS
 
-  console.log('lockTOS', lockTOS.address)
-  console.log('tos', tos.address)
+  // console.log('lockTOS', lockTOS.address)
+  // console.log('tos', tos.address)
 
   //==== LibProject =================================
   const LibProject_ = await ethers.getContractFactory('LibProject');
   const libProject = (await LibProject_.connect(deployer).deploy()) as LibProject
 
-  console.log('libProject', libProject.address)
+  // console.log('libProject', libProject.address)
   //---- for L2 message
   // const Lib_AddressManager = await ethers.getContractFactory('Lib_AddressManager')
   // const addressManager = (await Lib_AddressManager.connect(deployer).deploy()) as Lib_AddressManager
@@ -903,11 +1094,11 @@ export const stosFixture = async function (): Promise<StosFixture> {
   const l1StosToL2Logic = (await L1StosToL2_.connect(deployer).deploy()) as L1StosToL2
   const l1StosToL2Proxy = (await L1StosToL2Proxy_.connect(deployer).deploy()) as L1StosToL2Proxy
 
-  console.log('l1StosToL2Logic', l1StosToL2Logic.address)
-  console.log('l1StosToL2Proxy', l1StosToL2Proxy.address)
+  // console.log('l1StosToL2Logic', l1StosToL2Logic.address)
+  // console.log('l1StosToL2Proxy', l1StosToL2Proxy.address)
 
   let impl_l1StosToL2Proxy = await l1StosToL2Proxy.implementation()
-  console.log('impl_l1StosToL2Proxy', impl_l1StosToL2Proxy)
+  // console.log('impl_l1StosToL2Proxy', impl_l1StosToL2Proxy)
 
 
   if(impl_l1StosToL2Proxy != l1StosToL2Logic.address) {
@@ -915,7 +1106,7 @@ export const stosFixture = async function (): Promise<StosFixture> {
   }
 
   const l1StosToL2 = (await ethers.getContractAt(L1StosToL2Json.abi, l1StosToL2Proxy.address, deployer)) as L1StosToL2
-  console.log('l1StosToL2', l1StosToL2.address)
+  // console.log('l1StosToL2', l1StosToL2.address)
 
   let lockTosAddr = await l1StosToL2Proxy.lockTos()
   if(lockTosAddr != lockTOS.address) {

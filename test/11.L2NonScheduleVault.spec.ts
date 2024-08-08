@@ -25,7 +25,7 @@ describe('L2NonScheduleVault', () => {
         tokenAddress: ''
     }
     before('create fixture loader', async () => {
-        deployed = await l2ProjectLaunchFixtures2()
+        deployed = await l2ProjectLaunchFixtures2(true)
         deployer = deployed.deployer;
         addr1 = deployed.addr1;
         addr2 = deployed.addr2;

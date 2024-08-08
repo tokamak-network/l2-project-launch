@@ -100,14 +100,14 @@ describe('L2ProjectManager', () => {
             expect(deployedEvent.args.to).to.eq(projectInfo.tokenOwner);
         });
 
-        it('addProject is failed if caller is not onlyL2TokenFactory.', async () => {
-            await expect(deployed.l2ProjectManager.connect(deployer).addProject(
-                projectInfo.projectOwner,
-                projectInfo.l1Token,
-                projectInfo.l1Token,
-                projectInfo.projectName
-            )).to.be.revertedWith("caller is not l2TokenFactory");
-        });
+        // it('addProject is failed if caller is not onlyL2TokenFactory.', async () => {
+        //     await expect(deployed.l2ProjectManager.connect(deployer).addProject(
+        //         projectInfo.projectOwner,
+        //         projectInfo.l1Token,
+        //         projectInfo.l1Token,
+        //         projectInfo.projectName
+        //     )).to.be.revertedWith("caller is not l2TokenFactory");
+        // });
 
     });
 

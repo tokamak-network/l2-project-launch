@@ -6,6 +6,7 @@ const fs = Promise.promisifyAll(require('fs'));
 require('dotenv').config()
 
 const {
+    getL1Provider,
   readContracts,
   deployedContracts,
   getSigners,
@@ -31,22 +32,23 @@ projectInfo = {
     projectId :  ethers.constants.Zero,
     tokenOwner: null,
     projectOwner: null,
-    initialTotalSupply: ethers.utils.parseEther("400000"),
+    initialTotalSupply: ethers.utils.parseEther("100000"),
     tokenType: ethers.constants.Zero, // non-mintable
-    projectName: 'Test11',
-    tokenName: 'Test11',
-    tokenSymbol: 'T11T',
+    projectName: 'Test12',
+    tokenName: 'Test12',
+    tokenSymbol: 'TH12',
     l1Token: ethers.constants.AddressZero,
     l2Token: ethers.constants.AddressZero,
     l2Type: 0,
-    addressManager: ethers.constants.AddressZero
+    addressManager: ethers.constants.AddressZero,
 }
 
-let projectId = ethers.BigNumber.from("11");
+let projectId = ethers.BigNumber.from("9");
 
-const L2Token = "0x1fac3ff465d5d6a25bd6aa56b5b12bca6d3a6d01"
-const L2TOS = "0x6AF3cb766D6cd37449bfD321D961A61B0515c1BC"
-const L2TON = "0xFa956eB0c4b3E692aD5a6B2f08170aDE55999ACa"
+// const L2Token = "0x2f1854d5c212fc90a85df21c63c3b4d328249e06"
+const L2Token = "0xda5854B16E4a9190Bc7515972C4F29708f571Cf0"
+const L2TOS = "0xec32659a42904a96d415468d3a213e57b13ee5c0"
+const L2TON = "0x4200000000000000000000000000000000000006"
 
 const setup = async() => {
   wallets = await getSigners()
@@ -65,8 +67,8 @@ const setup = async() => {
 async function main() {
     const { addressManager } = await hre.getNamedAccounts();
 
-    let L1Contracts = await readContracts(__dirname+'/../deployments/goerli');
-    let L2Contracts = await readContracts(__dirname+'/../deployments/titangoerli');
+    let L1Contracts = await readContracts(__dirname+'/../deployments/sepolia');
+    let L2Contracts = await readContracts(__dirname+'/../deployments/thanossepolia');
     await setup();
     const deployedL1 = await deployedContracts(L1Contracts.names, L1Contracts.abis, l1Signer);
     const deployedL2 = await deployedContracts(L2Contracts.names, L2Contracts.abis, l2Signer);
@@ -86,7 +88,7 @@ async function main() {
     // test vaults :
     // initialLiquidityVault, tontosReward, prokectTokenTosReward, DAO,
     // Team, Marketing , airdropStos, airdropTon
-    let vaultCount = BigNumber.from("8")
+    let vaultCount = BigNumber.from("10")
 
     let initialLiquidityAmount = projectInfo.initialTotalSupply.div(vaultCount)
     let rewardTonTosPoolAmount = initialLiquidityAmount
@@ -96,27 +98,79 @@ async function main() {
     let marketingAmount = initialLiquidityAmount
     let airdropStosAmount = initialLiquidityAmount
     let airdropTonAmount = initialLiquidityAmount
+    let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
 
 
-    let sTime = Math.floor(Date.now() / 1000) + (60*60*24*7*8)
-    let firstClaimTime = sTime
+    let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
+    const block = await l1Signer.provider.getBlock('latest')
+
+    const setSnapshot = block.timestamp + (60*60*7);
+    const whitelistStartTime = setSnapshot + 400;
+    const whitelistEndTime = whitelistStartTime + (86400*7);
+    const round1StartTime = whitelistEndTime + 1;
+    const round1EndTime = round1StartTime + (86400*7);
+    const round2StartTime = round1EndTime + 1;
+    const round2EndTime = round2StartTime + (86400*7);
+
+    const firstClaimTime = round2EndTime + (86400 * 20);
     let totalClaimCount = BigNumber.from("4")
-    let firstClaimAmount = teamAmount.div(totalClaimCount)
+    let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
     let roundIntervalTime = 60*60*24*7;
     let secondClaimTime =  firstClaimTime + roundIntervalTime
+    const fundClaimTime1 = secondClaimTime + 3000
+    const fundClaimTime2 = fundClaimTime1 + 100
+    let changeTOS = 10;
+    let firstClaimPercent = 4000;
+    let roundInterval = 600;      //1분
+    let fee = 3000;
+
+	let tier1 = ethers.utils.parseEther("100")
+	let tier2 = ethers.utils.parseEther("200")
+	let tier3 = ethers.utils.parseEther("1000")
+	let tier4 = ethers.utils.parseEther("4000")
+
+    // let firstClaimTime = sTime
+    // let totalClaimCount = BigNumber.from("4")
+    // let firstClaimAmount = teamAmount.div(totalClaimCount)
+    // let roundIntervalTime = 60*60*24*7;
+    // let secondClaimTime =  firstClaimTime + roundIntervalTime
 
     let publicSaleParams =  getPublicSaleParams (
-        [0,0,0,0], //tier
-        [0,0,0,0], // percentage
-        [0,0], //amount
-        [0,0], // price saleTokenPrice, payTokenPrice
-        0, //hardcapAmount
-        0, //changeTOSPercent
-        [0,0,0,0,0,0,0],
-        0,
-        [],
-        [],
+                [tier1,tier2,tier3,tier4], //tier
+                [600,1200,2200,6000], // percentage
+                [initialLiquidityAmount,initialLiquidityAmount], //amount
+                [200,2000], // price saleTokenPrice, payTokenPrice
+                100*1e18, //hardcapAmount
+                changeTOS, //changeTOSPercent
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot, round2StartTime,round2EndTime], //times
+                totalClaimCount.toNumber(), //claimCounts
+                firstClaimPercent, //firstClaimPercent
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime: number,
+                roundIntervalTime, //roundInterval: number,
+                ourAddr,  // receiveAddress,
+                4, // vestingClaimCounts: number,
+                firstClaimPercent, // vestingfirstClaimPercent: number,
+                fundClaimTime1, // vestingClaimTime1: number,
+                fundClaimTime2, // vestingClaimTime2: number,
+                roundInterval, // vestingRoundInterval: number,
+                fee, // fee: number
         );
+
+     // console.log(publicSaleParams)
+     let publicVaultcheck = await L1ProjectManager.validationPublicSaleVaults(
+        publicSaleParams
+    )
+    console.log(publicVaultcheck.valid)
+
+    if(publicVaultcheck.valid == false) {
+        console.log('validationPublicSaleVaults false')
+        console.log('publicSaleParams ', publicSaleParams)
+
+        return;
+    }
+
+
     let tosPrice = 1e18;
     let tokenPrice = 10e18;
 
@@ -142,7 +196,7 @@ async function main() {
         L2TOS,
         3000,
         rewardTonTosPoolAmount,
-        totalClaimCount,
+        totalClaimCount.toNumber(),
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -154,7 +208,7 @@ async function main() {
         L2TOS,
         3000,
         rewardProjectTosPoolAmount,
-        totalClaimCount,
+        totalClaimCount.toNumber(),
         firstClaimAmount, //firstClaimAmount
         firstClaimTime, //firstClaimTime
         secondClaimTime, //secondClaimTime
@@ -220,6 +274,23 @@ async function main() {
     // console.log('customScheduleVaults' , customScheduleVaults)
     // console.log('rewardTonTosPoolParams' , rewardTonTosPoolParams)
     // console.log('rewardProjectTosPoolParams' , rewardProjectTosPoolParams)
+
+    let check_validateTokamakVaults = await L1ProjectManager.validateTokamakVaults(tokamakVaults)
+    console.log(check_validateTokamakVaults)
+
+
+    let validationVaultsParameters = await L1ProjectManager.validationVaultsParameters(
+        projectInfo.initialTotalSupply,
+        tokamakVaults,
+        customScheduleVaults,
+        customNonScheduleVaults
+    )
+
+    if(validationVaultsParameters.valid == false) {
+        console.log('validationVaultsParameters false')
+        return;
+    }
+
     const gos = await L1ProjectManager.estimateGas.launchProject(
         projectInfo.projectId,
         projectInfo.l2Token,
@@ -240,6 +311,7 @@ async function main() {
         customNonScheduleVaults
         )).wait();
 
+    console.log('receipt', receipt)
     //--------------------------
     const topic = L1ProjectManager.interface.getEventTopic('LaunchedProject');
     const log = receipt.logs.find(x => x.topics.indexOf(topic) >= 0);

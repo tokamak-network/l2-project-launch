@@ -50,7 +50,7 @@ contract L2AirdropTonVault is L2CustomVaultBase, L2AirdropTonVaultStorage {
     )
         external onlyL2ProjectManagerOrVaultAdmin(l2Token)
     {
-        require(params.firstClaimTime > block.number, "first claim time passed");
+        require(params.firstClaimTime > uint32(block.timestamp), "first claim time passed");
         require(params.totalAllocatedAmount != 0 && params.totalClaimCount != 0 && params.roundIntervalTime != 0, "wrong value");
         if (params.totalClaimCount > 1) require(params.secondClaimTime > params.firstClaimTime, "wrong the second claim time");
         require(params.totalAllocatedAmount > params.firstClaimAmount, "wrong the first claim amount");

@@ -10,6 +10,8 @@ import { LibProject } from "../libraries/LibProject.sol";
 import "../libraries/SafeERC20.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
+// import "hardhat/console.sol";
+
 interface L2ProjectManagerI {
     function distributesL2Token(
         address l1Token,
@@ -122,6 +124,23 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         }
     }
 
+    function setL2PublicSaleValue(
+        uint8 _min,
+        uint8 _max,
+        uint256 _delayTime
+    )
+        external
+        onlyOwner
+    {
+        LibProject.PublicSaleSet memory set = LibProject.PublicSaleSet({
+            minPercents: _min,
+            maxPercents: _max,
+            delayTime: _delayTime
+        });
+
+        publicInfo[0] = set;
+    }
+
     /* ========== Only ProjectOwner ========== */
 
     /// @dev 프로젝트 생성
@@ -173,8 +192,8 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             projectName,  tokenName, tokenSymbol );
         return projectId;
     }
-
-    function launchProject(
+    /*
+    function launchProjectExceptCheckPublic(
         uint256 projectId,
         address l2Token,
         uint256 totalAmount,
@@ -184,7 +203,6 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
     )
         external nonZeroAddress(l2Token) nonZero(totalAmount)
     {
-
         LibProject.ProjectInfo memory info = projects[projectId];
         require(info.projectOwner != address(0) && msg.sender == info.projectOwner, "caller is not projectOwner.");
         require(info.l2Token == address(0), "already launched");
@@ -205,8 +223,14 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         uint256 totalAllocatedAmount = 0;
 
         // 입력 데이타 검증
-        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
+        // (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = validateTokamakVaultsExceptPublic(tokamakVaults);
         require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
+
+
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "PublicVault vaildate fail");
+
         totalAllocatedAmount += tokamakVaultsTotalAmount;
 
         if(customScheduleVaults.length != 0){
@@ -215,7 +239,7 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             totalAllocatedAmount += custom1TotalAmount;
         }
 
-        if(customScheduleVaults.length != 0){
+        if(customNonScheduleVaults.length != 0){
             (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
             require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
             totalAllocatedAmount += custom2TotalAmount;
@@ -242,7 +266,100 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
 
         // 3. L2로 디파짓 한다.
         _depositL1TokenToL2(
-            address(this),
+            info.addressManager,
+            info.l1Token,
+            info.l2Token,
+            _l2Info.l2ProjectManager,
+            info.initialTotalSupply,
+            _l2Info.depositMinGasLimit,
+            abi.encode(id)
+        );
+        // bytes memory callData = abi.encodeWithSelector(L2ProjectManagerI.distributesL2Token.selector, functionParams);
+
+        // 4. 커스텀 배포정보를 L2에 보낸다.
+        L1CrossDomainMessengerI(l1Messenger).sendMessage(
+                _l2Info.l2ProjectManager,
+                callData,
+                _l2Info.sendMsgMinGasLimit
+            );
+
+        emit LaunchedProject(id, info.l1Token, info.l2Token, info.initialTotalSupply);
+    }
+    */
+
+    function launchProject(
+        uint256 projectId,
+        address l2Token,
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    )
+        external nonZeroAddress(l2Token) nonZero(totalAmount)
+    {
+        LibProject.ProjectInfo memory info = projects[projectId];
+        require(info.projectOwner != address(0) && msg.sender == info.projectOwner, "caller is not projectOwner.");
+        require(info.l2Token == address(0), "already launched");
+        require(projectTokens[info.l1Token] == projectId, "wrong l1Token");
+
+        address l1Messenger = LibProject.getL1CommunicationMessenger(info.addressManager);
+        require(l1Messenger != address(0), "l1Messenger is ZeroAddress");
+        bytes memory  callData = abi.encodeWithSelector(
+                    L2ProjectManagerI.distributesL2Token.selector,
+                    info.l1Token,
+                    l2Token,
+                    projectId,
+                    totalAmount,
+                    tokamakVaults,
+                    customScheduleVaults,
+                    customNonScheduleVaults
+                ) ;
+        uint256 totalAllocatedAmount = 0;
+
+        // 입력 데이타 검증
+        // (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = LibProject.validateTokamakVaults(tokamakVaults);
+        // require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount, ) = validateTokamakVaults(tokamakVaults);
+        require(boolValidateTokamakVaults, "TokamakVaults vaildate fail");
+
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "PublicVault vaildate fail");
+
+        totalAllocatedAmount += tokamakVaultsTotalAmount;
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+            require(boolValidateCustom1, "customScheduleVaults vaildate fail");
+            totalAllocatedAmount += custom1TotalAmount;
+        }
+
+        if(customNonScheduleVaults.length != 0){
+            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+            require(boolValidateCustom2, "customNonScheduleVaults vaildate fail");
+            totalAllocatedAmount += custom2TotalAmount;
+        }
+        require(totalAllocatedAmount == totalAmount, "totalAmount is different from vaults allocated amount");
+
+        uint256 id = projectId;
+
+        // 1. L2토큰 정보를 저장한다.
+        projects[id].l2Token = l2Token;
+        info.l2Token = l2Token;
+
+        uint256 balance = IERC20(projects[id].l1Token).balanceOf(address(this));
+
+        // 2. L1 토큰 발행하고,
+        if (balance <= info.initialTotalSupply && info.tokenType != 0) {
+            IIERC20(info.l1Token).mint(address(this), info.initialTotalSupply - balance);
+            balance = IERC20(projects[id].l1Token).balanceOf(address(this));
+        }
+
+        require(balance >= info.initialTotalSupply, "balance is insufficient");
+
+        LibProject.L2Info memory _l2Info = l2Info[info.l2Type];
+
+        // 3. L2로 디파짓 한다.
+        _depositL1TokenToL2(
             info.addressManager,
             info.l1Token,
             info.l2Token,
@@ -268,10 +385,106 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
         return l2Info[_l2Type];
     }
 
+    function validationVaultsParameters(
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    ) external view returns(bool valid, string memory resean) {
+
+        uint256 totalAllocatedAmount = 0;
+
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount, string memory errMsg) = validateTokamakVaults(tokamakVaults);
+        if(!boolValidateTokamakVaults) {
+            return (false, errMsg);
+        }
+
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "F1-1");
+
+        totalAllocatedAmount += tokamakVaultsTotalAmount;
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+            totalAllocatedAmount += custom1TotalAmount;
+            if(!boolValidateCustom1) {
+                return (false, "F2");
+            }
+        }
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+            totalAllocatedAmount += custom2TotalAmount;
+            if(!boolValidateCustom2) {
+                return (false, "F3");
+            }
+        }
+
+        if(totalAmount != totalAllocatedAmount) return (false, 'F4');
+        return (true, '');
+    }
+
+    /*
+    function validationVaultsParametersExceptPublic(
+        uint256 totalAmount,
+        LibProject.TokamakVaults memory tokamakVaults,
+        LibProject.InitalParameterSchedule[] memory customScheduleVaults,
+        LibProject.InitalParameterNonScheduleVault[] memory customNonScheduleVaults
+    ) external view returns(bool valid, string memory resean) {
+
+        uint256 totalAllocatedAmount = 0;
+
+        (bool boolValidateTokamakVaults, uint256 tokamakVaultsTotalAmount) = validateTokamakVaultsExceptPublic(tokamakVaults);
+        if(!boolValidateTokamakVaults) {
+            return (false, "F0");
+        }
+
+        (bool boolValidatePublicVaults,) = validationPublicSaleVaults(tokamakVaults.publicSaleParams);
+        require(boolValidatePublicVaults, "F1-1");
+
+        totalAllocatedAmount += tokamakVaultsTotalAmount;
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom1, uint256 custom1TotalAmount) = LibProject.validateScheduleVault(customScheduleVaults);
+            totalAllocatedAmount += custom1TotalAmount;
+            if(!boolValidateCustom1) {
+                return (false, "F2");
+            }
+        }
+
+        if(customScheduleVaults.length != 0){
+            (bool boolValidateCustom2, uint256 custom2TotalAmount) = LibProject.validateNonScheduleVault(customNonScheduleVaults);
+            totalAllocatedAmount += custom2TotalAmount;
+            if(!boolValidateCustom2) {
+                return (false, "F3");
+            }
+        }
+
+        if(totalAmount != totalAllocatedAmount) return (false, 'F4');
+        return (true, '');
+    }
+    */
+
+    function validationPublicSaleVaults(
+        LibProject.InitalParameterPublicSale memory publicSaleParams
+    ) public view returns(bool valid, string memory resean) {
+        LibProject.PublicSaleSet memory sale = publicInfo[0];
+
+        if (
+            sale.minPercents > publicSaleParams.vaultParams.changeTOSPercent ||
+            sale.maxPercents < publicSaleParams.vaultParams.changeTOSPercent
+        ) return (false, "F1");
+
+        if (
+            (block.timestamp + sale.delayTime) > publicSaleParams.vaultParams.startWhiteTime
+        ) return (false, "F1");
+
+
+        return (true, '');
+    }
 
     /* === ======= internal ========== */
     function _depositL1TokenToL2(
-        address sender,
         address addressManager, address l1Token, address l2Token, address depositTo,
         uint256 amount, uint32 _minGasLimit, bytes memory data)
         internal
@@ -292,4 +505,217 @@ contract L1ProjectManager is ProxyStorage, AccessibleCommon, L1ProjectManagerSto
             data
         );
     }
+
+    /*
+    function validateTokamakVaultsExceptPublic(LibProject.TokamakVaults memory tokamakVaults)
+    public pure returns (bool boolValidate, uint256 totalAmount) {
+
+        if (
+            tokamakVaults.initialVaultParams.totalAllocatedAmount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount == 0 ||
+            tokamakVaults.tosAirdropParams.totalAllocatedAmount == 0 ||
+            tokamakVaults.tonAirdropParams.totalAllocatedAmount == 0
+        ) return (boolValidate, totalAmount);
+
+        if (tokamakVaults.initialVaultParams.tosPrice == 0 ||
+            tokamakVaults.initialVaultParams.tokenPrice == 0 ||
+            tokamakVaults.initialVaultParams.initSqrtPrice == 0 ||
+            tokamakVaults.initialVaultParams.startTime == 0 ||
+            tokamakVaults.initialVaultParams.fee == 0) return (boolValidate, totalAmount);
+
+        if (tokamakVaults.rewardTonTosPoolParams.poolParams.token0 == address(0) ||
+            tokamakVaults.rewardTonTosPoolParams.poolParams.token1 == address(0) ||
+            tokamakVaults.rewardTonTosPoolParams.poolParams.fee == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.totalClaimCount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.firstClaimAmount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.firstClaimTime == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.secondClaimTime == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount);
+
+        if (tokamakVaults.rewardProjectTosPoolParams.poolParams.token0 == address(0) ||
+            tokamakVaults.rewardProjectTosPoolParams.poolParams.token1 == address(0) ||
+            tokamakVaults.rewardProjectTosPoolParams.poolParams.fee == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.totalClaimCount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.firstClaimAmount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.firstClaimTime == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.secondClaimTime == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount);
+
+        if (tokamakVaults.tosAirdropParams.totalClaimCount == 0 ||
+            tokamakVaults.tosAirdropParams.firstClaimAmount == 0 ||
+            tokamakVaults.tosAirdropParams.firstClaimTime == 0 ||
+            tokamakVaults.tosAirdropParams.secondClaimTime == 0 ||
+            tokamakVaults.tosAirdropParams.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount);
+
+        if (tokamakVaults.tonAirdropParams.totalClaimCount == 0 ||
+            tokamakVaults.tonAirdropParams.firstClaimAmount == 0 ||
+            tokamakVaults.tonAirdropParams.firstClaimTime == 0 ||
+            tokamakVaults.tonAirdropParams.secondClaimTime == 0 ||
+            tokamakVaults.tonAirdropParams.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount);
+
+        if (
+            tokamakVaults.rewardTonTosPoolParams.params.secondClaimTime < tokamakVaults.rewardTonTosPoolParams.params.firstClaimTime ||
+            tokamakVaults.rewardProjectTosPoolParams.params.secondClaimTime < tokamakVaults.rewardProjectTosPoolParams.params.firstClaimTime ||
+            tokamakVaults.tosAirdropParams.secondClaimTime < tokamakVaults.tosAirdropParams.firstClaimTime ||
+            tokamakVaults.tonAirdropParams.secondClaimTime < tokamakVaults.tonAirdropParams.firstClaimTime
+            )
+            return (boolValidate, totalAmount);
+
+        totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
+                    tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
+                    tokamakVaults.initialVaultParams.totalAllocatedAmount +
+                    tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount +
+                    tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount +
+                    tokamakVaults.tosAirdropParams.totalAllocatedAmount +
+                    tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
+
+        if (totalAmount == 0) return (boolValidate, totalAmount);
+
+        boolValidate = true;
+    }
+    */
+
+    function validateTokamakVaults(LibProject.TokamakVaults memory tokamakVaults)
+    public pure returns (bool boolValidate, uint256 totalAmount, string memory errMsg) {
+        errMsg = "";
+        if ((tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount
+            +tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) == 0 ||
+            tokamakVaults.initialVaultParams.totalAllocatedAmount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount == 0 ||
+            tokamakVaults.tosAirdropParams.totalAllocatedAmount == 0 ||
+            tokamakVaults.tonAirdropParams.totalAllocatedAmount == 0
+        ) return (boolValidate, totalAmount, "E1");
+
+        if (tokamakVaults.initialVaultParams.tosPrice == 0 ||
+            tokamakVaults.initialVaultParams.tokenPrice == 0 ||
+            tokamakVaults.initialVaultParams.initSqrtPrice == 0 ||
+            tokamakVaults.initialVaultParams.startTime == 0 ||
+            tokamakVaults.initialVaultParams.fee == 0) return (boolValidate, totalAmount, "E2");
+
+        if (tokamakVaults.rewardTonTosPoolParams.poolParams.token0 == address(0) ||
+            tokamakVaults.rewardTonTosPoolParams.poolParams.token1 == address(0) ||
+            tokamakVaults.rewardTonTosPoolParams.poolParams.fee == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.totalClaimCount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.firstClaimAmount == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.firstClaimTime == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.secondClaimTime == 0 ||
+            tokamakVaults.rewardTonTosPoolParams.params.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount, "E3");
+
+        if (tokamakVaults.rewardProjectTosPoolParams.poolParams.token0 == address(0) ||
+            tokamakVaults.rewardProjectTosPoolParams.poolParams.token1 == address(0) ||
+            tokamakVaults.rewardProjectTosPoolParams.poolParams.fee == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.totalClaimCount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.firstClaimAmount == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.firstClaimTime == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.secondClaimTime == 0 ||
+            tokamakVaults.rewardProjectTosPoolParams.params.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount, "E4");
+
+        if (tokamakVaults.tosAirdropParams.totalClaimCount == 0 ||
+            tokamakVaults.tosAirdropParams.firstClaimAmount == 0 ||
+            tokamakVaults.tosAirdropParams.firstClaimTime == 0 ||
+            tokamakVaults.tosAirdropParams.secondClaimTime == 0 ||
+            tokamakVaults.tosAirdropParams.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount, "E5");
+
+        if (tokamakVaults.tonAirdropParams.totalClaimCount == 0 ||
+            tokamakVaults.tonAirdropParams.firstClaimAmount == 0 ||
+            tokamakVaults.tonAirdropParams.firstClaimTime == 0 ||
+            tokamakVaults.tonAirdropParams.secondClaimTime == 0 ||
+            tokamakVaults.tonAirdropParams.roundIntervalTime == 0
+            ) return (boolValidate, totalAmount, "E6");
+
+        if (
+            tokamakVaults.rewardTonTosPoolParams.params.secondClaimTime < tokamakVaults.rewardTonTosPoolParams.params.firstClaimTime ||
+            tokamakVaults.rewardProjectTosPoolParams.params.secondClaimTime < tokamakVaults.rewardProjectTosPoolParams.params.firstClaimTime ||
+            tokamakVaults.tosAirdropParams.secondClaimTime < tokamakVaults.tosAirdropParams.firstClaimTime ||
+            tokamakVaults.tonAirdropParams.secondClaimTime < tokamakVaults.tonAirdropParams.firstClaimTime
+            )
+            return (boolValidate, totalAmount, "E7");
+
+        if (
+            tokamakVaults.publicSaleParams.vaultParams.stosTier1 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier2 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier3 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.stosTier4 == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier1Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier2Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier3Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.tier4Percents == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.payTokenPrice == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.changeTOSPercent == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.startWhiteTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.endWhiteTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.start1roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.end1roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.snapshotTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.start2roundTime == 0 ||
+            tokamakVaults.publicSaleParams.vaultParams.end2roundTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.claimCounts == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimPercent == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.secondClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.claimParams.roundInterval == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.totalClaimCount == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.firstClaimPercent == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.firstClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.secondClaimTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.roundIntervalTime == 0 ||
+            tokamakVaults.publicSaleParams.vestingParams.fee == 0
+        ) return (boolValidate, totalAmount, "E8");
+
+        if (
+            (tokamakVaults.publicSaleParams.vaultParams.tier1Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier2Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier3Percents +
+            tokamakVaults.publicSaleParams.vaultParams.tier4Percents) != 10000
+        ) return (boolValidate, totalAmount, "E9");
+
+        if (
+            (tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
+            tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount) < (
+                tokamakVaults.publicSaleParams.vaultParams.hardcapAmount *
+                tokamakVaults.publicSaleParams.vaultParams.payTokenPrice /
+                tokamakVaults.publicSaleParams.vaultParams.saleTokenPrice
+            )
+        ) return (boolValidate, totalAmount, "E10");
+
+        if (
+            tokamakVaults.publicSaleParams.vaultParams.endWhiteTime < tokamakVaults.publicSaleParams.vaultParams.startWhiteTime ||
+            tokamakVaults.publicSaleParams.vaultParams.start1roundTime < tokamakVaults.publicSaleParams.vaultParams.endWhiteTime ||
+            tokamakVaults.publicSaleParams.vaultParams.end1roundTime < tokamakVaults.publicSaleParams.vaultParams.start1roundTime ||
+            tokamakVaults.publicSaleParams.vaultParams.start2roundTime < tokamakVaults.publicSaleParams.vaultParams.end1roundTime ||
+            tokamakVaults.publicSaleParams.vaultParams.end2roundTime < tokamakVaults.publicSaleParams.vaultParams.start2roundTime ||
+            tokamakVaults.publicSaleParams.claimParams.firstClaimTime < tokamakVaults.publicSaleParams.vaultParams.end2roundTime ||
+            tokamakVaults.publicSaleParams.claimParams.secondClaimTime < tokamakVaults.publicSaleParams.claimParams.firstClaimTime
+        ) return (boolValidate, totalAmount, "E11");
+
+        if (
+            tokamakVaults.publicSaleParams.vestingParams.secondClaimTime < tokamakVaults.publicSaleParams.vestingParams.firstClaimTime
+        ) return (boolValidate, totalAmount, "E12");
+
+        totalAmount = tokamakVaults.publicSaleParams.vaultParams.total1roundSaleAmount +
+                    tokamakVaults.publicSaleParams.vaultParams.total2roundSaleAmount +
+                    tokamakVaults.initialVaultParams.totalAllocatedAmount +
+                    tokamakVaults.rewardTonTosPoolParams.params.totalAllocatedAmount +
+                    tokamakVaults.rewardProjectTosPoolParams.params.totalAllocatedAmount +
+                    tokamakVaults.tosAirdropParams.totalAllocatedAmount +
+                    tokamakVaults.tonAirdropParams.totalAllocatedAmount ;
+
+        if (totalAmount == 0) return (boolValidate, totalAmount, "E13");
+
+        boolValidate = true;
+    }
+
+
 }

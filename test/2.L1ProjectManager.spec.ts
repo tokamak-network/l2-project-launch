@@ -236,12 +236,62 @@ describe('L1ProjectManager', () => {
             })
         });
 
+        describe('# setL2Addresses ', () => {
+
+            it('setL2Addresses can not be executed by not owner', async () => {
+                await expect(
+                    deployed.l2ProjectManager.connect(addr1).setL2Addresses(
+                        deployed.l2TokenFactory.address,
+                        deployed.l2Messenger.address,
+                        deployed.l2TonAddress,
+                        deployed.l2TosAddress,
+                        3000
+                        )
+                    ).to.be.revertedWith("Accessible: Caller is not an admin")
+            })
+
+            it('setL2Addresses can be executed by only owner ', async () => {
+
+                await deployed.l2ProjectManager.connect(deployer).setL2Addresses(
+                    deployed.l2TokenFactory.address,
+                    deployed.l2Messenger.address,
+                    deployed.l2TonAddress,
+                    deployed.l2TosAddress,
+                    3000
+                )
+
+                expect(await deployed.l2ProjectManager.l2CrossDomainMessenger()).to.be.eq(deployed.l2Messenger.address)
+
+            })
+
+        });
+
+        describe('# changeRecipient of L2LpRewardVault ', () => {
+            it('changeRecipient can not be executed by not owner', async () => {
+                await expect(
+                    deployed.l2LpRewardVault.connect(addr1).changeRecipient(
+                        deployer.address
+                        )
+                    ).to.be.revertedWith("Accessible: Caller is not an admin")
+            })
+
+            it('changeRecipient can be executed by only owner ', async () => {
+
+                await deployed.l2LpRewardVault.connect(deployer).changeRecipient(
+                    deployer.address
+                )
+
+                expect(await deployed.l2LpRewardVault.recipient()).to.be.eq(deployer.address)
+
+            })
+        });
+
         describe('# setTokamakVaults ', () => {
 
             it('setTokamakVaults can not be executed by not owner', async () => {
                 await expect(
                     deployed.l2ProjectManager.connect(addr1).setTokamakVaults(
-                        ethers.constants.AddressZero,
+                        deployed.l2PublicSaleProxy.address,
                         deployed.initialLiquidityVaultProxy.address,
                         deployed.l2LpRewardVaultProxy.address,
                         deployed.airdropTonVault.address,
@@ -255,7 +305,7 @@ describe('L1ProjectManager', () => {
             it('setTokamakVaults can be executed by only owner ', async () => {
 
                 await deployed.l2ProjectManager.connect(deployer).setTokamakVaults(
-                    ethers.constants.AddressZero,
+                    deployed.l2PublicSaleProxy.address,
                     deployed.initialLiquidityVaultProxy.address,
                     deployed.l2LpRewardVaultProxy.address,
                     deployed.airdropTonVault.address,
@@ -264,6 +314,7 @@ describe('L1ProjectManager', () => {
                     deployed.nonScheduleVaultProxy.address
                 )
 
+                expect(await deployed.l2ProjectManager.publicSaleVault()).to.be.eq(deployed.l2PublicSaleProxy.address)
                 expect(await deployed.l2ProjectManager.initialLiquidityVault()).to.be.eq(deployed.initialLiquidityVaultProxy.address)
                 expect(await deployed.l2ProjectManager.scheduleVault()).to.be.eq(deployed.scheduleVaultProxy.address)
                 expect(await deployed.l2ProjectManager.nonScheduleVault()).to.be.eq(deployed.nonScheduleVaultProxy.address)
@@ -313,10 +364,10 @@ describe('L1ProjectManager', () => {
                     l2UniswapInfo.tos
                 )
 
-                expect(await deployed.initialLiquidityVault.uniswapV3Factory()).to.be.eq(l2UniswapInfo.uniswapV3Factory)
-                expect(await deployed.initialLiquidityVault.nonfungiblePositionManager()).to.be.eq(l2UniswapInfo.npm)
-                expect(await deployed.initialLiquidityVault.ton()).to.be.eq(l2UniswapInfo.ton)
-                expect(await deployed.initialLiquidityVault.tos()).to.be.eq(l2UniswapInfo.tos)
+                expect((await deployed.initialLiquidityVault.uniswapV3Factory()).toUpperCase()).to.be.eq(l2UniswapInfo.uniswapV3Factory.toUpperCase())
+                expect((await deployed.initialLiquidityVault.nonfungiblePositionManager()).toUpperCase()).to.be.eq(l2UniswapInfo.npm.toUpperCase())
+                expect((await deployed.initialLiquidityVault.ton()).toUpperCase()).to.be.eq(l2UniswapInfo.ton.toUpperCase())
+                expect((await deployed.initialLiquidityVault.tos()).toUpperCase()).to.be.eq(l2UniswapInfo.tos.toUpperCase())
 
             })
 
@@ -349,7 +400,9 @@ describe('L1ProjectManager', () => {
                 l1Token: ethers.constants.AddressZero,
                 l2Token: ethers.constants.AddressZero,
                 l2Type: 0,
-                addressManager: ethers.constants.AddressZero
+                addressManager: ethers.constants.AddressZero,
+                firstClaimTime: 0,
+                l2TokenContract: null
             }
 
             const topic = deployed.l1ProjectManager.interface.getEventTopic('CreatedProject');
@@ -409,13 +462,13 @@ describe('L1ProjectManager', () => {
 
             expect(deployedEvent.args.l1Token).to.be.eq(projectInfo.l1Token)
 
-            let contract = await ethers.getContractAt(
+            projectInfo.l2TokenContract = await ethers.getContractAt(
                 L2StandardERC20Json.abi, projectInfo.l2Token, deployer);
 
             if(mockL2FactoryFlag)
-                expect(await contract.l2Bridge()).to.be.eq(deployed.l2Bridge.address);
+                expect(await projectInfo.l2TokenContract.l2Bridge()).to.be.eq(deployed.l2Bridge.address);
 
-            expect(await contract.l1Token()).to.be.eq(projectInfo.l1Token);
+            expect(await projectInfo.l2TokenContract.l1Token()).to.be.eq(projectInfo.l1Token);
 
         })
 
@@ -425,16 +478,25 @@ describe('L1ProjectManager', () => {
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
             let publicSaleParams =  getPublicSaleParams (
-                [0,0,0,0], //tier
-                [0,0,0,0], // percentage
+                [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
                 [0,0], //amount
-                [0,0], // price saleTokenPrice, payTokenPrice
+                [200,2000], // price saleTokenPrice, payTokenPrice
                 0, //hardcapAmount
                 0, //changeTOSPercent
-                [0,0,0,0,0,0,0],
-                0,
-                [],
-                [],
+                [0,0,0,0,0,0,0], //times
+                0, //claimCounts
+                0, //firstClaimPercent
+                0, //firstClaimTime
+                0, //secondClaimTime: number,
+                0, //roundInterval: number,
+                ethers.constants.AddressZero,  // receiveAddress,
+                0, // vestingClaimCounts: number,
+                0, // vestingfirstClaimPercent: number,
+                0, // vestingClaimTime1: number,
+                0, // vestingClaimTime2: number,
+                0, // vestingRoundInterval: number,
+                0, // fee: number
                 );
 
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
@@ -531,10 +593,124 @@ describe('L1ProjectManager', () => {
                 ).to.be.revertedWith("caller is not projectOwner.")
         });
 
+        it('validationPublicSaleVaults', async () => {
+            let publicSaleParams =  getPublicSaleParams (
+                [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
+                [0,0], //amount
+                [200,2000], // price saleTokenPrice, payTokenPrice
+                0, //hardcapAmount
+                0, //changeTOSPercent
+                [0,0,0,0,0,0,0], //times
+                0, //claimCounts
+                0, //firstClaimPercent
+                0, //firstClaimTime
+                0, //secondClaimTime: number,
+                0, //roundInterval: number,
+                ethers.constants.AddressZero,  // receiveAddress,
+                0, // vestingClaimCounts: number,
+                0, // vestingfirstClaimPercent: number,
+                0, // vestingClaimTime1: number,
+                0, // vestingClaimTime2: number,
+                0, // vestingRoundInterval: number,
+                0, // fee: number
+                );
+
+            let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
+            let tosPrice = 1e18;
+            let tokenPrice = 10e18;
+
+            let token0Price = tosPrice;
+            let token1Price = tokenPrice;
+
+            if(deployed.tosAddress > projectInfo.l2Token) {
+                token0Price = tokenPrice;
+                token1Price = tosPrice;
+            }
+
+            const sqrtPrice = univ3prices.utils.encodeSqrtRatioX96(token0Price, token1Price);
+            // const price = univ3prices([18, 18], sqrtPrice).toFixed();
+
+            let initialVaultParams = getInitialLiquidityParams(
+                projectInfo.initialTotalSupply,
+                tosPrice / 1e18,
+                token1Price / 1e18,
+                sqrtPrice.toString(),
+                sTime,
+                3000) ;
+
+            let rewardTonTosPoolParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                deployed.tonAddress,
+                deployed.tosAddress,
+                3000,
+                0, //totalAllocatedAmount
+                0, // totalClaimCount
+                0, //firstClaimAmount
+                0, //firstClaimTime
+                0, //secondClaimTime
+                0 //roundIntervalTime
+            );
+
+            let rewardProjectTosPoolParams = getLpRewardParams(
+                ethers.constants.AddressZero,
+                projectInfo.l2Token,
+                deployed.tosAddress,
+                3000,
+                0, 0, 0, 0, 0, 0);
+
+            let tosAirdropParams =  getTosAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+
+            let tonAirdropParams =  getTonAirdropParams(addr1.address, 0, 0, 0, 0, 0, 0);
+
+            let daoParams =  getNonScheduleParams("DAO", addr1.address, BigNumber.from("0"));
+            let teamParams =  getScheduleParams(
+                "TEAM",
+                addr1.address,
+                BigNumber.from("0"), //totalAllocatedAmount
+                0, // totalClaimCount
+                BigNumber.from("0"), //firstClaimAmount
+                0, //firstClaimTime
+                0, //secondClaimTime
+                0 //roundIntervalTime
+                );
+
+            let marketingParams =  getScheduleParams(
+                "MARKETING",
+                addr1.address,
+                BigNumber.from("0"), //totalAllocatedAmount
+                0, // totalClaimCount
+                BigNumber.from("0"), //firstClaimAmount
+                0, //firstClaimTime
+                0, //secondClaimTime
+                0 //roundIntervalTime
+                );
+
+            let tokamakVaults = {
+                publicSaleParams: publicSaleParams,
+                initialVaultParams : initialVaultParams,
+                rewardTonTosPoolParams: rewardTonTosPoolParams,
+                rewardProjectTosPoolParams: rewardProjectTosPoolParams,
+                tosAirdropParams: tosAirdropParams,
+                tonAirdropParams: tonAirdropParams
+            }
+
+            let customScheduleVaults = [teamParams, marketingParams]
+            let customNonScheduleVaults = [daoParams]
+
+            // console.log(publicSaleParams)
+            let publicVaultcheck = await deployed.l1ProjectManager.validationPublicSaleVaults(
+                publicSaleParams
+            )
+            // console.log(publicVaultcheck)
+            expect(publicVaultcheck.valid).to.be.equal(false)
+
+        });
+
 
         it('Only L1 Project Manager can distribute L2Token', async () => {
 
-            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("8"))
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("10"))
             let rewardTonTosPoolAmount = initialLiquidityAmount
             let rewardProjectTosPoolAmount = initialLiquidityAmount
             let daoAmount = initialLiquidityAmount
@@ -542,28 +718,62 @@ describe('L1ProjectManager', () => {
             let marketingAmount = initialLiquidityAmount
             let airdropStosAmount = initialLiquidityAmount
             let airdropTonAmount = initialLiquidityAmount
-
+            let publisSaleAmount = initialLiquidityAmount.add(initialLiquidityAmount)
 
             let sTime = Math.floor(Date.now() / 1000) + (60*60*24)
-            let firstClaimTime = sTime
+
+            const block = await ethers.provider.getBlock('latest')
+
+            const setSnapshot = block.timestamp + (60*60*1);
+            const whitelistStartTime = setSnapshot + 400;
+            const whitelistEndTime = whitelistStartTime + (86400*7);
+            const round1StartTime = whitelistEndTime + 1;
+            const round1EndTime = round1StartTime + (86400*7);
+            const round2StartTime = round1EndTime + 1;
+            const round2EndTime = round2StartTime + (86400*7);
+
+            const firstClaimTime = round2EndTime + (86400 * 20);
             let totalClaimCount = 4
             let firstClaimAmount = teamAmount.div(BigNumber.from("4"))
             let roundIntervalTime = 60*60*24*7;
             let secondClaimTime =  firstClaimTime + roundIntervalTime
+            const fundClaimTime1 = secondClaimTime + 3000
+            const fundClaimTime2 = fundClaimTime1 + 100
+            let changeTOS = 10;
+            let firstClaimPercent = 4000;
+            let roundInterval = 600;      //1분
+            let fee = 3000;
+
+            projectInfo.firstClaimTime = firstClaimTime
 
             let publicSaleParams =  getPublicSaleParams (
-                [0,0,0,0], //tier
-                [0,0,0,0], // percentage
-                [0,0], //amount
-                [0,0], // price saleTokenPrice, payTokenPrice
-                0, //hardcapAmount
-                0, //changeTOSPercent
-                [0,0,0,0,0,0,0],
-                0,
-                [],
-                [],
-                );
+                [100,200,1000,4000], //tier
+                [600,1200,2200,6000], // percentage
+                [initialLiquidityAmount,initialLiquidityAmount], //amount
+                [200,2000], // price saleTokenPrice, payTokenPrice
+                100*1e18, //hardcapAmount
+                changeTOS, //changeTOSPercent
+                [whitelistStartTime,whitelistEndTime,round1StartTime,round1EndTime,setSnapshot, round2StartTime,round2EndTime], //times
+                totalClaimCount, //claimCounts
+                firstClaimPercent, //firstClaimPercent
+                firstClaimTime, //firstClaimTime
+                secondClaimTime, //secondClaimTime: number,
+                roundIntervalTime, //roundInterval: number,
+                deployer.address,  // receiveAddress,
+                4, // vestingClaimCounts: number,
+                firstClaimPercent, // vestingfirstClaimPercent: number,
+                fundClaimTime1, // vestingClaimTime1: number,
+                fundClaimTime2, // vestingClaimTime2: number,
+                roundInterval, // vestingRoundInterval: number,
+                fee, // fee: number
+            );
 
+            // console.log(publicSaleParams)
+            let publicVaultcheck = await deployed.l1ProjectManager.validationPublicSaleVaults(
+                publicSaleParams
+            )
+            // console.log(publicVaultcheck)
+            expect(publicVaultcheck.valid).to.be.equal(true)
 
             let tosPrice = 1e18;
             let tokenPrice = 10e18;
@@ -670,6 +880,17 @@ describe('L1ProjectManager', () => {
             let customNonScheduleVaults = [daoParams]
             // console.log('customScheduleVaults' ,customScheduleVaults )
             // console.log('customNonScheduleVaults' ,customNonScheduleVaults )
+
+            // validation check
+            let validationVaultsParameters = await deployed.l1ProjectManager.validationVaultsParameters(
+                projectInfo.initialTotalSupply,
+                tokamakVaults,
+                customScheduleVaults,
+                customNonScheduleVaults
+            )
+
+            expect(validationVaultsParameters.valid).to.be.eq(true)
+
             const receipt = await (await deployed.l1ProjectManager.connect(addr2).launchProject(
                     projectInfo.projectId,
                     projectInfo.l2Token,
@@ -729,6 +950,85 @@ describe('L1ProjectManager', () => {
 
 
         });
+
+        it('availableClaimAll', async () => {
+
+            const scheduleVaultNames = ["TEAM", "MARKETING"]
+
+            let block1 = await ethers.provider.getBlock('latest')
+            let available  = await deployed.l2ProjectManager.availableClaimAll(projectInfo.l2Token, scheduleVaultNames)
+            expect(available).to.be.eq(false)
+
+            let passTime = projectInfo.firstClaimTime - block1.timestamp + 100 ;
+            ethers.provider.send("evm_increaseTime", [passTime])
+            ethers.provider.send("evm_mine");
+
+            available  = await deployed.l2ProjectManager.availableClaimAll(projectInfo.l2Token, scheduleVaultNames)
+            expect(available).to.be.eq(true)
+        });
+
+
+        it('claimAll', async () => {
+            let initialLiquidityAmount = projectInfo.initialTotalSupply.div(BigNumber.from("10"))
+            let totalClaimCount = ethers.BigNumber.from("4")
+            const claimAmount = initialLiquidityAmount.div(totalClaimCount)
+
+            const scheduleVaultNames = ["TEAM", "MARKETING"]
+            expect(
+                await deployed.l2ProjectManager.availableClaimAll(projectInfo.l2Token, scheduleVaultNames)
+            ).to.be.eq(true)
+
+            const preBalance_RewardVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.l2LpRewardVaultProxy.address
+            )
+            expect(preBalance_RewardVault).to.be.eq(initialLiquidityAmount.add(initialLiquidityAmount))
+
+            const preBalance_AirdropTonVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.airdropTonVault.address
+            )
+            expect(preBalance_AirdropTonVault).to.be.eq(initialLiquidityAmount)
+
+            const preBalance_AirdropTosVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.airdropStosVault.address
+            )
+            expect(preBalance_AirdropTosVault).to.be.eq(initialLiquidityAmount)
+
+            const preBalance_ScheduleVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.scheduleVaultProxy.address
+            )
+            expect(preBalance_ScheduleVault).to.be.eq(initialLiquidityAmount.add(initialLiquidityAmount))
+
+            let dividendPoolTon = await deployed.airdropTonVault.dividendPool()
+            let dividendPoolStos = await deployed.airdropStosVault.dividendPool()
+            expect(dividendPoolTon).to.be.not.eq(ethers.constants.AddressZero)
+            expect(dividendPoolStos).to.be.not.eq(ethers.constants.AddressZero)
+
+            const receipt = await (await deployed.l2ProjectManager.connect(addr2).claimAll(
+                projectInfo.l2Token, scheduleVaultNames
+            )).wait();
+
+            const afterBalance_RewardVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.l2LpRewardVaultProxy.address
+            )
+            expect(afterBalance_RewardVault).to.be.eq(preBalance_RewardVault.sub(claimAmount.add(claimAmount)))
+
+            const afterBalance_AirdropTonVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.airdropTonVault.address
+            )
+            expect(afterBalance_AirdropTonVault).to.be.eq(preBalance_AirdropTonVault.sub(claimAmount))
+
+            const afterBalance_AirdropTosVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.airdropStosVault.address
+            )
+            expect(afterBalance_AirdropTosVault).to.be.eq(preBalance_AirdropTosVault.sub(claimAmount))
+
+            const afterBalance_ScheduleVault = await projectInfo.l2TokenContract.balanceOf(
+                deployed.scheduleVaultProxy.address
+            )
+            expect(afterBalance_ScheduleVault).to.be.eq(preBalance_ScheduleVault.sub(claimAmount.add(claimAmount)))
+
+        });
+
 
     });
 

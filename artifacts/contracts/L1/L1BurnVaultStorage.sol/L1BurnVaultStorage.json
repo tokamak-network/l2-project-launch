@@ -1,0 +1,81 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "L1BurnVaultStorage",
+  "sourceName": "contracts/L1/L1BurnVaultStorage.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Burnd",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "l2Token",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAdmin",
+          "type": "address"
+        }
+      ],
+      "name": "SetVaultAdmin",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "l2ProjectManager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "vaultAdminOfToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040526000805460ff1916600117905534801561001d57600080fd5b5060cb8061002c6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c806352351e851460375780637fc46ba814606a575b600080fd5b600054604e9061010090046001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b604e60753660046090565b6001602052600090815260409020546001600160a01b031681565b60006020828403121560a157600080fd5b81356001600160a01b038116811460b757600080fd5b939250505056fea164736f6c6343000812000a",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060325760003560e01c806352351e851460375780637fc46ba814606a575b600080fd5b600054604e9061010090046001600160a01b031681565b6040516001600160a01b03909116815260200160405180910390f35b604e60753660046090565b6001602052600090815260409020546001600160a01b031681565b60006020828403121560a157600080fd5b81356001600160a01b038116811460b757600080fd5b939250505056fea164736f6c6343000812000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
